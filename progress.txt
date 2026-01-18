@@ -1,0 +1,39 @@
+## Implemented Features
+
+### Subscriptions Cancel Command
+- Created subscription data models in `pkg/models/subscription.go`
+  - Subscription struct with all required fields (ID, ASIN, title, price, discount, frequency, next delivery, status, quantity)
+  - SubscriptionsResponse struct for listing subscriptions
+  - UpcomingDelivery struct for upcoming deliveries
+
+- Implemented subscriptions API client in `internal/amazon/subscriptions.go`
+  - GetSubscriptions() - retrieves all Subscribe & Save subscriptions
+  - GetSubscription(subscriptionID) - retrieves a specific subscription
+  - SkipDelivery(subscriptionID) - skips next delivery
+  - UpdateFrequency(subscriptionID, weeks) - changes delivery frequency
+  - CancelSubscription(subscriptionID) - cancels a subscription
+  - GetUpcomingDeliveries() - retrieves all upcoming deliveries
+
+- Created subscriptions CLI commands in `cmd/subscriptions.go`
+  - `subscriptions list` - lists all subscriptions
+  - `subscriptions get <subscription-id>` - gets subscription details
+  - `subscriptions skip <subscription-id>` - skips next delivery (requires --confirm)
+  - `subscriptions frequency <subscription-id> --interval <weeks>` - changes frequency (requires --confirm)
+  - `subscriptions cancel <subscription-id>` - cancels subscription (requires --confirm)
+  - `subscriptions upcoming` - shows upcoming deliveries
+
+- Comprehensive test coverage in `internal/amazon/subscriptions_test.go`
+  - Tests for GetSubscriptions, GetSubscription, SkipDelivery
+  - Tests for UpdateFrequency with validation (1-26 weeks)
+  - Tests for CancelSubscription including status change verification
+  - Tests for GetUpcomingDeliveries
+  - All tests passing (17 test cases)
+
+- Safety features
+  - `--confirm` flag required for destructive operations (skip, frequency change, cancel)
+  - Dry run mode shows what would happen without --confirm
+  - Input validation (empty IDs, invalid frequency ranges)
+  - Proper error handling with descriptive messages
+
+- All subscription commands output JSON for AI agent integration
+- Commands follow the same pattern as existing cart commands
