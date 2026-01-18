@@ -1,0 +1,51 @@
+## Progress Log
+
+### Created internal/amazon/auth.go
+
+**What was implemented:**
+
+1. **OAuth Authentication Flow**
+   - Implemented `Authenticator` struct to manage Amazon OAuth authentication
+   - Created `GenerateAuthURL()` to build OAuth authorization URLs with state parameter for CSRF protection
+   - Implemented `ExchangeCodeForTokens()` to exchange authorization code for access and refresh tokens
+   - Implemented `RefreshAccessToken()` to refresh expired access tokens using refresh token
+
+2. **Token Management**
+   - Defined `AuthTokens` struct to store access token, refresh token, token type, expiry time
+   - Implemented `IsTokenExpired()` to check if tokens are expired with configurable buffer time
+   - Implemented `ShouldRefreshToken()` to determine if token needs refresh (expires within 5 minutes)
+   - Implemented `ValidateTokens()` to validate token presence and expiration status
+
+3. **OAuth Callback Server**
+   - Implemented `StartCallbackServer()` to start local HTTP server for OAuth callback handling
+   - Handles OAuth callback on localhost:8085 by default
+   - Validates state parameter for CSRF protection
+   - Returns user-friendly HTML responses for success/failure
+   - Includes 2-minute timeout for user to complete authentication
+
+4. **Configuration & Constants**
+   - Defined OAuth endpoints (AuthURL, TokenURL)
+   - Configured required OAuth scopes (profile, postal_code, profile:user_id)
+   - Set default redirect URI and port configuration
+   - Implemented configurable `AuthConfig` struct
+
+5. **Helper Functions**
+   - `GenerateState()` generates cryptographically secure random state for CSRF protection
+   - `joinScopes()` formats OAuth scopes for authorization URL
+
+**Tests Implemented:**
+- Created comprehensive test suite in `auth_test.go`
+- 9 test functions covering all major functionality
+- Tests for token expiration logic, validation, state generation, auth URL generation
+- All tests passing (2 skipped due to need for dependency injection for HTTP mocking)
+
+**Files Created:**
+- `internal/amazon/auth.go` - Main authentication implementation (315 lines)
+- `internal/amazon/auth_test.go` - Test suite (320+ lines)
+- `go.mod` - Go module initialization
+
+**Next Steps:**
+This authentication module provides the foundation for Phase 2 of the project. The next steps would be:
+- Implement config management to store/load tokens from `~/.amazon-cli/config.json`
+- Create CLI commands for `auth login`, `auth status`, and `auth logout`
+- Integrate with HTTP client for automatic token refresh on API requests
