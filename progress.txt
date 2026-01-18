@@ -1,0 +1,103 @@
+## Implementation: returns label <return-id> command
+
+### What was implemented:
+
+1. **Project Foundation**
+   - Initialized Go module (github.com/zkwentz/amazon-cli)
+   - Created directory structure following PRD specification
+   - Installed dependencies: Cobra CLI framework and Viper config management
+
+2. **Data Models** (pkg/models/)
+   - return.go: Created ReturnableItem, ReturnOption, Return, and ReturnLabel structs
+   - errors.go: Implemented CLIError with standard error codes (AUTH_REQUIRED, AUTH_EXPIRED, NOT_FOUND, etc.)
+
+3. **Core Infrastructure**
+   - config/config.go: Configuration management with support for auth, defaults, and rate limiting
+   - ratelimit/limiter.go: Rate limiter with exponential backoff and jitter
+   - amazon/client.go: HTTP client with rate limiting, user agent rotation, and retry logic
+   - output/output.go: JSON output printer with error formatting
+
+4. **Returns Label Feature** (internal/amazon/returns.go)
+   - Implemented GetReturnLabel(returnID string) function
+   - Validates return ID is provided
+   - Makes HTTP GET request to Amazon returns label endpoint
+   - Handles error cases:
+     * Empty return ID → INVALID_INPUT error
+     * 404 response → NOT_FOUND error
+     * 401/403 response → AUTH_EXPIRED error
+     * 500+ response → AMAZON_ERROR with details
+   - Returns ReturnLabel struct with URL, carrier, and instructions
+
+5. **CLI Commands** (cmd/)
+   - root.go: Root command with global flags (--output, --quiet, --verbose, --config, --no-color)
+   - returns.go: Complete returns command group with:
+     * returns list - List returnable items (stub)
+     * returns options - Get return options (stub)
+     * returns create - Create a return (stub)
+     * returns label <return-id> - Get return label (fully implemented)
+     * returns status - Check return status (stub)
+   - main.go: Entry point that executes root command
+
+6. **Testing** (internal/amazon/returns_test.go)
+   - TestGetReturnLabel: Comprehensive test suite covering:
+     * Valid return ID → success with proper label data
+     * Empty return ID → INVALID_INPUT error
+     * 404 response → NOT_FOUND error
+     * 401 response → AUTH_EXPIRED error
+     * 403 response → AUTH_EXPIRED error
+     * 500 response → AMAZON_ERROR
+   - TestGetReturnLabelURL: Validates correct URL formatting
+   - Uses custom testRoundTripper for HTTP mocking
+   - All tests passing ✓
+
+### Command Usage:
+
+```bash
+# Get return label for a return
+amazon-cli returns label <return-id>
+
+# Example with sample return ID
+amazon-cli returns label RET123456
+```
+
+### Output Format:
+
+```json
+{
+  "return_id": "RET123456",
+  "url": "https://www.amazon.com/returns/label/RET123456/print",
+  "carrier": "UPS",
+  "instructions": "Print this label and attach it to your package. Drop off at any UPS location or schedule a pickup."
+}
+```
+
+### Error Handling:
+
+All errors return JSON format:
+```json
+{
+  "error": {
+    "code": "INVALID_INPUT",
+    "message": "return ID is required"
+  }
+}
+```
+
+### Architecture Notes:
+
+- Follows PRD specification for project structure
+- Uses Cobra for CLI framework (industry standard for Go CLIs)
+- Implements rate limiting with jitter to avoid Amazon anti-automation measures
+- JSON-first output for AI agent integration
+- Comprehensive error handling with structured error codes
+- All functionality is testable with mocked HTTP responses
+
+### Next Steps (not implemented):
+
+Other returns commands remain as stubs:
+- returns list
+- returns options
+- returns create
+- returns status
+
+These would follow the same pattern as the label command.
