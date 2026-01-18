@@ -2,6 +2,8 @@ package amazon
 
 import (
 	"testing"
+
+	"github.com/michaelshimeles/amazon-cli/pkg/models"
 )
 
 func TestCompleteCheckout(t *testing.T) {
@@ -397,6 +399,199 @@ func TestPreviewCheckout(t *testing.T) {
 				t.Error("PreviewCheckout() PaymentMethod is nil")
 			}
 		})
+	}
+}
+
+// TestCompleteCheckout_WithExplicitAddressAndPayment tests checkout with specific address and payment IDs
+func TestCompleteCheckout_WithExplicitAddressAndPayment(t *testing.T) {
+	tests := []struct {
+		name            string
+		addressID       string
+		paymentID       string
+		setupClient     func(*Client)
+		wantErr         bool
+		errContains     string
+		validateConfirm func(*testing.T, *models.OrderConfirmation)
+	}{
+		{
+			name:      "valid checkout with specific address and payment",
+			addressID: "addr_home_123",
+			paymentID: "pay_visa_456",
+			setupClient: func(c *Client) {
+				// Add item to cart
+				c.AddToCart("B08N5WRWNW", 1)
+			},
+			wantErr: false,
+			validateConfirm: func(t *testing.T, confirm *models.OrderConfirmation) {
+				if confirm.OrderID == "" {
+					t.Error("OrderID should not be empty")
+				}
+				if confirm.Total <= 0 {
+					t.Error("Total should be greater than 0")
+				}
+				if confirm.EstimatedDelivery == "" {
+					t.Error("EstimatedDelivery should not be empty")
+				}
+			},
+		},
+		{
+			name:      "checkout with different address format",
+			addressID: "addr_work_789",
+			paymentID: "pay_mastercard_012",
+			setupClient: func(c *Client) {
+				c.AddToCart("B07XJ8C8F5", 2)
+			},
+			wantErr: false,
+			validateConfirm: func(t *testing.T, confirm *models.OrderConfirmation) {
+				if confirm.OrderID == "" {
+					t.Error("OrderID should not be empty")
+				}
+				expectedTotal := 64.78 // 29.99 * 2 + 8% tax
+				if confirm.Total < expectedTotal-0.01 || confirm.Total > expectedTotal+0.01 {
+					t.Errorf("Total = %v, want approximately %v", confirm.Total, expectedTotal)
+				}
+			},
+		},
+		{
+			name:      "checkout with alphanumeric IDs",
+			addressID: "ADDR_ABC123XYZ",
+			paymentID: "PMT_DEF456UVW",
+			setupClient: func(c *Client) {
+				c.AddToCart("B08N5WRWNW", 1)
+				c.AddToCart("B07XJ8C8F5", 1)
+			},
+			wantErr: false,
+			validateConfirm: func(t *testing.T, confirm *models.OrderConfirmation) {
+				if confirm.OrderID == "" {
+					t.Error("OrderID should not be empty")
+				}
+				// 29.99 + 29.99 = 59.98, + 8% tax = 64.78
+				expectedTotal := 64.78
+				if confirm.Total < expectedTotal-0.01 || confirm.Total > expectedTotal+0.01 {
+					t.Errorf("Total = %v, want approximately %v", confirm.Total, expectedTotal)
+				}
+			},
+		},
+		{
+			name:      "checkout with default address ID",
+			addressID: "default",
+			paymentID: "pay_default",
+			setupClient: func(c *Client) {
+				c.AddToCart("B08N5WRWNW", 3)
+			},
+			wantErr: false,
+			validateConfirm: func(t *testing.T, confirm *models.OrderConfirmation) {
+				if confirm.OrderID == "" {
+					t.Error("OrderID should not be empty")
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := NewClient()
+
+			// Setup client if needed
+			if tt.setupClient != nil {
+				tt.setupClient(client)
+			}
+
+			// Execute CompleteCheckout with explicit address and payment
+			confirmation, err := client.CompleteCheckout(tt.addressID, tt.paymentID)
+
+			// Check error expectations
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("CompleteCheckout() expected error but got none")
+				} else if tt.errContains != "" && !contains(err.Error(), tt.errContains) {
+					t.Errorf("CompleteCheckout() error = %v, want error containing %q", err, tt.errContains)
+				}
+				return
+			}
+
+			// Check success expectations
+			if err != nil {
+				t.Errorf("CompleteCheckout() unexpected error: %v", err)
+				return
+			}
+
+			if confirmation == nil {
+				t.Error("CompleteCheckout() returned nil confirmation")
+				return
+			}
+
+			// Run custom validation if provided
+			if tt.validateConfirm != nil {
+				tt.validateConfirm(t, confirmation)
+			}
+		})
+	}
+}
+
+// TestCompleteCheckout_AddressAndPaymentValidation tests address and payment validation
+func TestCompleteCheckout_AddressAndPaymentValidation(t *testing.T) {
+	client := NewClient()
+
+	// Add item to cart
+	_, err := client.AddToCart("B08N5WRWNW", 1)
+	if err != nil {
+		t.Fatalf("failed to add to cart: %v", err)
+	}
+
+	// Test with valid address and payment IDs
+	addressID := "addr_test_001"
+	paymentID := "pay_test_001"
+
+	confirmation, err := client.CompleteCheckout(addressID, paymentID)
+	if err != nil {
+		t.Fatalf("CompleteCheckout() with valid IDs should succeed: %v", err)
+	}
+
+	if confirmation == nil {
+		t.Fatal("confirmation should not be nil")
+	}
+
+	// Verify confirmation structure
+	if confirmation.OrderID == "" {
+		t.Error("OrderID should not be empty")
+	}
+
+	if confirmation.Total <= 0 {
+		t.Error("Total should be greater than 0")
+	}
+
+	if confirmation.EstimatedDelivery == "" {
+		t.Error("EstimatedDelivery should not be empty")
+	}
+}
+
+// TestCompleteCheckout_WithMockAddressesAndPayments tests that checkout works when addresses/payments exist
+func TestCompleteCheckout_WithMockAddressesAndPayments(t *testing.T) {
+	client := NewClient()
+
+	// Add item to cart
+	_, err := client.AddToCart("B08N5WRWNW", 1)
+	if err != nil {
+		t.Fatalf("failed to add to cart: %v", err)
+	}
+
+	// In the current implementation, GetAddresses and GetPaymentMethods return empty slices
+	// So any addressID and paymentID should work (no validation against empty lists)
+	addressID := "any_address_id"
+	paymentID := "any_payment_id"
+
+	confirmation, err := client.CompleteCheckout(addressID, paymentID)
+	if err != nil {
+		t.Fatalf("CompleteCheckout() error = %v, should succeed with any IDs when lists are empty", err)
+	}
+
+	if confirmation == nil {
+		t.Fatal("confirmation should not be nil")
+	}
+
+	if confirmation.OrderID == "" {
+		t.Error("OrderID should not be empty")
 	}
 }
 
