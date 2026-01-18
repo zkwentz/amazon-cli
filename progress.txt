@@ -1,0 +1,79 @@
+## Phase 2.3: Auth Check Middleware Implementation - COMPLETED
+
+### What was implemented:
+
+1. **Auth Check Middleware** (`internal/amazon/auth.go`):
+   - Implemented `RefreshTokenIfNeeded()` function that checks if tokens exist and are valid
+   - Automatically refreshes access tokens when they expire within 5 minutes
+   - Returns appropriate error codes (AUTH_REQUIRED, AUTH_EXPIRED) based on the situation
+   - Implemented `refreshAccessToken()` function to handle OAuth token refresh
+   - Added `IsAuthenticated()` helper function to check auth status
+   - Added `CheckAuth()` convenience function as the main middleware entry point
+
+2. **Client Integration** (`internal/amazon/client.go`):
+   - Created HTTP client with cookie jar for session management
+   - Integrated auth check middleware in the `Do()` method
+   - Auth middleware runs before every authenticated request
+   - Added automatic authorization header injection with Bearer token
+   - Implemented User-Agent rotation with 10+ browser strings
+   - Added retry logic with exponential backoff for 429/503 responses
+   - Created `Get()` and `PostForm()` convenience methods
+
+3. **Supporting Infrastructure**:
+   - **Config Management** (`internal/config/config.go`):
+     - Config struct with Auth, Defaults, and RateLimiting sections
+     - `LoadConfig()` and `SaveConfig()` functions with proper file permissions (0600)
+     - Auto-creates config directory with 0700 permissions
+     - Default config path: `~/.amazon-cli/config.json`
+
+   - **Rate Limiting** (`internal/ratelimit/limiter.go`):
+     - Enforces minimum delay between requests (configurable, default 1000ms)
+     - Adds random jitter (0-500ms) to avoid detection patterns
+     - Exponential backoff for retries (2^n seconds, max 60s)
+     - `ShouldRetry()` logic for 429 and 503 status codes
+
+   - **Error Models** (`pkg/models/errors.go`):
+     - CLIError struct with Code, Message, and Details fields
+     - All error codes from PRD: AUTH_REQUIRED, AUTH_EXPIRED, NOT_FOUND, etc.
+     - Implements standard error interface
+
+4. **Comprehensive Test Coverage**:
+   - **Auth Tests** (`internal/amazon/auth_test.go`):
+     - Tests for missing tokens (AUTH_REQUIRED error)
+     - Tests for valid tokens (no refresh needed)
+     - Tests for expired tokens without refresh token
+     - Tests for token refresh flow with mock server
+     - Tests for IsAuthenticated() with various token states
+     - Tests for server errors during refresh
+
+   - **Config Tests** (`internal/config/config_test.go`):
+     - Tests for loading non-existent config (returns defaults)
+     - Tests for save and load round-trip
+     - Tests for directory creation with correct permissions (0700)
+     - Tests for file permissions (0600)
+     - Tests for default config values
+
+   - **Rate Limiter Tests** (`internal/ratelimit/limiter_test.go`):
+     - Tests for minimum delay enforcement
+     - Tests for exponential backoff calculation
+     - Tests for retry logic with various status codes
+     - Tests for jitter generation
+
+   - **Error Model Tests** (`pkg/models/errors_test.go`):
+     - Tests for error message formatting
+     - Tests for error creation with/without details
+     - Tests for all error code constants
+
+### All tests passing:
+- `internal/amazon`: 8/8 tests pass
+- `internal/config`: 6/6 tests pass
+- `internal/ratelimit`: 5/5 tests pass
+- `pkg/models`: 4/4 tests pass
+- **Total: 23/23 tests pass** ✓
+
+### Key Features:
+- Auth middleware automatically checks and refreshes tokens before each request
+- Proper error handling with structured CLIError types
+- Rate limiting to avoid Amazon anti-automation measures
+- Secure token storage with appropriate file permissions
+- Comprehensive test coverage for all components
