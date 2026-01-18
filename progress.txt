@@ -1,0 +1,71 @@
+## Implementation: GetCart() (*Cart, error)
+
+### Completed Tasks:
+
+1. **Set up Go module and project structure**
+   - Initialized Go module: github.com/zkwentz/amazon-cli
+   - Created directory structure: pkg/models and internal/amazon
+
+2. **Created Cart data model (pkg/models/cart.go)**
+   - Defined CartItem struct with fields: ASIN, Title, Price, Quantity, Subtotal, Prime, InStock
+   - Defined Cart struct with fields: Items, Subtotal, EstimatedTax, Total, ItemCount
+   - Also defined supporting types: Address, PaymentMethod, CheckoutPreview, OrderConfirmation
+   - All structs have proper JSON tags for API output
+
+3. **Implemented GetCart() method (internal/amazon/cart.go)**
+   - Created Amazon Client struct with HTTP client
+   - Implemented GetCart() that:
+     - Makes HTTP GET request to Amazon cart URL (https://www.amazon.com/gp/cart/view.html)
+     - Sets proper browser headers (User-Agent, Accept, Accept-Language)
+     - Parses HTML response to extract cart data
+     - Returns Cart struct with items and totals
+
+   - Implemented parseCartHTML() helper that:
+     - Detects empty cart state
+     - Extracts cart items from HTML
+     - Calculates totals (subtotal, tax, total)
+
+   - Implemented extractCartItems() helper that:
+     - Uses regex to find ASINs in HTML
+     - Extracts product titles, prices, quantities
+     - Detects Prime eligibility
+     - Calculates item subtotals
+
+   - Implemented extractPrice() helper for parsing price values
+   - Implemented stripHTMLTags() utility function
+
+   - Added stub methods for future implementation:
+     - AddToCart(asin, quantity)
+     - RemoveFromCart(asin)
+     - ClearCart()
+     - GetAddresses()
+     - GetPaymentMethods()
+
+4. **Wrote comprehensive tests (internal/amazon/cart_test.go)**
+   - TestGetCart_EmptyCart: Verifies empty cart handling
+   - TestGetCart_WithItems: Verifies cart with multiple items
+   - TestParseCartHTML_EmptyCart: Tests HTML parsing for empty cart
+   - TestExtractCartItems: Tests item extraction with various scenarios
+   - TestExtractPrice: Tests price extraction with different formats
+   - TestStripHTMLTags: Tests HTML tag removal utility
+   - TestNewClient: Tests client initialization
+   - TestClient_NotImplementedMethods: Verifies stub methods return proper errors
+   - TestGetCart_Integration: Integration test structure
+   - TestCartItem_Subtotal: Tests subtotal calculation
+
+   All tests passing (10 tests, 13 subtests total)
+
+### Key Features:
+- Handles empty cart state
+- Extracts multiple items from cart
+- Parses prices with comma formatting
+- Detects Prime eligibility
+- Calculates item and cart totals
+- Proper error handling throughout
+- Comprehensive test coverage
+
+### Implementation Notes:
+- Uses regex-based HTML parsing (production would benefit from goquery library)
+- Client struct ready for future enhancements (auth, rate limiting, etc.)
+- All code follows Go best practices
+- JSON output ready for API integration
