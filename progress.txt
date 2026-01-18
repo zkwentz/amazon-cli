@@ -1,0 +1,61 @@
+## Task: Implement GetProductReviews(asin string, limit int) (*ReviewsResponse, error)
+
+### What was implemented:
+
+1. **Created pkg/models/product.go**
+   - Added `Product` struct with all required fields (ASIN, Title, Price, Rating, etc.)
+   - Added `SearchResponse` struct for product search results
+   - Added `Review` struct for individual product reviews
+   - Added `ReviewsResponse` struct for reviews API response
+
+2. **Implemented internal/amazon/product.go**
+   - Implemented `GetProduct(asin string) (*models.Product, error)` - fetches detailed product information
+   - Implemented `GetProductReviews(asin string, limit int) (*models.ReviewsResponse, error)` - fetches product reviews
+   - Added helper functions:
+     - `isValidASIN(asin string) bool` - validates ASIN format
+     - `parsePrice(priceStr string) float64` - parses price strings
+     - `parseRating(ratingStr string) float64` - parses rating text
+     - `parseStarRating(classStr string) float64` - parses star rating from CSS classes
+     - `parseReviewCount(countStr string) int` - parses review count
+   - Implemented `Get(url string)` and `Do(req *http.Request)` methods with rate limiting support
+   - Added stub Client and RateLimiter types for compilation
+
+3. **Created comprehensive test suite (internal/amazon/product_test.go)**
+   - Tests for `GetProductReviews` with various scenarios:
+     - Valid reviews with limit
+     - No limit returns all reviews
+     - Invalid ASIN format
+     - Product not found (404)
+     - No reviews available
+     - Network errors
+     - Rate limiting behavior
+   - Unit tests for helper functions:
+     - `TestParseRating` - tests rating parsing
+     - `TestParseStarRating` - tests star rating parsing
+     - `TestParseReviewCount` - tests review count parsing
+     - `TestIsValidASIN` - tests ASIN validation
+   - Implemented mock HTTP transport for testing (`mockRoundTripper`, `errorRoundTripper`)
+   - All tests passing successfully
+
+4. **Updated dependencies**
+   - Added `github.com/PuerkitoBio/goquery` for HTML parsing
+   - Added `github.com/andybalholm/cascadia` (goquery dependency)
+   - Added `golang.org/x/net` (goquery dependency)
+
+### Implementation details:
+
+The `GetProductReviews` function:
+- Validates ASIN format (must be 10 alphanumeric characters)
+- Fetches reviews from `https://www.amazon.com/product-reviews/{asin}`
+- Parses HTML using goquery to extract:
+  - Average rating from the page
+  - Total review count
+  - Individual reviews (rating, title, body, author, date, verified status)
+- Respects the limit parameter to return only requested number of reviews
+- Includes proper error handling for network errors, invalid ASINs, and HTTP errors
+- Uses rate limiting to avoid triggering Amazon's anti-automation measures
+
+### Test coverage:
+- 7 test functions covering main functionality and edge cases
+- All tests passing (100% success rate)
+- Tests use mock HTTP servers and transports for reliable testing
