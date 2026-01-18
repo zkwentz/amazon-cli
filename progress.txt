@@ -1,0 +1,92 @@
+# Implementation Progress
+
+## Completed: `returns create <order-id> <item-id>` command
+
+### What was implemented:
+
+1. **Project Structure Setup**
+   - Initialized Go module: `github.com/zkwentz/amazon-cli`
+   - Created directory structure: `cmd/`, `internal/amazon/`, `pkg/models/`
+   - Installed Cobra CLI framework for command handling
+
+2. **Data Models** (`pkg/models/`)
+   - Created `return.go` with comprehensive return-related data structures:
+     - `ReturnableItem`: Represents items eligible for return
+     - `ReturnOption`: Represents return method options (UPS, Amazon Locker, etc.)
+     - `Return`: Represents a return request
+     - `ReturnLabel`: Represents shipping label information
+     - `ReturnCreateRequest`: Request structure for creating returns
+     - `ReturnCreateResponse`: Response structure with dry-run support
+     - `ValidReturnReasons`: Map of valid reason codes with descriptions
+     - `IsValidReturnReason()`: Helper function to validate reason codes
+
+   - Created `errors.go` with structured error handling:
+     - `CLIError`: Structured error with code, message, and details
+     - Error code constants (AUTH_REQUIRED, INVALID_INPUT, etc.)
+     - `ErrorResponse`: Wrapper for JSON error output
+
+3. **Amazon API Client** (`internal/amazon/`)
+   - Created `client.go`: Base HTTP client with user-agent rotation
+   - Created `returns.go` with stub implementations for:
+     - `GetReturnableItems()`: Lists returnable items
+     - `GetReturnOptions()`: Gets return options for an item
+     - `CreateReturn()`: Initiates a return with validation
+     - `GetReturnLabel()`: Retrieves return shipping label
+     - `GetReturnStatus()`: Checks return status
+
+4. **Returns Command** (`cmd/returns.go`)
+   - Implemented full returns command suite:
+     - `returns list`: List returnable items
+     - `returns options <order-id> <item-id>`: Get return options
+     - `returns create <order-id> <item-id>`: Create a return (PRIMARY TASK)
+     - `returns label <return-id>`: Get return label
+     - `returns status <return-id>`: Check return status
+
+   - **`returns create` Features**:
+     - Requires `--reason` flag with validation against allowed codes:
+       - defective, wrong_item, not_as_described, no_longer_needed, better_price, other
+     - Dry-run mode (default): Shows what would be returned without executing
+     - `--confirm` flag required for actual execution (safety feature per PRD)
+     - Comprehensive help text with reason code documentation
+     - JSON output in all cases
+     - Proper error handling with structured error responses
+
+5. **Testing**
+   - Created `pkg/models/return_test.go`:
+     - Tests for `IsValidReturnReason()` with valid and invalid cases
+     - Tests for `ValidReturnReasons` completeness
+
+   - Created `internal/amazon/returns_test.go`:
+     - Tests for `CreateReturn()` validation logic
+     - Tests for all return-related API methods
+     - Error case testing for invalid inputs
+
+   - All tests pass (11 tests total)
+
+6. **Root Command** (`cmd/root.go`)
+   - Set up root command with global flags:
+     - `--output`, `--quiet`, `--verbose`, `--config`, `--no-color`
+
+### Command Usage Examples:
+
+```bash
+# Dry run - see what would be returned
+./amazon-cli returns create 123-4567890-1234567 ITEM123 --reason defective
+
+# Actually create the return
+./amazon-cli returns create 123-4567890-1234567 ITEM123 --reason defective --confirm
+
+# Other return commands
+./amazon-cli returns list
+./amazon-cli returns options 123-4567890-1234567 ITEM123
+./amazon-cli returns label R123-456-789
+./amazon-cli returns status R123-456-789
+```
+
+### Notes:
+- The Amazon API client methods are currently stubs returning mock data
+- Actual Amazon API integration will need to be implemented in Phase 4.2 of the PRD
+- The command structure and data models follow the PRD specifications exactly
+- Safety feature implemented: `--confirm` flag required for execution (prevents accidents)
+- All outputs are in JSON format as specified in the PRD
+- Error handling follows the PRD error code structure
