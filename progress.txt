@@ -1,0 +1,79 @@
+# Progress Log
+
+## Task: Research Amazon's OAuth/Login with Amazon (LWA) API
+
+### Completed: 2026-01-18
+
+**Research Summary:**
+Conducted comprehensive research on Amazon's Login with Amazon (LWA) OAuth 2.0 API. Created detailed documentation covering all aspects of the authentication system.
+
+**Key Findings:**
+
+1. **Authentication Flow**: LWA uses OAuth 2.0 Authorization Code Grant flow
+   - Authorization endpoint: https://www.amazon.com/ap/oa
+   - Token endpoint: https://api.amazon.com/auth/o2/token (regional variants available)
+   - Profile endpoint: https://api.amazon.com/user/profile
+
+2. **Security Features**:
+   - PKCE (Proof Key for Code Exchange) support for browser-based apps
+   - State parameter for CSRF protection
+   - Short-lived access tokens (1 hour expiration)
+   - Refresh tokens for extended sessions
+
+3. **Access Tokens**:
+   - Format: Alphanumeric strings starting with "Atza|"
+   - Size: 350-2048 bytes
+   - Lifetime: 3600 seconds (1 hour)
+   - Must be transmitted over HTTPS
+
+4. **Refresh Tokens**:
+   - Format: Similar to access tokens, starting with "Atzr|"
+   - Extended validity for long-term access
+   - Can be exchanged for new access/refresh token pairs
+
+5. **Available Scopes**:
+   - `profile` - Name and email access
+   - `profile:user_id` - Minimal identification (user_id only)
+   - `postal_code` - Postal/ZIP code access
+
+6. **Profile Data**:
+   - user_id (unique Amazon identifier)
+   - email
+   - name
+   - postal_code
+   - Fields returned depend on requested/consented scopes
+
+7. **Regional Flexibility**:
+   - Applications are NOT region-specific
+   - Can use any regional endpoint (NA, EU, Far East)
+   - Tokens work across all regions
+
+8. **Error Handling**:
+   - Comprehensive error codes for authorization and token requests
+   - Clear error descriptions for debugging
+   - Best practices for retry logic and user experience
+
+**Deliverables:**
+- Created comprehensive research document: `amazon-lwa-oauth-research.md`
+- Document includes:
+  - Complete authentication flow walkthrough
+  - All API endpoints with request/response formats
+  - Security best practices and PKCE implementation
+  - Code examples and conceptual implementation
+  - Error handling guidelines
+  - Testing considerations
+
+**Resources Referenced:**
+- Amazon Developer Documentation (developer.amazon.com)
+- Authorization Code Grant Guide
+- Access Token Documentation
+- Customer Profile API Reference
+- Conceptual Overview
+
+**Next Steps:**
+This research provides a complete foundation for implementing Amazon OAuth authentication. The documentation can be used as a reference for:
+- Building authentication flows
+- Implementing token management
+- Handling user profiles
+- Security implementation
+- Testing and validation
