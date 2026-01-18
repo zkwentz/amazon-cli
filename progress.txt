@@ -1,0 +1,47 @@
+## Progress Log
+
+### Task: Add subscription ID format validation
+
+**Date**: 2026-01-18
+
+**Implementation Details**:
+
+1. Created `pkg/models/validation.go`:
+   - Implemented `ValidateSubscriptionID()` function
+   - Uses regex pattern to validate subscription ID format: `S\d{2}-\d{7}-\d{7}`
+   - Expected format: S01-1234567-8901234 (S + 2 digits + hyphen + 7 digits + hyphen + 7 digits)
+   - Returns descriptive error messages for invalid formats
+
+2. Created `pkg/models/validation_test.go`:
+   - Comprehensive test suite with 22 test cases
+   - Tests valid formats with different digit combinations
+   - Tests all invalid format variations:
+     - Empty string
+     - Missing or incorrect prefix
+     - Wrong number of digits in each segment
+     - Missing hyphens
+     - Invalid characters
+     - Extra characters
+   - All tests passing
+
+**Files Modified**:
+- Created: `pkg/models/validation.go`
+- Created: `pkg/models/validation_test.go`
+
+**Test Results**:
+- All 22 test cases passing
+- Test command: `go test ./pkg/models -v`
+
+**Usage Example**:
+```go
+import "github.com/michaelshimeles/amazon-cli/pkg/models"
+
+err := models.ValidateSubscriptionID("S01-1234567-8901234")
+if err != nil {
+    // Handle invalid subscription ID
+}
+```
+
+**Notes**:
+- Function is ready to be integrated into subscription-related commands when they are implemented
+- Follows the subscription ID format specified in PRD.md line 201: "subscription_id": "S01-1234567-8901234"
