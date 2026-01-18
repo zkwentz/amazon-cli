@@ -1,0 +1,11 @@
+## Phase 1.2: Cobra CLI Framework Setup
+
+### Task: Install Cobra
+- Initialized Go module: `go mod init github.com/zkwentz/amazon-cli`
+- Installed Cobra: `go get -u github.com/spf13/cobra@latest`
+- Dependencies installed:
+  - github.com/spf13/cobra v1.10.2
+  - github.com/spf13/pflag v1.0.10
+  - github.com/inconshreveable/mousetrap v1.1.0
+
+Status: ✓ Complete
