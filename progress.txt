@@ -1,0 +1,58 @@
+# Progress Log
+
+## Completed: Implement NewClient(config *Config) *Client
+
+### What was implemented:
+
+1. **Created directory structure**:
+   - internal/amazon/
+   - internal/config/
+   - internal/ratelimit/
+
+2. **Implemented Config package** (internal/config/config.go):
+   - Config struct with Auth, Defaults, and RateLimiting fields
+   - AuthConfig struct for OAuth tokens and expiry
+   - DefaultsConfig struct for default address/payment/output settings
+   - RateLimitConfig struct for rate limiting parameters
+   - LoadConfig() function to load configuration from JSON file
+   - SaveConfig() function to save configuration with proper permissions (0600)
+   - DefaultConfig() function to return sensible defaults
+   - GetConfigPath() helper function
+
+3. **Implemented RateLimiter package** (internal/ratelimit/limiter.go):
+   - RateLimiter struct to manage HTTP request rate limiting
+   - NewRateLimiter() constructor
+   - Wait() method that enforces minimum delay and adds random jitter (0-500ms)
+   - WaitWithBackoff() method for exponential backoff (2^n seconds, capped at 60s)
+   - ShouldRetry() method to determine if requests should be retried (429/503 status codes)
+
+4. **Implemented Client package** (internal/amazon/client.go):
+   - Client struct with httpClient, rateLimiter, config, and userAgents
+   - NewClient(config *Config) *Client function that:
+     - Creates http.Client with 30-second timeout
+     - Initializes cookie jar for session management
+     - Creates rate limiter from config
+     - Defines 11 diverse User-Agent strings for rotation (Chrome, Firefox, Safari, Edge, Opera on Windows, macOS, Linux)
+     - Returns fully initialized Client instance
+
+5. **Comprehensive test coverage**:
+   - internal/config/config_test.go: Tests for LoadConfig, SaveConfig, DefaultConfig, GetConfigPath
+   - internal/ratelimit/limiter_test.go: Tests for all rate limiter methods including timing tests
+   - internal/amazon/client_test.go: Tests for NewClient initialization, isolation, and user agent diversity
+
+6. **Go module setup**:
+   - Created go.mod with module path github.com/zkwentz/amazon-cli
+
+### Test Results:
+All tests pass successfully:
+- internal/amazon: 9 tests passed
+- internal/config: 8 tests passed
+- internal/ratelimit: 10 tests passed
+
+### Key Features:
+- Thread-safe configuration management with proper file permissions
+- Rate limiting with jitter and exponential backoff to avoid Amazon's anti-automation measures
+- User-Agent rotation with 11+ diverse browser identifiers
+- Cookie jar for session persistence
+- Configurable timeouts and retry logic
+- Full unit test coverage
