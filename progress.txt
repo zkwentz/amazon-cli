@@ -1,0 +1,58 @@
+## Task: Implement PrintError(err error) error
+
+### What was implemented:
+
+1. **Created project structure**
+   - Set up Go module with `go.mod`
+   - Created `pkg/models/` and `internal/output/` directories
+
+2. **Implemented error models (pkg/models/errors.go)**
+   - Defined CLIError struct with Code, Message, and Details fields
+   - Implemented all error code constants from PRD:
+     * AUTH_REQUIRED
+     * AUTH_EXPIRED
+     * NOT_FOUND
+     * RATE_LIMITED
+     * INVALID_INPUT
+     * PURCHASE_FAILED
+     * NETWORK_ERROR
+     * AMAZON_ERROR
+   - Implemented Error() method to satisfy error interface
+   - Created NewCLIError() constructor
+   - Implemented WithDetails() method for chaining
+
+3. **Implemented output package (internal/output/output.go)**
+   - Created Printer struct with format and quiet mode support
+   - Implemented OutputFormat types (JSON, Table, Raw)
+   - Implemented NewPrinter() constructor
+   - Implemented Print() method for general output
+   - **Implemented PrintError(err error) error method**:
+     * Accepts any error type
+     * Wraps standard errors as CLIError with AMAZON_ERROR code
+     * Formats errors as JSON matching PRD specification: `{"error": {"code": "...", "message": "...", "details": {}}}`
+     * Outputs to stderr (not stdout)
+     * Returns the original error for chaining
+     * Handles nil errors gracefully
+
+4. **Comprehensive test coverage**
+   - Created pkg/models/errors_test.go with 7 test cases
+   - Created internal/output/output_test.go with 7 test cases
+   - All tests pass successfully
+   - Test coverage includes:
+     * CLIError creation and methods
+     * JSON marshaling/unmarshaling
+     * All error codes
+     * Standard error wrapping
+     * Nil error handling
+     * Output to stderr verification
+     * JSON formatting validation
+
+### Files created:
+- go.mod
+- pkg/models/errors.go
+- pkg/models/errors_test.go
+- internal/output/output.go
+- internal/output/output_test.go
+
+### Test results:
+All tests pass (14 total tests across 2 packages)
