@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/michaelshimeles/amazon-cli/internal/logger"
 	"github.com/michaelshimeles/amazon-cli/pkg/models"
 )
 
@@ -34,10 +35,14 @@ func NewClient() *Client {
 // AddToCart adds an item to the cart
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) AddToCart(asin string, quantity int) (*models.Cart, error) {
+	logger.Debug("adding item to cart", "asin", asin, "quantity", quantity)
+
 	if asin == "" {
+		logger.Error("AddToCart failed: ASIN cannot be empty")
 		return nil, fmt.Errorf("ASIN cannot be empty")
 	}
 	if quantity <= 0 {
+		logger.Error("AddToCart failed: invalid quantity", "quantity", quantity)
 		return nil, fmt.Errorf("quantity must be positive")
 	}
 
@@ -45,6 +50,7 @@ func (c *Client) AddToCart(asin string, quantity int) (*models.Cart, error) {
 	// For now, add to in-memory cart
 	price := 29.99
 	subtotal := price * float64(quantity)
+	logger.Debug("calculated pricing", "price", price, "subtotal", subtotal)
 
 	newItem := models.CartItem{
 		ASIN:     asin,
@@ -58,6 +64,7 @@ func (c *Client) AddToCart(asin string, quantity int) (*models.Cart, error) {
 
 	c.cart.Items = append(c.cart.Items, newItem)
 	c.cart.ItemCount += quantity
+	logger.Debug("item added to cart", "item_count", c.cart.ItemCount)
 
 	// Recalculate totals
 	c.cart.Subtotal = 0
@@ -67,12 +74,14 @@ func (c *Client) AddToCart(asin string, quantity int) (*models.Cart, error) {
 	c.cart.EstimatedTax = c.cart.Subtotal * 0.08 // 8% tax rate
 	c.cart.Total = c.cart.Subtotal + c.cart.EstimatedTax
 
+	logger.Debug("cart totals calculated", "subtotal", c.cart.Subtotal, "tax", c.cart.EstimatedTax, "total", c.cart.Total)
 	return c.cart, nil
 }
 
 // GetCart retrieves the current cart contents
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) GetCart() (*models.Cart, error) {
+	logger.Debug("retrieving cart", "item_count", c.cart.ItemCount)
 	// TODO: Implement actual Amazon cart retrieval API call
 	return c.cart, nil
 }
@@ -80,7 +89,10 @@ func (c *Client) GetCart() (*models.Cart, error) {
 // RemoveFromCart removes an item from the cart
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) RemoveFromCart(asin string) (*models.Cart, error) {
+	logger.Debug("removing item from cart", "asin", asin)
+
 	if asin == "" {
+		logger.Error("RemoveFromCart failed: ASIN cannot be empty")
 		return nil, fmt.Errorf("ASIN cannot be empty")
 	}
 
@@ -91,6 +103,7 @@ func (c *Client) RemoveFromCart(asin string) (*models.Cart, error) {
 // ClearCart removes all items from the cart
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) ClearCart() error {
+	logger.Debug("clearing cart")
 	// TODO: Implement actual Amazon cart clear API call
 	return nil
 }
@@ -150,27 +163,37 @@ func (c *Client) PreviewCheckout(addressID, paymentID string) (*models.CheckoutP
 // CompleteCheckout completes the checkout process and places the order
 // This method handles the final purchase submission with the specified address and payment method
 func (c *Client) CompleteCheckout(addressID, paymentID string) (*models.OrderConfirmation, error) {
+	logger.Debug("starting checkout", "addressID", addressID, "paymentID", paymentID)
+
 	// Validate input parameters
 	if addressID == "" {
+		logger.Error("CompleteCheckout failed: addressID cannot be empty")
 		return nil, fmt.Errorf("addressID cannot be empty")
 	}
 	if paymentID == "" {
+		logger.Error("CompleteCheckout failed: paymentID cannot be empty")
 		return nil, fmt.Errorf("paymentID cannot be empty")
 	}
 
 	// Step 1: Get current cart to validate items exist
+	logger.Debug("validating cart contents")
 	cart, err := c.GetCart()
 	if err != nil {
+		logger.Error("failed to get cart", "error", err)
 		return nil, fmt.Errorf("failed to get cart: %w", err)
 	}
 
 	if cart.ItemCount == 0 {
+		logger.Error("cart is empty, cannot complete checkout")
 		return nil, fmt.Errorf("cart is empty, cannot complete checkout")
 	}
+	logger.Debug("cart validated", "item_count", cart.ItemCount, "total", cart.Total)
 
 	// Step 2: Validate address exists
+	logger.Debug("validating address", "addressID", addressID)
 	addresses, err := c.GetAddresses()
 	if err != nil {
+		logger.Error("failed to get addresses", "error", err)
 		return nil, fmt.Errorf("failed to get addresses: %w", err)
 	}
 
@@ -182,12 +205,16 @@ func (c *Client) CompleteCheckout(addressID, paymentID string) (*models.OrderCon
 		}
 	}
 	if len(addresses) > 0 && !addressFound {
+		logger.Error("address not found", "addressID", addressID)
 		return nil, fmt.Errorf("address not found: %s", addressID)
 	}
+	logger.Debug("address validated")
 
 	// Step 3: Validate payment method exists
+	logger.Debug("validating payment method", "paymentID", paymentID)
 	paymentMethods, err := c.GetPaymentMethods()
 	if err != nil {
+		logger.Error("failed to get payment methods", "error", err)
 		return nil, fmt.Errorf("failed to get payment methods: %w", err)
 	}
 
@@ -199,15 +226,20 @@ func (c *Client) CompleteCheckout(addressID, paymentID string) (*models.OrderCon
 		}
 	}
 	if len(paymentMethods) > 0 && !paymentFound {
+		logger.Error("payment method not found", "paymentID", paymentID)
 		return nil, fmt.Errorf("payment method not found: %s", paymentID)
 	}
+	logger.Debug("payment method validated")
 
 	// Step 4: Submit checkout request to Amazon
 	// This is where the actual purchase happens
+	logger.Debug("submitting checkout request")
 	orderID, err := c.submitCheckout(addressID, paymentID, cart)
 	if err != nil {
+		logger.Error("failed to submit checkout", "error", err)
 		return nil, fmt.Errorf("failed to submit checkout: %w", err)
 	}
+	logger.Info("checkout completed successfully", "orderID", orderID, "total", cart.Total)
 
 	// Step 5: Parse order confirmation
 	confirmation := &models.OrderConfirmation{
@@ -222,6 +254,7 @@ func (c *Client) CompleteCheckout(addressID, paymentID string) (*models.OrderCon
 // submitCheckout handles the actual HTTP request to Amazon's checkout endpoint
 // This is an internal helper method for CompleteCheckout
 func (c *Client) submitCheckout(addressID, paymentID string, cart *models.Cart) (string, error) {
+	logger.Debug("submitting checkout to Amazon", "addressID", addressID, "paymentID", paymentID, "cart_total", cart.Total)
 	// TODO: This is a placeholder implementation
 	// In a real implementation, this would:
 	// 1. Build the checkout form data with address, payment, and cart info
@@ -232,5 +265,7 @@ func (c *Client) submitCheckout(addressID, paymentID string, cart *models.Cart) 
 
 	// For testing/development, return a mock order ID without making actual HTTP requests
 	// In production, this would be replaced with actual Amazon API calls
-	return fmt.Sprintf("111-%07d-2222222", int(cart.Total*100)%10000000), nil
+	orderID := fmt.Sprintf("111-%07d-2222222", int(cart.Total*100)%10000000)
+	logger.Debug("mock order created", "orderID", orderID)
+	return orderID, nil
 }

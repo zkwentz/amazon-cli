@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/michaelshimeles/amazon-cli/internal/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -64,6 +65,9 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+	// Initialize logger based on verbose flag
+	logger.InitLogger(verbose)
+
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
@@ -71,6 +75,7 @@ func initConfig() {
 		// Find home directory.
 		home, err := os.UserHomeDir()
 		if err != nil {
+			logger.Error("failed to get home directory", "error", err)
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -80,14 +85,16 @@ func initConfig() {
 		viper.AddConfigPath(configPath)
 		viper.SetConfigType("json")
 		viper.SetConfigName("config")
+
+		logger.Debug("config path set", "path", configPath)
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		if verbose {
-			fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
-		}
+		logger.Debug("config file loaded", "file", viper.ConfigFileUsed())
+	} else {
+		logger.Debug("no config file found", "error", err)
 	}
 }
