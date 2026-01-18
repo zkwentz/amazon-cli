@@ -1,0 +1,79 @@
+## Progress Update
+
+### Task: Implement CompleteCheckout(addressID, paymentID string) (*OrderConfirmation, error)
+
+**Completed:**
+
+1. Created cart data models in `pkg/models/cart.go`:
+   - `CartItem` struct with ASIN, Title, Price, Quantity, Subtotal, Prime, InStock fields
+   - `Cart` struct with Items, Subtotal, EstimatedTax, Total, ItemCount fields
+   - `Address` struct with ID, Name, Street, City, State, Zip, Country, Default fields
+   - `PaymentMethod` struct with ID, Type, Last4, Default fields
+   - `CheckoutPreview` struct for preview checkout functionality
+   - `OrderConfirmation` struct with OrderID, Total, EstimatedDelivery fields
+
+2. Implemented cart functionality in `internal/amazon/cart.go`:
+   - Created `Client` struct with in-memory cart for testing/development
+   - Implemented `AddToCart(asin, quantity)` with validation
+   - Implemented `GetCart()` to retrieve current cart contents
+   - Implemented `RemoveFromCart(asin)` for removing items
+   - Implemented `ClearCart()` to clear all items
+   - Implemented `GetAddresses()` to retrieve saved addresses
+   - Implemented `GetPaymentMethods()` to retrieve saved payment methods
+   - Implemented `PreviewCheckout(addressID, paymentID)` for checkout preview
+   - **Implemented `CompleteCheckout(addressID, paymentID)`** with:
+     - Input validation for addressID and paymentID
+     - Cart validation to ensure items exist
+     - Address validation to ensure valid address
+     - Payment method validation
+     - Checkout submission via `submitCheckout()` helper
+     - Order confirmation generation with OrderID, Total, and EstimatedDelivery
+
+3. Created comprehensive test suite in `internal/amazon/cart_test.go`:
+   - `TestCompleteCheckout` with multiple test cases:
+     - Empty addressID validation
+     - Empty paymentID validation
+     - Empty cart validation
+     - Valid checkout with single item
+     - Valid checkout with multiple items
+   - `TestCompleteCheckout_OrderConfirmation` to verify order confirmation structure
+   - `TestAddToCart` with validation tests
+   - `TestGetCart` for cart retrieval
+   - `TestRemoveFromCart` for item removal
+   - `TestClearCart` for clearing cart
+   - `TestGetAddresses` for address retrieval
+   - `TestGetPaymentMethods` for payment method retrieval
+   - `TestPreviewCheckout` for checkout preview
+   - All tests passing (11 tests, 21 subtests)
+
+**Implementation Details:**
+
+The `CompleteCheckout` method:
+- Validates input parameters (addressID and paymentID cannot be empty)
+- Retrieves current cart and validates it has items
+- Validates that the provided address exists in the user's addresses
+- Validates that the provided payment method exists in the user's payment methods
+- Submits the checkout via internal `submitCheckout()` helper
+- Returns an `OrderConfirmation` with order ID, total, and estimated delivery
+
+The implementation uses placeholder/mock functionality for testing purposes. In production, this would:
+- Make actual HTTP requests to Amazon's checkout API
+- Handle CSRF tokens and session management
+- Parse HTML/JSON responses from Amazon
+- Handle various error conditions (payment declined, items out of stock, etc.)
+
+**Files Created/Modified:**
+- `/Users/zacharywentz/Development/amazon-cli/pkg/models/cart.go` (created)
+- `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart.go` (created)
+- `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart_test.go` (created)
+
+**Test Results:**
+```
+PASS
+ok      github.com/michaelshimeles/amazon-cli/internal/amazon   0.238s
+```
+
+**Next Steps:**
+- Phase 6.4: Create cart commands in `cmd/cart.go`
+- Phase 6.5: Implement buy command in `cmd/buy.go`
+- Integration with actual Amazon API/scraping when ready
