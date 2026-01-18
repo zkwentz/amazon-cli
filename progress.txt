@@ -1,0 +1,15 @@
+## Created .gitignore file
+
+Created a comprehensive `.gitignore` file for the Go project with the following categories:
+
+1. **Go binaries and build artifacts**: *.exe, *.dll, *.so, *.dylib, *.test, *.out
+2. **Dependency directories**: vendor/
+3. **Build output directories**: dist/, build/, bin/
+4. **Project-specific executables**: amazon-cli, amazon-cli-*
+5. **Environment and sensitive files**: .env, .env.local, config.json, *.key, *.pem, *.crt
+6. **IDE/editor files**: .vscode/, .idea/, *.swp, .DS_Store
+7. **Debug and temporary files**: debug, *.tmp, *.bak, tmp/, temp/
+8. **Log files**: *.log
+9. **Coverage reports**: coverage.txt, coverage.html, *.coverprofile
+
+The .gitignore includes standard Go patterns plus project-specific patterns for the amazon-cli executable and configuration files that may contain sensitive credentials.
