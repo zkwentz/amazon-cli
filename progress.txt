@@ -1,0 +1,116 @@
+# Progress Log
+
+## Task: Test add/remove/clear cart operations
+
+### Implementation Summary
+
+Implemented comprehensive test coverage for cart operations in `internal/amazon/cart_test.go`:
+
+#### AddToCart Tests
+1. **TestAddToCart** - Table-driven tests covering:
+   - Valid add with single quantity
+   - Empty ASIN validation (should fail)
+   - Zero quantity validation (should fail)
+   - Negative quantity validation (should fail)
+   - Multiple quantity support
+
+2. **TestAddToCart_CalculatesTotals** - Verifies:
+   - Subtotal calculation (price × quantity)
+   - Tax calculation (8% of subtotal)
+   - Total calculation (subtotal + tax)
+   - ItemCount tracking
+
+3. **TestAddToCart_MultipleItems** - Tests:
+   - Adding multiple different items
+   - Item count accumulation across adds
+   - Subtotal aggregation for all items
+
+4. **TestAddToCart_ItemFields** - Validates all CartItem fields:
+   - ASIN matching
+   - Title population
+   - Price positivity
+   - Quantity accuracy
+   - Subtotal calculation per item
+   - Prime flag
+   - InStock flag
+
+#### RemoveFromCart Tests
+1. **TestRemoveFromCart** - Basic validation:
+   - Valid ASIN handling
+   - Empty ASIN validation (should fail)
+
+2. **TestRemoveFromCart_RemovesItem** - Verifies:
+   - Item actually removed from cart
+   - Cart becomes empty after removing only item
+   - ItemCount decremented to 0
+
+3. **TestRemoveFromCart_UpdatesTotals** - Tests:
+   - Totals recalculated after removal
+   - Correct item remains in cart
+   - Subtotal, tax, and total all decrease appropriately
+   - ItemCount updated correctly
+
+4. **TestRemoveFromCart_NonExistentItem** - Edge case:
+   - Removing non-existent item doesn't error
+   - Original items remain untouched
+
+5. **TestRemoveFromCart_MultipleQuantity** - Verifies:
+   - Removing item with quantity > 1 removes all units
+   - ItemCount decremented by full quantity
+
+#### ClearCart Tests
+1. **TestClearCart** - Basic clear operation works
+
+2. **TestClearCart_EmptyCart** - Edge case:
+   - Clearing empty cart doesn't error
+   - Cart remains in valid empty state
+
+3. **TestClearCart_WithItems** - Verifies:
+   - All items removed (tested with 3 different items)
+   - ItemCount reset to 0
+   - Cart.Items slice emptied
+
+4. **TestClearCart_ResetsTotals** - Tests:
+   - Subtotal reset to 0
+   - EstimatedTax reset to 0
+   - Total reset to 0
+
+5. **TestClearCart_ThenAddItem** - State recovery:
+   - Cart works normally after being cleared
+   - New items can be added
+   - Totals calculated correctly for new items
+
+### Code Changes
+
+#### Updated `internal/amazon/cart.go`:
+
+1. **RemoveFromCart** - Enhanced implementation to:
+   - Actually remove items from in-memory cart (was just returning cart)
+   - Filter out items matching the ASIN
+   - Decrement ItemCount by removed item's quantity
+   - Recalculate all totals (subtotal, tax, total)
+
+2. **ClearCart** - Enhanced implementation to:
+   - Reset Items slice to empty
+   - Zero out all financial totals
+   - Reset ItemCount to 0
+
+### Test Results
+
+All 27 cart-related tests pass successfully:
+- 10 AddToCart tests
+- 6 RemoveFromCart tests
+- 5 ClearCart tests
+- 6 other cart operation tests (CompleteCheckout, GetCart, etc.)
+
+### Coverage Areas
+
+The tests now comprehensively cover:
+- ✅ Input validation (empty ASIN, invalid quantities)
+- ✅ Single item operations
+- ✅ Multiple item operations
+- ✅ Quantity handling (1, multiple, accumulation)
+- ✅ Total calculations (subtotal, tax, total, itemCount)
+- ✅ Edge cases (empty cart, non-existent items)
+- ✅ State transitions (add → remove, add → clear → add)
+- ✅ All CartItem fields populated correctly

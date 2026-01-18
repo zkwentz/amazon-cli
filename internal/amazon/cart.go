@@ -85,13 +85,43 @@ func (c *Client) RemoveFromCart(asin string) (*models.Cart, error) {
 	}
 
 	// TODO: Implement actual Amazon cart remove API call
-	return c.GetCart()
+	// For now, remove from in-memory cart
+	newItems := []models.CartItem{}
+	removedQuantity := 0
+
+	for _, item := range c.cart.Items {
+		if item.ASIN != asin {
+			newItems = append(newItems, item)
+		} else {
+			removedQuantity = item.Quantity
+		}
+	}
+
+	c.cart.Items = newItems
+	c.cart.ItemCount -= removedQuantity
+
+	// Recalculate totals
+	c.cart.Subtotal = 0
+	for _, item := range c.cart.Items {
+		c.cart.Subtotal += item.Subtotal
+	}
+	c.cart.EstimatedTax = c.cart.Subtotal * 0.08 // 8% tax rate
+	c.cart.Total = c.cart.Subtotal + c.cart.EstimatedTax
+
+	return c.cart, nil
 }
 
 // ClearCart removes all items from the cart
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) ClearCart() error {
 	// TODO: Implement actual Amazon cart clear API call
+	// For now, clear in-memory cart
+	c.cart.Items = []models.CartItem{}
+	c.cart.Subtotal = 0
+	c.cart.EstimatedTax = 0
+	c.cart.Total = 0
+	c.cart.ItemCount = 0
+
 	return nil
 }
 

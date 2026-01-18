@@ -232,6 +232,124 @@ func TestAddToCart(t *testing.T) {
 	}
 }
 
+// TestAddToCart_CalculatesTotals verifies that adding items calculates subtotal, tax, and total correctly
+func TestAddToCart_CalculatesTotals(t *testing.T) {
+	client := NewClient()
+
+	// Add first item
+	cart, err := client.AddToCart("B08N5WRWNW", 2)
+	if err != nil {
+		t.Fatalf("AddToCart() failed: %v", err)
+	}
+
+	expectedSubtotal := 29.99 * 2 // 59.98
+	if cart.Subtotal != expectedSubtotal {
+		t.Errorf("Subtotal = %v, want %v", cart.Subtotal, expectedSubtotal)
+	}
+
+	expectedTax := expectedSubtotal * 0.08 // 4.7984
+	if cart.EstimatedTax != expectedTax {
+		t.Errorf("EstimatedTax = %v, want %v", cart.EstimatedTax, expectedTax)
+	}
+
+	expectedTotal := expectedSubtotal + expectedTax
+	if cart.Total != expectedTotal {
+		t.Errorf("Total = %v, want %v", cart.Total, expectedTotal)
+	}
+
+	if cart.ItemCount != 2 {
+		t.Errorf("ItemCount = %v, want 2", cart.ItemCount)
+	}
+}
+
+// TestAddToCart_MultipleItems verifies that multiple different items can be added
+func TestAddToCart_MultipleItems(t *testing.T) {
+	client := NewClient()
+
+	// Add first item
+	cart1, err := client.AddToCart("B08N5WRWNW", 1)
+	if err != nil {
+		t.Fatalf("AddToCart() first item failed: %v", err)
+	}
+
+	if len(cart1.Items) != 1 {
+		t.Errorf("After first add, cart has %v items, want 1", len(cart1.Items))
+	}
+
+	// Add second item
+	cart2, err := client.AddToCart("B07XJ8C8F5", 2)
+	if err != nil {
+		t.Fatalf("AddToCart() second item failed: %v", err)
+	}
+
+	if len(cart2.Items) != 2 {
+		t.Errorf("After second add, cart has %v items, want 2", len(cart2.Items))
+	}
+
+	// Verify total item count
+	if cart2.ItemCount != 3 {
+		t.Errorf("ItemCount = %v, want 3 (1 + 2)", cart2.ItemCount)
+	}
+
+	// Verify subtotal is sum of both items
+	expectedSubtotal := 29.99*1 + 29.99*2 // 89.97
+	if cart2.Subtotal != expectedSubtotal {
+		t.Errorf("Subtotal = %v, want %v", cart2.Subtotal, expectedSubtotal)
+	}
+}
+
+// TestAddToCart_ItemFields verifies all cart item fields are populated correctly
+func TestAddToCart_ItemFields(t *testing.T) {
+	client := NewClient()
+
+	cart, err := client.AddToCart("B08N5WRWNW", 3)
+	if err != nil {
+		t.Fatalf("AddToCart() failed: %v", err)
+	}
+
+	if len(cart.Items) != 1 {
+		t.Fatalf("Cart has %v items, want 1", len(cart.Items))
+	}
+
+	item := cart.Items[0]
+
+	// Verify ASIN
+	if item.ASIN != "B08N5WRWNW" {
+		t.Errorf("ASIN = %v, want B08N5WRWNW", item.ASIN)
+	}
+
+	// Verify title is set
+	if item.Title == "" {
+		t.Error("Title should not be empty")
+	}
+
+	// Verify price is positive
+	if item.Price <= 0 {
+		t.Errorf("Price = %v, should be positive", item.Price)
+	}
+
+	// Verify quantity
+	if item.Quantity != 3 {
+		t.Errorf("Quantity = %v, want 3", item.Quantity)
+	}
+
+	// Verify subtotal
+	expectedSubtotal := item.Price * float64(item.Quantity)
+	if item.Subtotal != expectedSubtotal {
+		t.Errorf("Subtotal = %v, want %v", item.Subtotal, expectedSubtotal)
+	}
+
+	// Verify Prime flag
+	if !item.Prime {
+		t.Error("Prime should be true for test items")
+	}
+
+	// Verify InStock flag
+	if !item.InStock {
+		t.Error("InStock should be true for test items")
+	}
+}
+
 func TestGetCart(t *testing.T) {
 	client := NewClient()
 	cart, err := client.GetCart()
@@ -296,12 +414,319 @@ func TestRemoveFromCart(t *testing.T) {
 	}
 }
 
+// TestRemoveFromCart_RemovesItem verifies that removing an item actually removes it from cart
+func TestRemoveFromCart_RemovesItem(t *testing.T) {
+	client := NewClient()
+
+	// Add item to cart
+	_, err := client.AddToCart("B08N5WRWNW", 2)
+	if err != nil {
+		t.Fatalf("AddToCart() failed: %v", err)
+	}
+
+	// Verify item is in cart
+	cart, err := client.GetCart()
+	if err != nil {
+		t.Fatalf("GetCart() failed: %v", err)
+	}
+
+	if len(cart.Items) != 1 {
+		t.Fatalf("Cart should have 1 item, got %v", len(cart.Items))
+	}
+
+	// Remove the item
+	cart, err = client.RemoveFromCart("B08N5WRWNW")
+	if err != nil {
+		t.Fatalf("RemoveFromCart() failed: %v", err)
+	}
+
+	// Verify item is removed
+	if len(cart.Items) != 0 {
+		t.Errorf("Cart should have 0 items after removal, got %v", len(cart.Items))
+	}
+
+	if cart.ItemCount != 0 {
+		t.Errorf("ItemCount should be 0 after removal, got %v", cart.ItemCount)
+	}
+}
+
+// TestRemoveFromCart_UpdatesTotals verifies that totals are recalculated after removal
+func TestRemoveFromCart_UpdatesTotals(t *testing.T) {
+	client := NewClient()
+
+	// Add two different items
+	_, err := client.AddToCart("B08N5WRWNW", 1)
+	if err != nil {
+		t.Fatalf("AddToCart() first item failed: %v", err)
+	}
+
+	_, err = client.AddToCart("B07XJ8C8F5", 1)
+	if err != nil {
+		t.Fatalf("AddToCart() second item failed: %v", err)
+	}
+
+	// Verify cart has 2 items
+	cart, _ := client.GetCart()
+	if len(cart.Items) != 2 {
+		t.Fatalf("Cart should have 2 items, got %v", len(cart.Items))
+	}
+
+	initialTotal := cart.Total
+
+	// Remove one item
+	cart, err = client.RemoveFromCart("B08N5WRWNW")
+	if err != nil {
+		t.Fatalf("RemoveFromCart() failed: %v", err)
+	}
+
+	// Verify cart now has 1 item
+	if len(cart.Items) != 1 {
+		t.Errorf("Cart should have 1 item after removal, got %v", len(cart.Items))
+	}
+
+	// Verify remaining item is the correct one
+	if cart.Items[0].ASIN != "B07XJ8C8F5" {
+		t.Errorf("Remaining item ASIN = %v, want B07XJ8C8F5", cart.Items[0].ASIN)
+	}
+
+	// Verify subtotal decreased
+	expectedSubtotal := 29.99
+	if cart.Subtotal != expectedSubtotal {
+		t.Errorf("Subtotal = %v, want %v", cart.Subtotal, expectedSubtotal)
+	}
+
+	// Verify total decreased
+	if cart.Total >= initialTotal {
+		t.Errorf("Total should decrease after removal, was %v, now %v", initialTotal, cart.Total)
+	}
+
+	// Verify tax recalculated
+	expectedTax := expectedSubtotal * 0.08
+	if cart.EstimatedTax != expectedTax {
+		t.Errorf("EstimatedTax = %v, want %v", cart.EstimatedTax, expectedTax)
+	}
+
+	// Verify item count
+	if cart.ItemCount != 1 {
+		t.Errorf("ItemCount = %v, want 1", cart.ItemCount)
+	}
+}
+
+// TestRemoveFromCart_NonExistentItem verifies removing a non-existent item doesn't error
+func TestRemoveFromCart_NonExistentItem(t *testing.T) {
+	client := NewClient()
+
+	// Add one item
+	_, err := client.AddToCart("B08N5WRWNW", 1)
+	if err != nil {
+		t.Fatalf("AddToCart() failed: %v", err)
+	}
+
+	// Try to remove a different item
+	cart, err := client.RemoveFromCart("B07XJ8C8F5")
+	if err != nil {
+		t.Errorf("RemoveFromCart() should not error for non-existent item: %v", err)
+	}
+
+	// Verify original item is still in cart
+	if len(cart.Items) != 1 {
+		t.Errorf("Cart should still have 1 item, got %v", len(cart.Items))
+	}
+
+	if cart.Items[0].ASIN != "B08N5WRWNW" {
+		t.Errorf("Remaining item ASIN = %v, want B08N5WRWNW", cart.Items[0].ASIN)
+	}
+}
+
+// TestRemoveFromCart_MultipleQuantity verifies removing item with quantity > 1 updates count correctly
+func TestRemoveFromCart_MultipleQuantity(t *testing.T) {
+	client := NewClient()
+
+	// Add item with quantity 5
+	_, err := client.AddToCart("B08N5WRWNW", 5)
+	if err != nil {
+		t.Fatalf("AddToCart() failed: %v", err)
+	}
+
+	cart, _ := client.GetCart()
+	if cart.ItemCount != 5 {
+		t.Fatalf("ItemCount should be 5, got %v", cart.ItemCount)
+	}
+
+	// Remove the item (should remove all 5)
+	cart, err = client.RemoveFromCart("B08N5WRWNW")
+	if err != nil {
+		t.Fatalf("RemoveFromCart() failed: %v", err)
+	}
+
+	// Verify all items removed
+	if cart.ItemCount != 0 {
+		t.Errorf("ItemCount should be 0 after removal, got %v", cart.ItemCount)
+	}
+
+	if len(cart.Items) != 0 {
+		t.Errorf("Cart should be empty, got %v items", len(cart.Items))
+	}
+}
+
 func TestClearCart(t *testing.T) {
 	client := NewClient()
 	err := client.ClearCart()
 
 	if err != nil {
 		t.Errorf("ClearCart() unexpected error: %v", err)
+	}
+}
+
+// TestClearCart_EmptyCart verifies clearing an empty cart doesn't error
+func TestClearCart_EmptyCart(t *testing.T) {
+	client := NewClient()
+
+	// Clear already empty cart
+	err := client.ClearCart()
+	if err != nil {
+		t.Errorf("ClearCart() on empty cart should not error: %v", err)
+	}
+
+	// Verify cart is still empty
+	cart, _ := client.GetCart()
+	if len(cart.Items) != 0 {
+		t.Errorf("Cart should be empty, got %v items", len(cart.Items))
+	}
+
+	if cart.ItemCount != 0 {
+		t.Errorf("ItemCount should be 0, got %v", cart.ItemCount)
+	}
+}
+
+// TestClearCart_WithItems verifies clearing cart removes all items
+func TestClearCart_WithItems(t *testing.T) {
+	client := NewClient()
+
+	// Add multiple items
+	_, err := client.AddToCart("B08N5WRWNW", 2)
+	if err != nil {
+		t.Fatalf("AddToCart() first item failed: %v", err)
+	}
+
+	_, err = client.AddToCart("B07XJ8C8F5", 1)
+	if err != nil {
+		t.Fatalf("AddToCart() second item failed: %v", err)
+	}
+
+	_, err = client.AddToCart("B09ABC123X", 3)
+	if err != nil {
+		t.Fatalf("AddToCart() third item failed: %v", err)
+	}
+
+	// Verify cart has items
+	cart, _ := client.GetCart()
+	if len(cart.Items) != 3 {
+		t.Fatalf("Cart should have 3 items, got %v", len(cart.Items))
+	}
+
+	if cart.ItemCount != 6 {
+		t.Fatalf("ItemCount should be 6, got %v", cart.ItemCount)
+	}
+
+	// Clear the cart
+	err = client.ClearCart()
+	if err != nil {
+		t.Fatalf("ClearCart() failed: %v", err)
+	}
+
+	// Verify cart is empty
+	cart, _ = client.GetCart()
+	if len(cart.Items) != 0 {
+		t.Errorf("Cart should be empty after clear, got %v items", len(cart.Items))
+	}
+
+	if cart.ItemCount != 0 {
+		t.Errorf("ItemCount should be 0 after clear, got %v", cart.ItemCount)
+	}
+}
+
+// TestClearCart_ResetsTotals verifies clearing cart resets all totals to zero
+func TestClearCart_ResetsTotals(t *testing.T) {
+	client := NewClient()
+
+	// Add items to cart
+	_, err := client.AddToCart("B08N5WRWNW", 5)
+	if err != nil {
+		t.Fatalf("AddToCart() failed: %v", err)
+	}
+
+	// Verify cart has non-zero totals
+	cart, _ := client.GetCart()
+	if cart.Subtotal == 0 {
+		t.Fatal("Subtotal should be non-zero before clear")
+	}
+	if cart.EstimatedTax == 0 {
+		t.Fatal("EstimatedTax should be non-zero before clear")
+	}
+	if cart.Total == 0 {
+		t.Fatal("Total should be non-zero before clear")
+	}
+
+	// Clear the cart
+	err = client.ClearCart()
+	if err != nil {
+		t.Fatalf("ClearCart() failed: %v", err)
+	}
+
+	// Verify all totals are zero
+	cart, _ = client.GetCart()
+	if cart.Subtotal != 0 {
+		t.Errorf("Subtotal should be 0 after clear, got %v", cart.Subtotal)
+	}
+
+	if cart.EstimatedTax != 0 {
+		t.Errorf("EstimatedTax should be 0 after clear, got %v", cart.EstimatedTax)
+	}
+
+	if cart.Total != 0 {
+		t.Errorf("Total should be 0 after clear, got %v", cart.Total)
+	}
+}
+
+// TestClearCart_ThenAddItem verifies cart works normally after being cleared
+func TestClearCart_ThenAddItem(t *testing.T) {
+	client := NewClient()
+
+	// Add and clear
+	_, err := client.AddToCart("B08N5WRWNW", 1)
+	if err != nil {
+		t.Fatalf("AddToCart() failed: %v", err)
+	}
+
+	err = client.ClearCart()
+	if err != nil {
+		t.Fatalf("ClearCart() failed: %v", err)
+	}
+
+	// Add item after clearing
+	cart, err := client.AddToCart("B07XJ8C8F5", 2)
+	if err != nil {
+		t.Fatalf("AddToCart() after clear failed: %v", err)
+	}
+
+	// Verify cart has only the new item
+	if len(cart.Items) != 1 {
+		t.Errorf("Cart should have 1 item after clear and add, got %v", len(cart.Items))
+	}
+
+	if cart.Items[0].ASIN != "B07XJ8C8F5" {
+		t.Errorf("Item ASIN = %v, want B07XJ8C8F5", cart.Items[0].ASIN)
+	}
+
+	if cart.ItemCount != 2 {
+		t.Errorf("ItemCount should be 2, got %v", cart.ItemCount)
+	}
+
+	// Verify totals calculated correctly
+	expectedSubtotal := 29.99 * 2
+	if cart.Subtotal != expectedSubtotal {
+		t.Errorf("Subtotal = %v, want %v", cart.Subtotal, expectedSubtotal)
 	}
 }
 
