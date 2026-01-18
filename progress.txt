@@ -1,0 +1,39 @@
+## Completed Tasks
+
+### pkg/models/errors.go
+- Created pkg/models/errors.go with complete error handling implementation
+- Implemented CLIError struct with Code, Message, and Details fields
+- Defined all 8 error code constants matching PRD specification:
+  * AUTH_REQUIRED - User not logged in
+  * AUTH_EXPIRED - Authentication token expired
+  * NOT_FOUND - Resource not found
+  * RATE_LIMITED - Too many requests
+  * INVALID_INPUT - Invalid command input
+  * PURCHASE_FAILED - Purchase could not be completed
+  * NETWORK_ERROR - Network connectivity issue
+  * AMAZON_ERROR - Amazon returned an error
+- Implemented Error() method to satisfy error interface
+- Created helper functions:
+  * NewCLIError(code, message) - Basic error constructor
+  * NewCLIErrorWithDetails(code, message, details) - Error with details
+  * WithDetails(key, value) - Chainable method to add details
+- All error structs properly JSON-marshallable for CLI output
+
+### Tests
+- Created comprehensive test suite in pkg/models/errors_test.go
+- All 9 test cases passing:
+  * TestCLIError_Error - Error message formatting with/without details
+  * TestNewCLIError - Basic constructor
+  * TestNewCLIErrorWithDetails - Constructor with details
+  * TestCLIError_WithDetails - Adding details after creation
+  * TestCLIError_WithDetails_NilDetails - Handling nil details map
+  * TestCLIError_JSONMarshaling - JSON serialization/deserialization
+  * TestErrorCodeConstants - All 8 error codes validated
+  * TestCLIError_ErrorInterface - Error interface compliance
+  * TestCLIError_ChainableWithDetails - Method chaining support
+- Test coverage: 100% of all functions and error paths
+
+### Project Setup
+- Initialized Go module: github.com/zkwentz/amazon-cli
+- Created pkg/models directory structure
+- All tests passing (go test ./pkg/models/... -v)
