@@ -10,17 +10,31 @@ import (
 // Client represents the Amazon API client
 // This is a placeholder structure that will be expanded in future implementations
 type Client struct {
-	httpClient *http.Client
-	baseURL    string
-	sessionID  string
-	cart       *models.Cart // In-memory cart for testing/development
+	httpClient    *http.Client
+	baseURL       string
+	sessionID     string
+	cart          *models.Cart // In-memory cart for testing/development
+	timingLogger  *RequestTimingLogger
+	enableTiming  bool
 }
 
 // NewClient creates a new Amazon API client
 func NewClient() *Client {
+	return NewClientWithOptions(false)
+}
+
+// NewClientWithOptions creates a new Amazon API client with custom options
+func NewClientWithOptions(verbose bool) *Client {
+	// Create timing transport for HTTP request logging
+	timingTransport := NewTimingTransport(verbose)
+
 	return &Client{
-		httpClient: &http.Client{},
-		baseURL:    "https://www.amazon.com",
+		httpClient: &http.Client{
+			Transport: timingTransport,
+		},
+		baseURL:      "https://www.amazon.com",
+		timingLogger: NewRequestTimingLogger(verbose),
+		enableTiming: true,
 		cart: &models.Cart{
 			Items:        []models.CartItem{},
 			Subtotal:     0,
@@ -29,6 +43,11 @@ func NewClient() *Client {
 			ItemCount:    0,
 		},
 	}
+}
+
+// SetTimingEnabled enables or disables timing logging
+func (c *Client) SetTimingEnabled(enabled bool) {
+	c.enableTiming = enabled
 }
 
 // AddToCart adds an item to the cart
@@ -229,6 +248,26 @@ func (c *Client) submitCheckout(addressID, paymentID string, cart *models.Cart) 
 	// 3. Submit POST request to Amazon's checkout endpoint
 	// 4. Parse the response to extract order ID
 	// 5. Handle any errors (payment declined, items out of stock, etc.)
+
+	// Example of how timing would be used with actual HTTP requests:
+	// When implementing actual API calls, the TimingTransport will automatically
+	// log request timing for all HTTP operations. The following pattern shows
+	// how to use the timing logger for non-HTTP operations:
+	//
+	// var orderID string
+	// err := c.timingLogger.TimeOperation("SubmitCheckout", func() error {
+	//     req, err := http.NewRequest("POST", c.baseURL+"/checkout/submit", body)
+	//     if err != nil {
+	//         return err
+	//     }
+	//     resp, err := c.httpClient.Do(req) // This will be logged by TimingTransport
+	//     if err != nil {
+	//         return err
+	//     }
+	//     defer resp.Body.Close()
+	//     // Parse response and extract orderID
+	//     return nil
+	// })
 
 	// For testing/development, return a mock order ID without making actual HTTP requests
 	// In production, this would be replaced with actual Amazon API calls

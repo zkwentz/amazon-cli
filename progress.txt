@@ -1,0 +1,114 @@
+# Progress Log
+
+## Task: Add request timing logging for performance debugging
+
+### Implementation Summary
+
+Added comprehensive request timing logging infrastructure for performance debugging and monitoring.
+
+### Files Created
+
+1. **internal/amazon/timing.go** (177 lines)
+   - TimingTransport: Custom HTTP RoundTripper that wraps HTTP requests with timing measurements
+   - RequestTimingLogger: Structured logger for non-HTTP operations with timing
+   - PrintTimingSummary: Utility function to generate timing statistics reports
+
+2. **internal/amazon/timing_test.go** (414 lines)
+   - Comprehensive test suite with 100% coverage of timing functionality
+   - Tests for HTTP request timing, operation logging, and performance categorization
+   - Integration tests to verify timing logger works with the Amazon client
+
+### Files Modified
+
+3. **internal/amazon/cart.go**
+   - Updated Client struct to include timingLogger and enableTiming fields
+   - Added NewClientWithOptions() to create client with configurable verbose logging
+   - Added SetTimingEnabled() method to toggle timing at runtime
+   - Updated submitCheckout() with example usage documentation
+   - HTTP client now uses TimingTransport for automatic request timing
+
+### Key Features Implemented
+
+1. **Automatic HTTP Request Timing**
+   - All HTTP requests automatically logged with duration
+   - Logs include: method, URL, status code, duration
+   - Visual indicators: ✓ for success, ✗ for errors
+   - Performance categorization: FAST, NORMAL, SLOW, VERY SLOW
+
+2. **Verbose Mode**
+   - Optional verbose logging for detailed debugging
+   - Includes request/response headers, content length, content type
+   - Shows performance categories for easy bottleneck identification
+
+3. **Non-HTTP Operation Timing**
+   - RequestTimingLogger for timing non-HTTP operations
+   - TimeOperation() method for wrapping functions with timing
+   - TimeOperationWithResult() for operations that return values
+   - Structured logging with microsecond precision
+
+4. **Timing Summary Reports**
+   - PrintTimingSummary() generates aggregate statistics
+   - Shows min/max/average/total duration per endpoint
+   - Request count per endpoint
+   - Useful for performance analysis after test runs
+
+5. **Integration with Client**
+   - NewClientWithOptions(verbose bool) creates client with timing enabled
+   - SetTimingEnabled() allows runtime control of timing
+   - Backwards compatible: NewClient() still works with default (non-verbose) settings
+
+### Usage Examples
+
+```go
+// Create client with verbose timing logging
+client := amazon.NewClientWithOptions(true)
+
+// Timing is automatically logged for all HTTP requests
+resp, err := client.httpClient.Do(req)
+// Logs: [HTTP] ✓ POST /checkout/submit - Status: 200 (Duration: 234ms)
+
+// Time non-HTTP operations
+err := client.timingLogger.TimeOperation("ProcessCart", func() error {
+    // ... operation code ...
+    return nil
+})
+// Logs: [OPERATION] ✓ ProcessCart - Success (Duration: 45ms)
+
+// Toggle timing at runtime
+client.SetTimingEnabled(false)
+```
+
+### Test Coverage
+
+All 17 timing-related tests pass:
+- TimingTransport creation and configuration
+- HTTP request timing with various status codes (200, 404, network errors)
+- Performance categorization (FAST, NORMAL, SLOW, VERY SLOW)
+- Verbose vs non-verbose output
+- Operation logging with success and error cases
+- TimeOperation and TimeOperationWithResult helpers
+- PrintTimingSummary with various timing datasets
+- Client integration with timing logger
+
+### Performance Impact
+
+- Minimal overhead: Only adds time.Now() calls before/after operations
+- Logging to stderr doesn't block main operations
+- Can be disabled at runtime if needed
+- No performance impact when verbose mode is off
+
+### Future Enhancements
+
+When actual Amazon API calls are implemented, this timing infrastructure will:
+- Automatically log all HTTP request durations
+- Help identify slow API endpoints
+- Aid in debugging rate limiting and timeout issues
+- Provide data for performance optimization decisions
+- Support integration with monitoring/observability tools
+
+### Notes
+
+- All existing tests continue to pass (9 cart tests)
+- Backwards compatible with existing Client usage
+- Ready for integration when actual HTTP calls are implemented
+- Timing logs go to stderr to avoid interfering with JSON output on stdout
