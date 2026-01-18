@@ -1,0 +1,28 @@
+# Progress Log
+
+## Completed Tasks
+
+### GetSubscription Implementation
+- Created `pkg/models/subscription.go` with Subscription model and related types:
+  - Subscription struct with all fields from PRD specification
+  - SubscriptionsResponse struct for list operations
+  - UpcomingDelivery struct for upcoming deliveries
+
+- Implemented `internal/amazon/subscriptions.go` with:
+  - GetSubscription(subscriptionID string) (*Subscription, error) - retrieves a specific subscription by ID
+  - GetSubscriptions() (*SubscriptionsResponse, error) - retrieves all subscriptions
+  - SkipDelivery(subscriptionID string) (*Subscription, error) - skips next delivery
+  - UpdateFrequency(subscriptionID string, weeks int) (*Subscription, error) - changes delivery frequency
+  - CancelSubscription(subscriptionID string) (*Subscription, error) - cancels a subscription
+  - GetUpcomingDeliveries() ([]UpcomingDelivery, error) - retrieves upcoming deliveries
+
+- Created comprehensive test suite in `internal/amazon/subscriptions_test.go`:
+  - TestGetSubscription - validates successful retrieval and error cases
+  - TestGetSubscription_ReturnsCopy - ensures method returns copies not references
+  - TestGetSubscriptions - validates list operation
+  - TestSkipDelivery - validates skip functionality
+  - TestUpdateFrequency - validates frequency updates with boundary testing
+  - TestCancelSubscription - validates cancellation workflow
+  - TestGetUpcomingDeliveries - validates upcoming deliveries retrieval
+
+All tests passing successfully.
