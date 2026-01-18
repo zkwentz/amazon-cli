@@ -42,6 +42,21 @@ func Execute() error {
 	return rootCmd.Execute()
 }
 
+// GetVerbose returns the verbose flag value
+func GetVerbose() bool {
+	return verbose
+}
+
+// GetQuiet returns the quiet flag value
+func GetQuiet() bool {
+	return quiet
+}
+
+// GetOutput returns the output format flag value
+func GetOutput() string {
+	return output
+}
+
 func init() {
 	cobra.OnInitialize(initConfig)
 
