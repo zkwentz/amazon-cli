@@ -1,0 +1,74 @@
+## Completed: Create internal/output/output.go
+
+### Files Created:
+1. **internal/output/output.go** - Main output formatting package
+   - Implemented OutputFormat type with JSON, Table, and Raw constants
+   - Created Printer struct to handle output formatting with format and quiet mode
+   - Implemented NewPrinter() constructor supporting all output formats
+   - Implemented Print() method with format-specific routing
+   - Implemented printJSON() for JSON output with indentation
+   - Implemented printTable() for human-readable table output using tablewriter
+   - Implemented printRaw() for raw string output
+   - Implemented PrintError() to handle both CLIError and standard errors
+   - Implemented printCLIError() for formatted error output
+   - Implemented PrintSuccess() convenience method for success messages
+   - Added IsQuiet() and GetFormat() accessor methods
+
+2. **internal/output/output_test.go** - Comprehensive unit tests
+   - Tests for NewPrinter with all format variations and case insensitivity
+   - Tests for quiet mode functionality
+   - Tests for JSON output formatting and validation
+   - Tests for quiet mode suppressing output
+   - Tests for error printing with CLIError
+   - Tests for error printing with standard errors
+   - Tests for nil error handling
+   - Tests for success message printing
+   - Tests for raw format output
+   - Tests for table format error output
+   - Tests for format constants validation
+   - All 14 tests passing
+
+3. **pkg/models/errors.go** - Error types and utilities
+   - Defined all error code constants from PRD (AUTH_REQUIRED, AUTH_EXPIRED, NOT_FOUND, RATE_LIMITED, INVALID_INPUT, PURCHASE_FAILED, NETWORK_ERROR, AMAZON_ERROR)
+   - Created CLIError struct with Code, Message, and Details fields
+   - Implemented Error() method for error interface compliance
+   - Implemented NewCLIError() constructor
+   - Implemented WithDetails() for bulk detail addition
+   - Implemented WithDetail() for individual detail addition
+
+4. **pkg/models/errors_test.go** - Error package unit tests
+   - Tests for NewCLIError() constructor
+   - Tests for Error() method string formatting
+   - Tests for WithDetails() bulk addition
+   - Tests for WithDetail() chaining
+   - Tests for all error code constants
+   - All 5 tests passing
+
+### Project Setup:
+- Initialized Go module (github.com/zkwentz/amazon-cli)
+- Installed tablewriter dependency (github.com/olekukonko/tablewriter v1.1.3)
+- Created directory structure for internal/output and pkg/models
+
+### Test Results:
+- All 19 tests passing (14 for output, 5 for errors)
+- Full test coverage for core functionality
+- Tests validate JSON marshaling, quiet mode, error handling, and format switching
+
+### Features Implemented:
+✅ OutputFormat type with JSON, Table, Raw constants
+✅ Printer struct with configurable format and quiet mode
+✅ JSON output with proper indentation
+✅ Table output with tablewriter integration
+✅ Raw string output
+✅ Structured error output matching PRD JSON schema
+✅ Support for both CLIError and standard errors
+✅ Success message helper
+✅ Complete error code system from PRD
+✅ Comprehensive unit tests with 100% pass rate
+
+### Technical Details:
+- Uses json.MarshalIndent for pretty-printed JSON output
+- Integrates tablewriter package for table formatting (latest API)
+- Errors output to stderr, regular output to stdout
+- Quiet mode suppresses all non-error output
+- Error format includes code, message, and details as per PRD specification
