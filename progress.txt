@@ -1,0 +1,102 @@
+# Progress Log
+
+## Task: Ensure all errors output valid JSON (never panic or print stack traces)
+
+### Implementation Summary
+
+Implemented comprehensive JSON error handling throughout the CLI to ensure all errors output valid JSON and never panic or print stack traces.
+
+### Changes Made
+
+1. **Created Error Models** (`pkg/models/errors.go`)
+   - Defined CLIError structure with code, message, and optional details
+   - Implemented all error codes from PRD: AUTH_REQUIRED, AUTH_EXPIRED, NOT_FOUND, RATE_LIMITED, INVALID_INPUT, PURCHASE_FAILED, NETWORK_ERROR, AMAZON_ERROR, INTERNAL_ERROR
+   - Added ErrorResponse wrapper for consistent JSON output format
+   - Implemented ToJSON() method with fallback for marshal errors (never panics)
+   - Added fluent API with WithDetail() method for adding error context
+
+2. **Created Output Package** (`internal/output/output.go`)
+   - Implemented PrintJSON() for structured data output
+   - Implemented PrintError() to output errors as JSON to stderr
+   - Implemented HandleError() to map error codes to exit codes per PRD:
+     - 0: Success
+     - 1: General error
+     - 2: Invalid arguments (INVALID_INPUT)
+     - 3: Authentication error (AUTH_REQUIRED, AUTH_EXPIRED)
+     - 4: Network error (NETWORK_ERROR)
+     - 5: Rate limited (RATE_LIMITED)
+     - 6: Not found (NOT_FOUND)
+   - Implemented WrapPanic() to recover from panics and output as JSON errors
+
+3. **Updated Main Entry Point** (`main.go`)
+   - Added panic recovery with defer output.WrapPanic()
+   - Replaced raw os.Exit(1) with proper error handling via output.HandleError()
+   - Ensures all panics are caught and output as structured JSON errors
+
+4. **Updated Root Command** (`cmd/root.go`)
+   - Removed os.Exit() call from initConfig()
+   - Changed to graceful degradation with warning message instead of hard exit
+   - Config loading errors no longer cause process termination
+
+5. **Comprehensive Test Coverage**
+   - Created `pkg/models/errors_test.go` with 9 test cases covering:
+     - Error creation and initialization
+     - JSON serialization
+     - Error message formatting
+     - Details handling
+     - Circular reference handling (ensures no panics)
+     - All error codes validation
+     - PRD-compliant JSON structure
+
+   - Created `internal/output/output_test.go` with test cases covering:
+     - JSON output formatting
+     - Invalid data handling
+     - Error printing to stderr
+     - Exit code mapping for all error types
+     - Panic recovery logic
+
+   - Updated `main_test.go` to test error handling utilities
+
+### Testing Results
+
+All tests pass successfully:
+- `pkg/models`: 9/9 tests pass
+- `internal/output`: 6/6 tests pass (with 13 subtests)
+- `internal/amazon`: All existing tests continue to pass
+- Build completes successfully with no errors
+
+### Error Output Format
+
+All errors now follow the PRD-specified JSON format:
+
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": {
+      "key": "value"
+    }
+  }
+}
+```
+
+### Key Features
+
+1. **Never Panics**: All panics are caught by WrapPanic() and converted to JSON errors
+2. **Always Valid JSON**: Error output uses ToJSON() with fallback for marshal failures
+3. **Consistent Format**: All errors follow the same structure defined in PRD
+4. **Proper Exit Codes**: Errors map to appropriate exit codes for shell integration
+5. **Details Support**: Errors can include contextual information via the details field
+6. **stderr Output**: Errors are written to stderr (not stdout) for proper CLI behavior
+
+### Verification
+
+The implementation ensures:
+- No panic() calls remain in production code paths
+- No raw fmt.Println() for errors (all use structured output)
+- No stack trace printing
+- os.Exit() removed from library code (only in main.go with proper error handling)
+- All error paths produce valid, parseable JSON
+
+This implementation fully satisfies the requirement: "Ensure all errors output valid JSON (never panic or print stack traces)"

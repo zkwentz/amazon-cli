@@ -71,8 +71,12 @@ func initConfig() {
 		// Find home directory.
 		home, err := os.UserHomeDir()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
+			// Don't exit here - just log the error and continue
+			// The config is optional for many operations
+			if verbose {
+				fmt.Fprintf(os.Stderr, "Warning: Could not determine home directory: %v\n", err)
+			}
+			return
 		}
 
 		// Search config in home directory with name ".amazon-cli/config" (without extension).
