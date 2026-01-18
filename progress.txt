@@ -1,0 +1,31 @@
+## Completed: Write tests for dry run vs confirmed behavior
+
+Created comprehensive test suite for dry run vs confirmed behavior in ralphy.sh.
+
+**What was implemented:**
+- Created test_dry_run.sh with 13 test cases covering all aspects of dry-run functionality
+- Tests verify that --dry-run flag prevents actual execution
+- Tests confirm dry run shows what would be executed without making changes
+- Tests validate no files are modified in dry run mode
+- Tests ensure normal mode (without --dry-run) executes tasks correctly
+- Tests check proper flag parsing and cleanup behavior
+- Tests verify compatibility with other flags (--parallel, --branch-per-task, --max-iterations)
+- All 17 assertions passing (13 test functions with some having multiple assertions)
+
+**Test Coverage:**
+1. Execution prevention in dry run mode
+2. Dry run output formatting
+3. File system immutability during dry run
+4. Git state preservation in dry run
+5. Normal vs dry run behavior comparison
+6. Command line flag parsing
+7. Temporary file cleanup
+8. Exit codes
+9. AI engine invocation prevention
+10. Compatibility with parallel execution
+11. Branch creation prevention
+
+**Files created:**
+- test_dry_run.sh (executable test suite with colored output)
+
+The test suite is fully functional and can be run with: ./test_dry_run.sh
