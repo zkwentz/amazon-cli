@@ -1,0 +1,116 @@
+# Integration Tests with Mock Server - COMPLETED
+
+## Summary
+Implemented comprehensive integration tests with mock HTTP servers for the Amazon CLI HTTP client foundation (Phase 1.6 from PRD).
+
+## What Was Implemented
+
+### 1. Project Structure
+- Initialized Go module: `github.com/zkwentz/amazon-cli`
+- Created directory structure: `cmd/`, `internal/amazon/`, `internal/config/`, `internal/ratelimit/`, `pkg/models/`
+
+### 2. Core Components
+- **Config Module** (`internal/config/config.go`):
+  - Configuration management with JSON persistence
+  - Secure file permissions (0600 for files, 0700 for directories)
+  - Support for auth tokens, defaults, and rate limiting settings
+
+- **Rate Limiter** (`internal/ratelimit/limiter.go`):
+  - Minimum delay enforcement between requests (default: 1000ms)
+  - Random jitter (0-500ms) to avoid thundering herd
+  - Exponential backoff for retries (2^n seconds, capped at 60s)
+  - Configurable max retries (default: 3)
+
+- **HTTP Client** (`internal/amazon/client.go`):
+  - Rate-limited HTTP client with retry logic
+  - Automatic retry on 429 (rate limited) and 503 (service unavailable)
+  - User-Agent rotation (10 different browser user agents)
+  - Cookie jar for session persistence
+  - Standard HTTP headers (Accept, Accept-Language, Accept-Encoding)
+  - 30-second timeout
+  - Support for GET and POST requests
+
+### 3. Integration Tests with Mock Server
+
+#### Client Tests (11 tests, all passing):
+1. **TestClientGet** - Basic GET requests with proper headers
+2. **TestClientRetryOn429** - Automatic retry on rate limiting (429 status)
+3. **TestClientRetryOn503** - Automatic retry on service unavailable (503 status)
+4. **TestClientMaxRetries** - Retry limit enforcement
+5. **TestClientNoRetryOn404** - Non-retryable errors (404) don't trigger retries
+6. **TestClientRateLimiting** - Minimum delay between requests with jitter
+7. **TestClientUserAgentRotation** - User agent cycling through 10 options
+8. **TestClientPostForm** - POST requests with form data
+9. **TestClientCookieJar** - Cookie persistence across requests
+10. **TestClientTimeout** - Request timeout handling
+11. **TestClientConcurrentRequests** - Thread safety with concurrent goroutines
+
+#### Rate Limiter Tests (7 tests, all passing):
+1. **TestNewRateLimiter** - Initialization
+2. **TestWaitFirstRequest** - First request has no delay (only jitter)
+3. **TestWaitSubsequentRequests** - MinDelayMs enforcement
+4. **TestWaitMultipleRequests** - Cumulative delays
+5. **TestWaitWithBackoff** - Exponential backoff (1s, 2s, 4s, 8s, 60s max)
+6. **TestShouldRetry** - Retry decision logic for various status codes
+7. **TestShouldRetryMaxRetries** - Max retry enforcement
+
+#### Config Tests (9 tests, all passing):
+1. **TestDefaultConfig** - Default configuration values
+2. **TestSaveAndLoadConfig** - Saving and loading config files
+3. **TestLoadConfigNonExistent** - Handling missing config files
+4. **TestSaveConfigCreatesDirectory** - Directory creation
+5. **TestConfigFilePermissions** - File permissions (0600)
+6. **TestConfigDirectoryPermissions** - Directory permissions (0700)
+7. **TestConfigJSONFormat** - JSON formatting with indentation
+8. **TestLoadConfigWithInvalidJSON** - Error handling for invalid JSON
+9. **TestConfigRoundTrip** - Data integrity through save/load cycles
+
+### 4. Mock Server Architecture
+- Used Go's standard `httptest` package for lightweight, in-memory HTTP servers
+- Each test creates isolated mock servers that simulate Amazon API behavior
+- No external dependencies or network I/O required
+- Deterministic, fast, and thread-safe tests
+
+### 5. Documentation
+- Created `TEST_README.md` with comprehensive test documentation
+- Explains test coverage, mock server architecture, and how to run tests
+- Includes examples and best practices
+
+## Test Results
+```
+All tests passing:
+- internal/amazon: 11/11 tests passed (18.0s)
+- internal/config: 9/9 tests passed (0.3s)
+- internal/ratelimit: 7/7 tests passed (78.4s)
+
+Total: 27/27 tests passed
+```
+
+## Files Created
+1. `go.mod` - Go module definition
+2. `internal/config/config.go` - Configuration management
+3. `internal/config/config_test.go` - Config tests (9 tests)
+4. `internal/ratelimit/limiter.go` - Rate limiting logic
+5. `internal/ratelimit/limiter_test.go` - Rate limiter tests (7 tests)
+6. `internal/amazon/client.go` - HTTP client with retry logic
+7. `internal/amazon/client_test.go` - Integration tests with mock server (11 tests)
+8. `TEST_README.md` - Comprehensive test documentation
+
+## Key Features Tested
+- ✅ HTTP GET and POST requests
+- ✅ Automatic retry on 429/503 with exponential backoff
+- ✅ Rate limiting with minimum delays and jitter
+- ✅ User-Agent rotation to avoid detection
+- ✅ Cookie jar for session management
+- ✅ Request timeouts
+- ✅ Concurrent request handling
+- ✅ Configuration persistence with secure file permissions
+- ✅ Max retry enforcement
+- ✅ Non-retryable error handling
+
+## Next Steps (for future work)
+- Implement actual Amazon API endpoints (orders, returns, search, etc.)
+- Add authentication logic (OAuth or browser session)
+- Create CLI commands using Cobra framework
+- Add more sophisticated mock responses for Amazon-specific scenarios
+- Implement HTML parsing for scraping Amazon pages
