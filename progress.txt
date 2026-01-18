@@ -1,0 +1,60 @@
+# Progress Update - ASIN Format Validation Helper
+
+## Completed Task: Add ASIN format validation helper (10 alphanumeric characters)
+
+### Implementation Details
+
+Created a new validation package at `internal/validation/` with ASIN format validation functionality.
+
+#### Files Created:
+1. `internal/validation/asin.go` - Main validation logic
+2. `internal/validation/asin_test.go` - Comprehensive test suite
+
+#### Features Implemented:
+
+**ValidateASIN(asin string) error**
+- Validates that ASIN is exactly 10 characters long
+- Validates that ASIN contains only uppercase letters (A-Z) and digits (0-9)
+- Returns descriptive error messages for invalid input
+- Empty string handling
+- Length validation with specific error reporting
+- Character type validation using regex pattern
+
+**IsValidASIN(asin string) bool**
+- Convenience function that returns boolean instead of error
+- Useful for simple valid/invalid checks without error handling
+
+#### Test Coverage:
+
+Comprehensive test suite with 30+ test cases covering:
+- Valid ASINs: uppercase letters, digits, mixed alphanumeric
+- Invalid ASINs: empty, wrong length, lowercase, special characters, whitespace
+- Error message validation
+- Benchmark tests for performance
+
+#### Test Results:
+- All tests passing (22 validation tests, 8 boolean tests, 5 error message tests)
+- Performance: ~100 ns/op with 0 allocations for valid ASINs
+- Performance: ~96 ns/op with 2 allocations for invalid ASINs
+
+#### Usage Example:
+```go
+import "github.com/michaelshimeles/amazon-cli/internal/validation"
+
+// Using ValidateASIN with error handling
+if err := validation.ValidateASIN("B08N5WRWNW"); err != nil {
+    return fmt.Errorf("invalid ASIN: %w", err)
+}
+
+// Using IsValidASIN for simple checks
+if !validation.IsValidASIN(asin) {
+    return errors.New("invalid ASIN format")
+}
+```
+
+#### Next Steps:
+This validation helper can be integrated into:
+- `internal/amazon/cart.go` - AddToCart, RemoveFromCart methods
+- Future product commands - product get, product reviews
+- Future cart commands - cart add
+- Future buy commands - quick purchase validation
