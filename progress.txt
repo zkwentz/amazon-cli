@@ -1,0 +1,44 @@
+## Completed Tasks
+
+### UpdateFrequency Method Implementation
+
+**Files Created:**
+1. pkg/models/subscription.go - Created subscription data models
+   - Subscription struct with all required fields (SubscriptionID, ASIN, Title, Price, DiscountPercent, FrequencyWeeks, NextDelivery, Status, Quantity)
+   - SubscriptionsResponse struct for list operations
+   - UpcomingDelivery struct for upcoming deliveries
+
+2. internal/amazon/subscriptions.go - Implemented subscription management methods
+   - GetSubscriptions() - Retrieves all subscriptions
+   - GetSubscription(subscriptionID) - Gets a specific subscription
+   - SkipDelivery(subscriptionID) - Skips next delivery
+   - UpdateFrequency(subscriptionID, weeks) - Updates delivery frequency (main implementation)
+   - CancelSubscription(subscriptionID) - Cancels a subscription
+   - GetUpcomingDeliveries() - Gets upcoming deliveries
+
+3. internal/amazon/subscriptions_test.go - Comprehensive test coverage
+   - TestUpdateFrequency with 7 test cases covering:
+     * Valid frequency updates (1, 8, 26 weeks)
+     * Error cases: empty ID, zero/negative weeks, exceeding maximum
+     * Validation of frequency change and next delivery date calculation
+   - TestGetSubscription with validation tests
+   - TestSkipDelivery with delivery date validation
+   - TestCancelSubscription with status verification
+   - TestGetSubscriptions and TestGetUpcomingDeliveries
+
+**Implementation Details:**
+- UpdateFrequency validates input parameters:
+  * Ensures subscriptionID is not empty
+  * Validates weeks is positive (> 0)
+  * Validates weeks does not exceed 26 (6 months maximum)
+- Updates subscription frequency and recalculates next delivery date
+- Follows existing codebase patterns from cart.go implementation
+- Returns updated Subscription struct with new frequency and delivery date
+
+**Test Results:**
+All tests pass successfully:
+- 7 test cases for UpdateFrequency
+- 2 test cases for GetSubscription
+- 2 test cases for SkipDelivery
+- 2 test cases for CancelSubscription
+- Additional tests for list operations
