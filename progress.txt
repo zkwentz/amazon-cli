@@ -1,0 +1,59 @@
+## Implementation Progress
+
+### Completed: GetReturnableItems() ([]ReturnableItem, error)
+
+**Date:** 2026-01-18
+
+**What was implemented:**
+
+1. Created project structure:
+   - Initialized Go module: github.com/zkwentz/amazon-cli
+   - Created directory structure: pkg/models, internal/amazon
+
+2. Implemented data models in pkg/models/return.go:
+   - ReturnableItem struct with fields: OrderID, ItemID, ASIN, Title, Price, PurchaseDate, ReturnWindow
+   - ReturnOption struct for return methods
+   - Return struct for return requests
+   - ReturnLabel struct for shipping labels
+   - All structs include JSON tags for proper serialization
+
+3. Implemented Client in internal/amazon/client.go:
+   - NewClient() constructor with 30-second timeout
+   - Cookie jar for session management
+   - Base URL configuration for Amazon
+
+4. Implemented GetReturnableItems() in internal/amazon/returns.go:
+   - Fetches returnable items from Amazon returns center
+   - Makes HTTP GET request to /gp/css/returns/homepage.html
+   - Sets appropriate browser headers (User-Agent, Accept, Accept-Language)
+   - Returns []ReturnableItem slice
+   - Proper error handling with wrapped errors
+   - parseReturnableItems() helper function with regex-based HTML parsing
+   - Returns empty slice (not nil) when no items found
+
+5. Comprehensive test suite in internal/amazon/returns_test.go:
+   - TestGetReturnableItems_Success: Tests successful API call with mock server
+   - TestGetReturnableItems_NetworkError: Tests network failure handling
+   - TestGetReturnableItems_UnexpectedStatusCode: Tests HTTP error responses
+   - TestGetReturnableItems_EmptyResponse: Tests empty HTML response handling
+   - TestParseReturnableItems_ValidHTML: Tests HTML parsing with valid data
+   - TestParseReturnableItems_EmptyHTML: Tests empty HTML parsing
+   - TestReturnableItem_JSONSerialization: Tests struct field accessibility
+   - All 7 tests passing
+
+**Technical notes:**
+- Implementation uses regex-based HTML parsing as a placeholder
+- In production, would use goquery (github.com/PuerkitoBio/goquery) for robust HTML parsing
+- Parser looks for patterns: order IDs, ASINs, product titles, prices
+- Returns empty slice instead of nil for better JSON serialization
+- Follows Go best practices with proper error wrapping using %w
+
+**Files created:**
+- go.mod
+- pkg/models/return.go
+- internal/amazon/client.go
+- internal/amazon/returns.go
+- internal/amazon/returns_test.go
+
+**Test results:**
+All tests passing (7/7)
