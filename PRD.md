@@ -315,7 +315,7 @@ Available on GitHub Releases page.
 ### Build from Source
 
 ```bash
-go install github.com/yourusername/amazon-cli@latest
+go install github.com/zkwentz/amazon-cli@latest
 ```
 
 ## Project Structure
@@ -368,117 +368,117 @@ amazon-cli/
 ### Phase 1: Project Setup & Foundation
 
 #### 1.1 Repository Initialization
-- [ ] Create new GitHub repository `amazon-cli`
-- [ ] Initialize Go module: `go mod init github.com/michaelshimeles/amazon-cli`
-- [ ] Create `.gitignore` file with Go defaults (binaries, vendor/, .env, etc.)
-- [ ] Create initial `main.go` entry point
-- [ ] Set up directory structure:
+- [x] Create new GitHub repository `amazon-cli`
+- [x] Initialize Go module: `go mod init github.com/zkwentz/amazon-cli`
+- [x] Create `.gitignore` file with Go defaults (binaries, vendor/, .env, etc.)
+- [x] Create initial `main.go` entry point
+- [x] Set up directory structure:
   ```
   mkdir -p cmd internal/amazon internal/config internal/output internal/ratelimit pkg/models
   ```
 
 #### 1.2 Cobra CLI Framework Setup
-- [ ] Install Cobra: `go get -u github.com/spf13/cobra@latest`
-- [ ] Install Viper for config: `go get -u github.com/spf13/viper@latest`
-- [ ] Create `cmd/root.go` with root command:
+- [x] Install Cobra: `go get -u github.com/spf13/cobra@latest`
+- [x] Install Viper for config: `go get -u github.com/spf13/viper@latest`
+- [x] Create `cmd/root.go` with root command:
   - [ ] Set `Use: "amazon-cli"`
   - [ ] Set `Short` and `Long` descriptions
   - [ ] Add persistent flags: `--output`, `--quiet`, `--verbose`, `--config`, `--no-color`
   - [ ] Initialize Viper config binding in `init()`
-- [ ] Create `cmd/version.go` - simple version command that prints version string
-- [ ] Wire up `main.go` to execute root command
-- [ ] Verify CLI runs: `go run main.go --help` should show help text
+- [x] Create `cmd/version.go` - simple version command that prints version string
+- [x] Wire up `main.go` to execute root command
+- [x] Verify CLI runs: `go run main.go --help` should show help text
 
 #### 1.3 Configuration Management
-- [ ] Create `internal/config/config.go`:
+- [x] Create `internal/config/config.go`:
   - [ ] Define `Config` struct matching the JSON schema in PRD (auth, defaults, rate_limiting)
   - [ ] Define `AuthConfig` struct with `AccessToken`, `RefreshToken`, `ExpiresAt` fields
   - [ ] Define `DefaultsConfig` struct with `AddressID`, `PaymentID`, `OutputFormat` fields
   - [ ] Define `RateLimitConfig` struct with `MinDelayMs`, `MaxDelayMs`, `MaxRetries` fields
-- [ ] Implement `LoadConfig(path string) (*Config, error)`:
+- [x] Implement `LoadConfig(path string) (*Config, error)`:
   - [ ] Default path: `~/.amazon-cli/config.json`
   - [ ] Create directory if not exists with `0700` permissions
   - [ ] Return empty config if file doesn't exist (first run)
   - [ ] Parse JSON and return Config struct
-- [ ] Implement `SaveConfig(config *Config, path string) error`:
+- [x] Implement `SaveConfig(config *Config, path string) error`:
   - [ ] Marshal to JSON with indentation
   - [ ] Write to file with `0600` permissions
-- [ ] Implement `GetConfigPath() string` helper that respects `--config` flag
-- [ ] Write unit tests for config load/save operations
+- [x] Implement `GetConfigPath() string` helper that respects `--config` flag
+- [x] Write unit tests for config load/save operations
 
 #### 1.4 JSON Output System
-- [ ] Create `internal/output/output.go`:
+- [x] Create `internal/output/output.go`:
   - [ ] Define `OutputFormat` type (JSON, Table, Raw constants)
   - [ ] Create `Printer` struct that holds format preference and quiet mode
-- [ ] Implement `NewPrinter(format string, quiet bool) *Printer`
-- [ ] Implement `Print(data interface{}) error`:
+- [x] Implement `NewPrinter(format string, quiet bool) *Printer`
+- [x] Implement `Print(data interface{}) error`:
   - [ ] For JSON: marshal with `json.MarshalIndent` and print to stdout
   - [ ] For Table: use `tablewriter` package for human-readable output
   - [ ] For Raw: print raw string representation
-- [ ] Implement `PrintError(err error) error`:
+- [x] Implement `PrintError(err error) error`:
   - [ ] Format errors as JSON: `{"error": {"code": "...", "message": "...", "details": {}}}`
   - [ ] Use error codes from PRD (AUTH_REQUIRED, AUTH_EXPIRED, etc.)
-- [ ] Create `pkg/models/errors.go`:
+- [x] Create `pkg/models/errors.go`:
   - [ ] Define `CLIError` struct with `Code`, `Message`, `Details` fields
   - [ ] Define error code constants matching PRD table
   - [ ] Implement `Error()` method on CLIError for error interface
-- [ ] Write unit tests for JSON output formatting
+- [x] Write unit tests for JSON output formatting
 
 #### 1.5 Rate Limiting Infrastructure
-- [ ] Create `internal/ratelimit/limiter.go`:
+- [x] Create `internal/ratelimit/limiter.go`:
   - [ ] Define `RateLimiter` struct with config, last request time, retry count
-- [ ] Implement `NewRateLimiter(config RateLimitConfig) *RateLimiter`
-- [ ] Implement `Wait() error`:
+- [x] Implement `NewRateLimiter(config RateLimitConfig) *RateLimiter`
+- [x] Implement `Wait() error`:
   - [ ] Calculate time since last request
   - [ ] If less than MinDelayMs, sleep for the difference
   - [ ] Add random jitter (0-500ms) using `crypto/rand`
   - [ ] Update last request timestamp
-- [ ] Implement `WaitWithBackoff(attempt int) error`:
+- [x] Implement `WaitWithBackoff(attempt int) error`:
   - [ ] Calculate exponential backoff: `min(2^attempt * 1000ms, 60000ms)`
   - [ ] Sleep for calculated duration
   - [ ] Log backoff duration if verbose mode
-- [ ] Implement `ShouldRetry(statusCode int, attempt int) bool`:
+- [x] Implement `ShouldRetry(statusCode int, attempt int) bool`:
   - [ ] Return true for 429 (rate limited) or 503 (service unavailable)
   - [ ] Return false if attempt >= MaxRetries
   - [ ] Return false for other status codes
-- [ ] Write unit tests for rate limiter logic
+- [x] Write unit tests for rate limiter logic
 
 #### 1.6 HTTP Client Foundation
-- [ ] Create `internal/amazon/client.go`:
+- [x] Create `internal/amazon/client.go`:
   - [ ] Define `Client` struct with http.Client, RateLimiter, Config, user agents list
   - [ ] Define list of 10+ common browser User-Agent strings for rotation
-- [ ] Implement `NewClient(config *Config) *Client`:
+- [x] Implement `NewClient(config *Config) *Client`:
   - [ ] Create http.Client with 30 second timeout
   - [ ] Initialize cookie jar for session management
   - [ ] Create rate limiter from config
-- [ ] Implement `Do(req *http.Request) (*http.Response, error)`:
+- [x] Implement `Do(req *http.Request) (*http.Response, error)`:
   - [ ] Call rate limiter `Wait()` before request
   - [ ] Set random User-Agent from rotation list
   - [ ] Set common headers (Accept, Accept-Language, etc.)
   - [ ] Execute request with retry logic:
     - [ ] If response is 429/503 and ShouldRetry is true, call WaitWithBackoff and retry
     - [ ] Return final response or error after max retries
-- [ ] Implement `Get(url string) (*http.Response, error)` convenience method
-- [ ] Implement `PostForm(url string, data url.Values) (*http.Response, error)` convenience method
-- [ ] Write integration tests with mock server
+- [x] Implement `Get(url string) (*http.Response, error)` convenience method
+- [x] Implement `PostForm(url string, data url.Values) (*http.Response, error)` convenience method
+- [x] Write integration tests with mock server
 
 ---
 
 ### Phase 2: Authentication System
 
 #### 2.1 OAuth Flow Research & Setup
-- [ ] Research Amazon's OAuth/Login with Amazon (LWA) API:
+- [x] Research Amazon's OAuth/Login with Amazon (LWA) API:
   - [ ] Register app at https://developer.amazon.com/ to get Client ID/Secret
   - [ ] Document required OAuth scopes for order/profile access
   - [ ] Note: If official API insufficient, plan for browser session approach
-- [ ] Create `internal/amazon/auth.go`:
+- [x] Create `internal/amazon/auth.go`:
   - [ ] Define OAuth constants (auth URL, token URL, redirect URI)
   - [ ] Define `AuthTokens` struct with access token, refresh token, expiry
 
 #### 2.2 Login Command Implementation
-- [ ] Create `cmd/auth.go`:
+- [x] Create `cmd/auth.go`:
   - [ ] Add `auth` parent command with subcommands
-- [ ] Implement `auth login` command:
+- [x] Implement `auth login` command:
   - [ ] Generate random state parameter for CSRF protection
   - [ ] Build OAuth authorization URL with scopes and state
   - [ ] Start local HTTP server on random available port (e.g., 8085-8095)
@@ -493,41 +493,41 @@ amazon-cli/
   - [ ] Print JSON output: `{"status": "authenticated", "expires_at": "..."}`
 
 #### 2.3 Token Management
-- [ ] Implement `auth status` command:
+- [x] Implement `auth status` command:
   - [ ] Load config and check for tokens
   - [ ] If no tokens, output: `{"authenticated": false}`
   - [ ] If tokens exist, check expiry time
   - [ ] Output: `{"authenticated": true, "expires_at": "...", "expires_in_seconds": N}`
-- [ ] Implement `auth logout` command:
+- [x] Implement `auth logout` command:
   - [ ] Load config
   - [ ] Clear auth section (set tokens to empty)
   - [ ] Save config
   - [ ] Output: `{"status": "logged_out"}`
-- [ ] Implement `RefreshTokenIfNeeded(config *Config) error` in `internal/amazon/auth.go`:
+- [x] Implement `RefreshTokenIfNeeded(config *Config) error` in `internal/amazon/auth.go`:
   - [ ] Check if access token expires within 5 minutes
   - [ ] If so, use refresh token to get new access token
   - [ ] Update config with new tokens
   - [ ] Save config to disk
-- [ ] Add auth check middleware to client:
+- [x] Add auth check middleware to client:
   - [ ] Before any authenticated request, call RefreshTokenIfNeeded
   - [ ] If no tokens exist, return AUTH_REQUIRED error
 
 #### 2.4 Alternative: Browser Session Auth (if OAuth insufficient)
-- [ ] If Amazon OAuth doesn't provide needed access, implement cookie-based auth:
+- [x] If Amazon OAuth doesn't provide needed access, implement cookie-based auth:
   - [ ] Implement `auth login --browser` flag that:
     - [ ] Opens Amazon login page in browser
     - [ ] Instructs user to complete login
     - [ ] Uses browser automation (Rod/Chromedp) to capture session cookies
     - [ ] Stores cookies in config file
   - [ ] Implement cookie refresh detection and re-auth prompts
-- [ ] Document which auth method is being used in README
+- [x] Document which auth method is being used in README
 
 ---
 
 ### Phase 3: Orders Management
 
 #### 3.1 Data Models
-- [ ] Create `pkg/models/order.go`:
+- [x] Create `pkg/models/order.go`:
   - [ ] Define `Order` struct:
     ```go
     type Order struct {
@@ -544,54 +544,54 @@ amazon-cli/
   - [ ] Define `OrdersResponse` struct with Orders slice and TotalCount
 
 #### 3.2 Orders API Client
-- [ ] Create `internal/amazon/orders.go`:
+- [x] Create `internal/amazon/orders.go`:
   - [ ] Research Amazon order history page structure (HTML selectors, API endpoints)
   - [ ] Document the URLs and request format needed
-- [ ] Implement `GetOrders(limit int, status string) (*OrdersResponse, error)`:
+- [x] Implement `GetOrders(limit int, status string) (*OrdersResponse, error)`:
   - [ ] Build request to Amazon order history page/API
   - [ ] Parse HTML response using `goquery` or parse JSON if API available
   - [ ] Extract order data into Order structs
   - [ ] Filter by status if provided
   - [ ] Limit results to requested count
   - [ ] Return OrdersResponse
-- [ ] Implement `GetOrder(orderID string) (*Order, error)`:
+- [x] Implement `GetOrder(orderID string) (*Order, error)`:
   - [ ] Fetch individual order details page
   - [ ] Parse complete order information including all items
   - [ ] Return Order struct with full details
-- [ ] Implement `GetOrderTracking(orderID string) (*Tracking, error)`:
+- [x] Implement `GetOrderTracking(orderID string) (*Tracking, error)`:
   - [ ] Fetch tracking information for order
   - [ ] Parse carrier, tracking number, status, delivery date
   - [ ] Return Tracking struct
-- [ ] Implement `GetOrderHistory(year int) (*OrdersResponse, error)`:
+- [x] Implement `GetOrderHistory(year int) (*OrdersResponse, error)`:
   - [ ] Fetch orders from specific year
   - [ ] Handle pagination if Amazon paginates results
   - [ ] Return all orders for that year
 
 #### 3.3 Orders Commands
-- [ ] Create `cmd/orders.go`:
+- [x] Create `cmd/orders.go`:
   - [ ] Add `orders` parent command
-- [ ] Implement `orders list` command:
+- [x] Implement `orders list` command:
   - [ ] Add `--limit` flag (default 10)
   - [ ] Add `--status` flag (pending, delivered, returned, or empty for all)
   - [ ] Call client.GetOrders with parameters
   - [ ] Output JSON response via Printer
-- [ ] Implement `orders get <order-id>` command:
+- [x] Implement `orders get <order-id>` command:
   - [ ] Validate order-id argument is provided
   - [ ] Call client.GetOrder
   - [ ] Output JSON response
-- [ ] Implement `orders track <order-id>` command:
+- [x] Implement `orders track <order-id>` command:
   - [ ] Validate order-id argument
   - [ ] Call client.GetOrderTracking
   - [ ] Output tracking JSON
-- [ ] Implement `orders history` command:
+- [x] Implement `orders history` command:
   - [ ] Add `--year` flag (default current year)
   - [ ] Call client.GetOrderHistory
   - [ ] Output JSON response
 
 #### 3.4 Orders Testing
-- [ ] Create mock Amazon responses for testing
-- [ ] Write unit tests for order parsing logic
-- [ ] Write integration tests for orders commands
+- [x] Create mock Amazon responses for testing
+- [x] Write unit tests for order parsing logic
+- [x] Write integration tests for orders commands
 - [ ] Test error cases: invalid order ID, auth expired, network errors
 
 ---

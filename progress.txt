@@ -1,0 +1,39 @@
+## Task: Create pkg/models/return.go
+
+### Completed:
+1. Created pkg/models directory structure
+2. Implemented pkg/models/return.go with the following models:
+   - ReturnableItem: Represents items eligible for return with order details, ASIN, price, purchase date, and return window
+   - ReturnOption: Represents available return methods (UPS, Amazon Locker, etc.) with dropoff locations and fees
+   - Return: Represents a return request with return ID, status, reason, and creation timestamp
+   - ReturnLabel: Represents shipping labels with URL, carrier, and instructions
+   - ReturnReasonCode: Type-safe constants for return reasons (defective, wrong_item, not_as_described, no_longer_needed, better_price, other)
+   - IsValidReturnReason(): Helper function to validate return reason codes
+
+3. Created comprehensive test suite in pkg/models/return_test.go:
+   - TestIsValidReturnReason: Tests validation of all valid and invalid return reasons
+   - TestReturnableItemStructure: Tests ReturnableItem struct creation
+   - TestReturnOptionStructure: Tests ReturnOption struct creation
+   - TestReturnStructure: Tests Return struct creation
+   - TestReturnLabelStructure: Tests ReturnLabel struct creation
+   - TestReturnReasonCodeConstants: Verifies all return reason constants
+
+4. Initialized Go module (go mod init github.com/zkwentz/amazon-cli)
+
+5. All tests passing (6 test functions with multiple sub-tests)
+
+### Files Created:
+- pkg/models/return.go (58 lines)
+- pkg/models/return_test.go (148 lines)
+- go.mod (initialized)
+
+### Test Results:
+All tests passing:
+- TestIsValidReturnReason: 9 sub-tests ✓
+- TestReturnableItemStructure ✓
+- TestReturnOptionStructure ✓
+- TestReturnStructure ✓
+- TestReturnLabelStructure ✓
+- TestReturnReasonCodeConstants: 6 sub-tests ✓
+
+The implementation follows the PRD specifications from Phase 4.1 and provides type-safe, well-tested models for the returns management functionality.
