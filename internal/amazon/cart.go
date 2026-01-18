@@ -74,6 +74,12 @@ func (c *Client) AddToCart(asin string, quantity int) (*models.Cart, error) {
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) GetCart() (*models.Cart, error) {
 	// TODO: Implement actual Amazon cart retrieval API call
+
+	// Validate cart exists
+	if c.cart == nil {
+		return nil, fmt.Errorf("cart not initialized")
+	}
+
 	return c.cart, nil
 }
 
@@ -92,6 +98,19 @@ func (c *Client) RemoveFromCart(asin string) (*models.Cart, error) {
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) ClearCart() error {
 	// TODO: Implement actual Amazon cart clear API call
+
+	// Validate cart exists
+	if c.cart == nil {
+		return fmt.Errorf("cart not initialized")
+	}
+
+	// Reset cart to empty state
+	c.cart.Items = []models.CartItem{}
+	c.cart.Subtotal = 0
+	c.cart.EstimatedTax = 0
+	c.cart.Total = 0
+	c.cart.ItemCount = 0
+
 	return nil
 }
 
@@ -99,6 +118,15 @@ func (c *Client) ClearCart() error {
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) GetAddresses() ([]models.Address, error) {
 	// TODO: Implement actual Amazon addresses retrieval API call
+	// When implemented, this should:
+	// - Validate session/authentication state
+	// - Handle HTTP request errors (network, timeout, etc.)
+	// - Handle API response errors (4xx, 5xx status codes)
+	// - Parse and validate response data
+	// - Return appropriate errors for each failure mode
+
+	// For now, return empty slice with no error
+	// In production, would check c.sessionID and make authenticated request
 	return []models.Address{}, nil
 }
 
@@ -106,6 +134,15 @@ func (c *Client) GetAddresses() ([]models.Address, error) {
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) GetPaymentMethods() ([]models.PaymentMethod, error) {
 	// TODO: Implement actual Amazon payment methods retrieval API call
+	// When implemented, this should:
+	// - Validate session/authentication state
+	// - Handle HTTP request errors (network, timeout, etc.)
+	// - Handle API response errors (4xx, 5xx status codes)
+	// - Parse and validate response data
+	// - Return appropriate errors for each failure mode
+
+	// For now, return empty slice with no error
+	// In production, would check c.sessionID and make authenticated request
 	return []models.PaymentMethod{}, nil
 }
 
@@ -229,6 +266,15 @@ func (c *Client) submitCheckout(addressID, paymentID string, cart *models.Cart) 
 	// 3. Submit POST request to Amazon's checkout endpoint
 	// 4. Parse the response to extract order ID
 	// 5. Handle any errors (payment declined, items out of stock, etc.)
+	//
+	// Error handling when implemented should include:
+	// - HTTP client errors (network failure, timeout, DNS errors)
+	// - HTTP status errors (4xx client errors, 5xx server errors)
+	// - Payment processing errors (declined, insufficient funds, expired card)
+	// - Inventory errors (items out of stock, quantity unavailable)
+	// - Session/authentication errors (expired session, invalid CSRF token)
+	// - Response parsing errors (malformed JSON/HTML, missing fields)
+	// - Business logic errors (order limit exceeded, restricted shipping, etc.)
 
 	// For testing/development, return a mock order ID without making actual HTTP requests
 	// In production, this would be replaced with actual Amazon API calls

@@ -233,20 +233,58 @@ func TestAddToCart(t *testing.T) {
 }
 
 func TestGetCart(t *testing.T) {
-	client := NewClient()
-	cart, err := client.GetCart()
-
-	if err != nil {
-		t.Errorf("GetCart() unexpected error: %v", err)
+	tests := []struct {
+		name        string
+		setupClient func() *Client
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "valid cart should succeed",
+			setupClient: func() *Client {
+				return NewClient()
+			},
+			wantErr: false,
+		},
+		{
+			name: "nil cart should return error",
+			setupClient: func() *Client {
+				client := NewClient()
+				client.cart = nil
+				return client
+			},
+			wantErr:     true,
+			errContains: "cart not initialized",
+		},
 	}
 
-	if cart == nil {
-		t.Error("GetCart() returned nil cart")
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := tt.setupClient()
+			cart, err := client.GetCart()
 
-	// Empty cart should have zero items
-	if cart.ItemCount != 0 {
-		t.Errorf("GetCart() ItemCount = %v, want 0", cart.ItemCount)
+			if tt.wantErr {
+				if err == nil {
+					t.Error("GetCart() expected error but got none")
+				} else if tt.errContains != "" && !contains(err.Error(), tt.errContains) {
+					t.Errorf("GetCart() error = %v, want error containing %q", err, tt.errContains)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("GetCart() unexpected error: %v", err)
+			}
+
+			if cart == nil {
+				t.Error("GetCart() returned nil cart")
+			}
+
+			// Empty cart should have zero items
+			if cart.ItemCount != 0 {
+				t.Errorf("GetCart() ItemCount = %v, want 0", cart.ItemCount)
+			}
+		})
 	}
 }
 
@@ -297,11 +335,72 @@ func TestRemoveFromCart(t *testing.T) {
 }
 
 func TestClearCart(t *testing.T) {
-	client := NewClient()
-	err := client.ClearCart()
+	tests := []struct {
+		name        string
+		setupClient func() *Client
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "clear empty cart should succeed",
+			setupClient: func() *Client {
+				return NewClient()
+			},
+			wantErr: false,
+		},
+		{
+			name: "clear cart with items should succeed",
+			setupClient: func() *Client {
+				client := NewClient()
+				client.AddToCart("B08N5WRWNW", 2)
+				return client
+			},
+			wantErr: false,
+		},
+		{
+			name: "nil cart should return error",
+			setupClient: func() *Client {
+				client := NewClient()
+				client.cart = nil
+				return client
+			},
+			wantErr:     true,
+			errContains: "cart not initialized",
+		},
+	}
 
-	if err != nil {
-		t.Errorf("ClearCart() unexpected error: %v", err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := tt.setupClient()
+			err := client.ClearCart()
+
+			if tt.wantErr {
+				if err == nil {
+					t.Error("ClearCart() expected error but got none")
+				} else if tt.errContains != "" && !contains(err.Error(), tt.errContains) {
+					t.Errorf("ClearCart() error = %v, want error containing %q", err, tt.errContains)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("ClearCart() unexpected error: %v", err)
+			}
+
+			// Verify cart is empty after clearing
+			cart, _ := client.GetCart()
+			if cart != nil {
+				if cart.ItemCount != 0 {
+					t.Errorf("ClearCart() ItemCount = %v, want 0", cart.ItemCount)
+				}
+				if len(cart.Items) != 0 {
+					t.Errorf("ClearCart() Items length = %v, want 0", len(cart.Items))
+				}
+				if cart.Total != 0 {
+					t.Errorf("ClearCart() Total = %v, want 0", cart.Total)
+				}
+			}
+		})
 	}
 }
 

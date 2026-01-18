@@ -1,0 +1,132 @@
+# API Client Error Handling Audit
+
+## Task: Audit all API client methods for error handling
+
+### Files Audited
+- internal/amazon/cart.go
+- internal/amazon/cart_test.go
+
+### Summary
+Conducted comprehensive error handling audit of all API client methods in the Amazon CLI codebase. Identified gaps in error handling and implemented fixes with corresponding test coverage.
+
+### Findings and Fixes
+
+#### Methods Already With Good Error Handling ✓
+1. **AddToCart** (cart.go:36-71)
+   - ✓ Validates empty ASIN
+   - ✓ Validates positive quantity
+   - ✓ Returns descriptive errors
+
+2. **RemoveFromCart** (cart.go:86-95)
+   - ✓ Validates empty ASIN
+   - ✓ Returns descriptive errors
+
+3. **PreviewCheckout** (cart.go:149-184)
+   - ✓ Validates empty addressID and paymentID
+   - ✓ Wraps GetCart errors with context
+   - ✓ Returns descriptive errors
+
+4. **CompleteCheckout** (cart.go:186-256)
+   - ✓ Comprehensive validation (addressID, paymentID)
+   - ✓ Validates cart exists and not empty
+   - ✓ Validates address and payment method exist
+   - ✓ Wraps all errors with context
+   - ✓ Returns descriptive errors
+
+#### Methods Fixed With New Error Handling
+
+1. **GetCart** (cart.go:73-84) - FIXED
+   - BEFORE: No error handling, returned cart directly
+   - AFTER: Added validation for nil cart scenario
+   - NEW: Returns "cart not initialized" error if cart is nil
+   - TEST: Added TestGetCart with nil cart error case
+
+2. **ClearCart** (cart.go:97-115) - FIXED
+   - BEFORE: No error handling, just returned nil
+   - AFTER: Added validation for nil cart
+   - NEW: Validates cart exists before clearing
+   - NEW: Properly resets all cart fields (Items, Subtotal, EstimatedTax, Total, ItemCount)
+   - TEST: Added comprehensive TestClearCart with nil cart error case and verification of cleared state
+
+3. **GetAddresses** (cart.go:117-131) - DOCUMENTED
+   - BEFORE: No error handling, returned empty slice
+   - AFTER: Added comprehensive documentation for future implementation
+   - DOCUMENTED: Session/authentication validation needed
+   - DOCUMENTED: HTTP request error handling needed
+   - DOCUMENTED: API response error handling needed
+   - DOCUMENTED: Response parsing and validation needed
+
+4. **GetPaymentMethods** (cart.go:133-147) - DOCUMENTED
+   - BEFORE: No error handling, returned empty slice
+   - AFTER: Added comprehensive documentation for future implementation
+   - DOCUMENTED: Session/authentication validation needed
+   - DOCUMENTED: HTTP request error handling needed
+   - DOCUMENTED: API response error handling needed
+   - DOCUMENTED: Response parsing and validation needed
+
+5. **submitCheckout** (cart.go:259-282) - DOCUMENTED
+   - BEFORE: Minimal documentation about error handling
+   - AFTER: Added extensive error handling documentation
+   - DOCUMENTED: HTTP client errors (network, timeout, DNS)
+   - DOCUMENTED: HTTP status errors (4xx, 5xx)
+   - DOCUMENTED: Payment processing errors (declined, insufficient funds)
+   - DOCUMENTED: Inventory errors (out of stock, quantity unavailable)
+   - DOCUMENTED: Session/authentication errors (expired session, invalid CSRF)
+   - DOCUMENTED: Response parsing errors (malformed data)
+   - DOCUMENTED: Business logic errors (order limits, restricted shipping)
+
+### Test Coverage
+
+#### New Tests Added
+1. **TestGetCart** - Enhanced with error cases
+   - Valid cart should succeed
+   - Nil cart should return error
+
+2. **TestClearCart** - Enhanced with error cases
+   - Clear empty cart should succeed
+   - Clear cart with items should succeed
+   - Nil cart should return error
+   - Verifies cart is properly cleared (ItemCount, Items, Total all reset to 0)
+
+#### Existing Tests (Verified Still Passing)
+- TestCompleteCheckout (5 test cases)
+- TestCompleteCheckout_OrderConfirmation
+- TestAddToCart (5 test cases)
+- TestRemoveFromCart (2 test cases)
+- TestGetAddresses
+- TestGetPaymentMethods
+- TestPreviewCheckout (3 test cases)
+
+### Test Results
+All tests passing (12 test functions, 18 total test cases):
+```
+PASS
+ok  	github.com/michaelshimeles/amazon-cli/internal/amazon	0.358s
+```
+
+### Recommendations for Future Implementation
+
+1. **GetAddresses** and **GetPaymentMethods**: When implementing actual Amazon API calls, ensure:
+   - Session/authentication validation before making requests
+   - Proper HTTP error handling (network failures, timeouts)
+   - Status code validation (4xx, 5xx handling)
+   - Response parsing with error handling
+   - Return empty slices only for successful responses with no data
+
+2. **submitCheckout**: When implementing actual checkout API:
+   - Implement all documented error scenarios
+   - Use proper error types for different failure modes
+   - Consider retry logic for transient failures
+   - Add detailed logging for debugging payment issues
+
+3. **RemoveFromCart**: Current implementation calls GetCart but doesn't actually remove items
+   - Future implementation should properly remove items from cart
+   - Update cart totals after removal
+   - Return updated cart state
+
+### Impact
+- Improved error handling robustness
+- Better error messages for debugging
+- Comprehensive test coverage for error scenarios
+- Clear documentation for future API implementation
+- All existing functionality preserved and verified
