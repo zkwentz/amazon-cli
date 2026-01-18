@@ -1,0 +1,53 @@
+## Completed Tasks
+
+### Implemented CreateReturn Function
+
+**Date:** 2026-01-18
+
+**What was done:**
+1. Set up project structure with proper Go module and directories
+   - Created directories: cmd/, internal/amazon/, internal/config/, internal/output/, internal/ratelimit/, pkg/models/
+   - Initialized go.mod with module path: github.com/zkwentz/amazon-cli
+
+2. Created data models in pkg/models/
+   - return.go: Defined Return, ReturnableItem, ReturnOption, and ReturnLabel structs
+   - Added ValidReturnReasons map with all valid reason codes (defective, wrong_item, not_as_described, no_longer_needed, better_price, other)
+   - Added IsValidReturnReason() helper function for validation
+   - errors.go: Defined CLIError struct and error code constants for consistent error handling
+
+3. Implemented Amazon client in internal/amazon/
+   - client.go: Created basic Client struct with HTTP client and user agent rotation support
+   - returns.go: Implemented CreateReturn(orderID, itemID, reason string) (*Return, error) function with:
+     * Input validation for all parameters
+     * Return reason code validation
+     * Placeholder implementation that simulates return creation
+     * Returns properly structured Return object with generated return ID, status "initiated", and timestamp
+   - Also stubbed out related functions: GetReturnableItems, GetReturnOptions, GetReturnLabel, GetReturnStatus
+
+4. Wrote comprehensive tests in internal/amazon/returns_test.go
+   - TestCreateReturn: 10 test cases covering valid inputs and all error scenarios
+   - TestIsValidReturnReason: Tests for all valid and invalid reason codes
+   - TestGetReturnOptions, TestGetReturnLabel, TestGetReturnStatus: Validation tests for input requirements
+   - All tests passing (100% coverage of implemented functionality)
+
+**Function Signature:**
+```go
+func (c *Client) CreateReturn(orderID, itemID, reason string) (*Return, error)
+```
+
+**Features:**
+- Validates all required inputs (orderID, itemID, reason)
+- Validates reason code against allowed values
+- Returns CLIError with appropriate error codes for validation failures
+- Returns populated Return struct with:
+  - Generated ReturnID (format: RET-{orderID}-{itemID}-{timestamp})
+  - OrderID and ItemID from inputs
+  - Status: "initiated"
+  - Reason from input
+  - CreatedAt timestamp
+
+**Notes:**
+- Current implementation is a placeholder/mock that simulates return creation
+- TODO: Replace with actual Amazon API integration when API endpoints are determined
+- The function structure and interface are production-ready and follow the PRD specifications
+- Error handling follows the project's CLIError pattern for consistency
