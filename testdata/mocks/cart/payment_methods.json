@@ -1,0 +1,42 @@
+{
+  "payment_methods": [
+    {
+      "id": "pay_default",
+      "type": "credit_card",
+      "brand": "Visa",
+      "last4": "1234",
+      "expiry_month": 12,
+      "expiry_year": 2027,
+      "billing_address": {
+        "street": "123 Main St",
+        "city": "Seattle",
+        "state": "WA",
+        "zip": "98101"
+      },
+      "default": true
+    },
+    {
+      "id": "pay_amex",
+      "type": "credit_card",
+      "brand": "American Express",
+      "last4": "5678",
+      "expiry_month": 8,
+      "expiry_year": 2026,
+      "billing_address": {
+        "street": "123 Main St",
+        "city": "Seattle",
+        "state": "WA",
+        "zip": "98101"
+      },
+      "default": false
+    },
+    {
+      "id": "pay_checking",
+      "type": "bank_account",
+      "brand": "Bank of America",
+      "last4": "9012",
+      "account_type": "checking",
+      "default": false
+    }
+  ]
+}

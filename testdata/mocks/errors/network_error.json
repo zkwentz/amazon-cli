@@ -1,0 +1,15 @@
+{
+  "error": {
+    "code": "NETWORK_ERROR",
+    "message": "Network connectivity issue. Unable to reach Amazon servers.",
+    "details": {
+      "error_type": "connection_timeout",
+      "endpoint": "https://www.amazon.com/api/orders",
+      "suggestions": [
+        "Check your internet connection",
+        "Verify you can access amazon.com in your browser",
+        "Try again in a few moments"
+      ]
+    }
+  }
+}

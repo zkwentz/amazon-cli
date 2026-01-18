@@ -1,0 +1,115 @@
+{
+  "asin": "B08N5WRWNW",
+  "product_title": "Sony WH-1000XM4 Wireless Premium Noise Canceling Headphones",
+  "average_rating": 4.7,
+  "total_reviews": 52431,
+  "rating_breakdown": {
+    "5_star": 72,
+    "4_star": 16,
+    "3_star": 6,
+    "2_star": 3,
+    "1_star": 3
+  },
+  "reviews": [
+    {
+      "review_id": "R1234567890ABC",
+      "rating": 5,
+      "title": "Best noise canceling headphones I've ever owned",
+      "body": "After extensive research, I decided to upgrade from my old headphones to these Sony WH-1000XM4s and I couldn't be happier. The noise cancellation is absolutely phenomenal - I use them daily on my commute and they block out virtually all ambient noise. The sound quality is exceptional, with deep bass and clear highs. Battery life easily lasts me a full week of daily use. The comfort is outstanding even after hours of wear. Highly recommend!",
+      "author": "John D.",
+      "date": "2024-01-15",
+      "verified_purchase": true,
+      "helpful_count": 245
+    },
+    {
+      "review_id": "R2345678901BCD",
+      "rating": 5,
+      "title": "Worth every penny",
+      "body": "I was hesitant about the price but these headphones are absolutely worth it. The noise cancellation works like magic - perfect for flights and working in noisy environments. The multipoint connection is a game changer, I can seamlessly switch between my laptop and phone. Sound quality is pristine. Only minor complaint is they can feel a bit tight at first, but they loosen up after a few days of use.",
+      "author": "Sarah M.",
+      "date": "2024-01-12",
+      "verified_purchase": true,
+      "helpful_count": 189
+    },
+    {
+      "review_id": "R3456789012CDE",
+      "rating": 4,
+      "title": "Great headphones with one caveat",
+      "body": "These headphones are fantastic overall. The noise cancellation is top-notch, sound quality is excellent, and they're very comfortable. The touch controls take some getting used to but work well once you learn them. My only issue is that the microphone quality for calls isn't as good as I expected for this price point. Otherwise, these are excellent headphones that I use daily.",
+      "author": "Michael R.",
+      "date": "2024-01-10",
+      "verified_purchase": true,
+      "helpful_count": 156
+    },
+    {
+      "review_id": "R4567890123DEF",
+      "rating": 5,
+      "title": "Perfect for working from home",
+      "body": "As someone who works from home with kids, these headphones have been a lifesaver. The noise cancellation blocks out all the background noise, allowing me to focus on work calls and meetings. The speak-to-chat feature is brilliant - it pauses my music automatically when someone talks to me. Battery life is incredible, I charge them maybe once every 2 weeks. Highly recommended for remote workers!",
+      "author": "Emily K.",
+      "date": "2024-01-08",
+      "verified_purchase": true,
+      "helpful_count": 203
+    },
+    {
+      "review_id": "R5678901234EFG",
+      "rating": 5,
+      "title": "Excellent for travel",
+      "body": "I fly frequently for work and these have become essential travel companions. The noise cancellation makes flights so much more enjoyable. The 30-hour battery life means I never worry about them dying mid-flight. They fold up nicely in the included case. The quick charge feature has saved me several times when I forgot to charge them overnight. Best travel headphones on the market.",
+      "author": "David L.",
+      "date": "2024-01-05",
+      "verified_purchase": true,
+      "helpful_count": 178
+    },
+    {
+      "review_id": "R6789012345FGH",
+      "rating": 4,
+      "title": "Amazing sound and comfort",
+      "body": "The sound quality on these headphones is absolutely stunning. Every detail in music comes through clearly. They're also incredibly comfortable - I can wear them for 8+ hours without any discomfort. The noise cancellation is very effective. Only giving 4 stars because the app can be a bit buggy at times and sometimes disconnects. But the headphones themselves are fantastic.",
+      "author": "Jessica T.",
+      "date": "2024-01-03",
+      "verified_purchase": true,
+      "helpful_count": 134
+    },
+    {
+      "review_id": "R7890123456GHI",
+      "rating": 5,
+      "title": "Upgrade from XM3 - totally worth it",
+      "body": "I upgraded from the XM3 and while they were great, the XM4 is noticeably better. The improved noise cancellation, better comfort, and multipoint connectivity make it worth the upgrade. The sound quality is slightly improved as well. Battery life is excellent. If you're on the fence about upgrading, do it!",
+      "author": "Robert P.",
+      "date": "2024-01-01",
+      "verified_purchase": true,
+      "helpful_count": 167
+    },
+    {
+      "review_id": "R8901234567HIJ",
+      "rating": 3,
+      "title": "Good but not perfect",
+      "body": "These headphones have excellent noise cancellation and sound quality. However, I've had some connectivity issues with my devices, and the touch controls can be overly sensitive. They're comfortable but get a bit warm after extended use. Good headphones overall but there are some quirks to be aware of.",
+      "author": "Amanda W.",
+      "date": "2023-12-28",
+      "verified_purchase": true,
+      "helpful_count": 89
+    },
+    {
+      "review_id": "R9012345678IJK",
+      "rating": 5,
+      "title": "Best in class",
+      "body": "I've tried Bose, Apple, and several other brands, and these Sony headphones are simply the best. The noise cancellation is superior, the sound quality is unmatched, and the battery life blows the competition away. They're comfortable, well-built, and packed with features. These are the gold standard for wireless headphones.",
+      "author": "Christopher B.",
+      "date": "2023-12-25",
+      "verified_purchase": true,
+      "helpful_count": 312
+    },
+    {
+      "review_id": "R0123456789JKL",
+      "rating": 5,
+      "title": "Audiophile approved",
+      "body": "As someone who takes audio seriously, I'm very impressed with these headphones. The sound signature is well-balanced with excellent detail retrieval. The noise cancellation doesn't negatively impact sound quality like some competitors. LDAC support is a nice touch for high-res audio. They're not studio monitors, but for consumer wireless headphones, these are exceptional.",
+      "author": "Thomas H.",
+      "date": "2023-12-20",
+      "verified_purchase": true,
+      "helpful_count": 256
+    }
+  ]
+}

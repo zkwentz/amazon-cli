@@ -1,0 +1,31 @@
+{
+  "success": true,
+  "message": "Added to cart",
+  "item": {
+    "asin": "B08N5WRWNW",
+    "title": "Sony WH-1000XM4 Wireless Premium Noise Canceling Headphones",
+    "price": 278.00,
+    "quantity": 1,
+    "subtotal": 278.00,
+    "prime": true,
+    "in_stock": true
+  },
+  "cart": {
+    "items": [
+      {
+        "asin": "B08N5WRWNW",
+        "title": "Sony WH-1000XM4 Wireless Premium Noise Canceling Headphones",
+        "price": 278.00,
+        "quantity": 1,
+        "subtotal": 278.00,
+        "prime": true,
+        "in_stock": true
+      }
+    ],
+    "subtotal": 278.00,
+    "estimated_tax": 24.48,
+    "shipping": 0.00,
+    "total": 302.48,
+    "item_count": 1
+  }
+}

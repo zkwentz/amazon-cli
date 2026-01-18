@@ -1,0 +1,11 @@
+{
+  "error": {
+    "code": "AUTH_EXPIRED",
+    "message": "Authentication token has expired. Run 'amazon-cli auth login' to re-authenticate.",
+    "details": {
+      "expired_at": "2024-01-15T10:30:00Z",
+      "action": "auth login",
+      "help_url": "https://github.com/zkwentz/amazon-cli#authentication"
+    }
+  }
+}

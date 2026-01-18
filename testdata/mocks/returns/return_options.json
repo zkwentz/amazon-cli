@@ -1,0 +1,40 @@
+{
+  "order_id": "123-4567890-1234567",
+  "item_id": "ITEM001",
+  "asin": "B08N5WRWNW",
+  "title": "Sony WH-1000XM4 Wireless Headphones - Black",
+  "options": [
+    {
+      "method": "ups_dropoff",
+      "label": "UPS Drop Off",
+      "dropoff_location": "UPS Store - 456 Pine St, Seattle, WA 98101",
+      "fee": 0.00,
+      "estimated_refund_date": "2024-02-01",
+      "description": "Drop off your package at any UPS location with provided label"
+    },
+    {
+      "method": "amazon_locker",
+      "label": "Amazon Locker",
+      "dropoff_location": "Amazon Locker - Market Center, 789 Market St, Seattle, WA 98102",
+      "fee": 0.00,
+      "estimated_refund_date": "2024-01-31",
+      "description": "Drop off at nearby Amazon Locker, no box or label needed"
+    },
+    {
+      "method": "whole_foods",
+      "label": "Whole Foods Return Counter",
+      "dropoff_location": "Whole Foods Market - 321 Broadway, Seattle, WA 98122",
+      "fee": 0.00,
+      "estimated_refund_date": "2024-01-30",
+      "description": "Return at Whole Foods customer service counter"
+    },
+    {
+      "method": "ups_pickup",
+      "label": "UPS Pickup",
+      "dropoff_location": "Your address",
+      "fee": 5.99,
+      "estimated_refund_date": "2024-02-03",
+      "description": "Schedule a UPS pickup at your location"
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "orders": [
+    {
+      "order_id": "123-4567890-1234567",
+      "date": "2024-01-15",
+      "total": 329.97,
+      "status": "delivered",
+      "items": [
+        {
+          "asin": "B08N5WRWNW",
+          "title": "Sony WH-1000XM4 Wireless Headphones",
+          "quantity": 1,
+          "price": 278.00
+        }
+      ]
+    },
+    {
+      "order_id": "123-4567890-2345678",
+      "date": "2023-12-20",
+      "total": 89.97,
+      "status": "delivered",
+      "items": [
+        {
+          "asin": "B0BSHF7WHW",
+          "title": "Amazon Echo Dot (5th Gen)",
+          "quantity": 3,
+          "price": 29.99
+        }
+      ]
+    },
+    {
+      "order_id": "123-4567890-3456789",
+      "date": "2023-11-25",
+      "total": 1299.99,
+      "status": "delivered",
+      "items": [
+        {
+          "asin": "B0CX23V2ZK",
+          "title": "MacBook Air M3",
+          "quantity": 1,
+          "price": 1299.99
+        }
+      ]
+    },
+    {
+      "order_id": "123-4567890-4567890",
+      "date": "2023-10-10",
+      "total": 159.99,
+      "status": "returned",
+      "items": [
+        {
+          "asin": "B09G9FPHY6",
+          "title": "Google Nest Hub (2nd Gen)",
+          "quantity": 1,
+          "price": 99.99
+        },
+        {
+          "asin": "B08R5QK5P2",
+          "title": "Smart LED Light Bulbs 4-Pack",
+          "quantity": 1,
+          "price": 59.99
+        }
+      ]
+    },
+    {
+      "order_id": "123-4567890-5678901",
+      "date": "2023-09-05",
+      "total": 45.99,
+      "status": "delivered",
+      "items": [
+        {
+          "asin": "B07FZ8S74R",
+          "title": "Fire TV Stick 4K",
+          "quantity": 1,
+          "price": 45.99
+        }
+      ]
+    }
+  ],
+  "total_count": 5,
+  "year": 2023
+}

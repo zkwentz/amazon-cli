@@ -1,0 +1,13 @@
+{
+  "subscription_id": "S01-1234567-8901234",
+  "asin": "B00EXAMPLE1",
+  "title": "Coffee Pods 100 Count - Medium Roast",
+  "price": 45.99,
+  "discount_percent": 15,
+  "previous_frequency_weeks": 4,
+  "frequency_weeks": 8,
+  "next_delivery": "2024-02-29",
+  "status": "active",
+  "quantity": 1,
+  "message": "Delivery frequency updated successfully. Your next delivery is scheduled for 2024-02-29."
+}

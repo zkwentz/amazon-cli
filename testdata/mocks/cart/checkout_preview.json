@@ -1,0 +1,71 @@
+{
+  "cart": {
+    "items": [
+      {
+        "asin": "B08N5WRWNW",
+        "title": "Sony WH-1000XM4 Wireless Premium Noise Canceling Headphones",
+        "price": 278.00,
+        "quantity": 1,
+        "subtotal": 278.00,
+        "prime": true,
+        "in_stock": true
+      },
+      {
+        "asin": "B09B8RTHWK",
+        "title": "Anker PowerCore 20000mAh Power Bank",
+        "price": 45.50,
+        "quantity": 2,
+        "subtotal": 91.00,
+        "prime": true,
+        "in_stock": true
+      }
+    ],
+    "subtotal": 369.00,
+    "estimated_tax": 32.51,
+    "shipping": 0.00,
+    "total": 401.51,
+    "item_count": 3
+  },
+  "shipping_address": {
+    "id": "addr_default",
+    "name": "John Doe",
+    "street": "123 Main St",
+    "city": "Seattle",
+    "state": "WA",
+    "zip": "98101",
+    "country": "US",
+    "default": true
+  },
+  "payment_method": {
+    "id": "pay_default",
+    "type": "credit_card",
+    "brand": "Visa",
+    "last4": "1234",
+    "default": true
+  },
+  "delivery_options": [
+    {
+      "type": "standard",
+      "label": "FREE Prime Delivery",
+      "cost": 0.00,
+      "estimated_delivery": "Tomorrow, Jan 19",
+      "selected": true
+    },
+    {
+      "type": "one_day",
+      "label": "One-Day Delivery",
+      "cost": 0.00,
+      "estimated_delivery": "Today by 10pm",
+      "selected": false
+    },
+    {
+      "type": "two_day",
+      "label": "Two-Day Delivery",
+      "cost": 0.00,
+      "estimated_delivery": "Saturday, Jan 20",
+      "selected": false
+    }
+  ],
+  "promotions_available": [],
+  "estimated_delivery": "Tomorrow, Jan 19"
+}

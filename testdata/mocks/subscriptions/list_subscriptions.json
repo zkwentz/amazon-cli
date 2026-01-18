@@ -1,0 +1,62 @@
+{
+  "subscriptions": [
+    {
+      "subscription_id": "S01-1234567-8901234",
+      "asin": "B00EXAMPLE1",
+      "title": "Coffee Pods 100 Count - Medium Roast",
+      "price": 45.99,
+      "discount_percent": 15,
+      "frequency_weeks": 4,
+      "next_delivery": "2024-02-01",
+      "status": "active",
+      "quantity": 1,
+      "image_url": "https://m.media-amazon.com/images/I/71example1.jpg",
+      "items_shipped": 12,
+      "subscription_start": "2023-02-01"
+    },
+    {
+      "subscription_id": "S01-2345678-9012345",
+      "asin": "B00EXAMPLE2",
+      "title": "Laundry Detergent Pods - Fresh Scent 96 Count",
+      "price": 23.97,
+      "discount_percent": 10,
+      "frequency_weeks": 8,
+      "next_delivery": "2024-02-15",
+      "status": "active",
+      "quantity": 2,
+      "image_url": "https://m.media-amazon.com/images/I/71example2.jpg",
+      "items_shipped": 6,
+      "subscription_start": "2023-06-15"
+    },
+    {
+      "subscription_id": "S01-3456789-0123456",
+      "asin": "B00EXAMPLE3",
+      "title": "Organic Protein Powder - Vanilla 2lb",
+      "price": 34.99,
+      "discount_percent": 5,
+      "frequency_weeks": 6,
+      "next_delivery": "2024-01-25",
+      "status": "active",
+      "quantity": 1,
+      "image_url": "https://m.media-amazon.com/images/I/71example3.jpg",
+      "items_shipped": 8,
+      "subscription_start": "2023-04-10"
+    },
+    {
+      "subscription_id": "S01-4567890-1234567",
+      "asin": "B00EXAMPLE4",
+      "title": "Multivitamin Gummies 120 Count",
+      "price": 19.99,
+      "discount_percent": 15,
+      "frequency_weeks": 12,
+      "next_delivery": "2024-03-10",
+      "status": "paused",
+      "quantity": 1,
+      "image_url": "https://m.media-amazon.com/images/I/71example4.jpg",
+      "items_shipped": 4,
+      "subscription_start": "2023-08-10"
+    }
+  ],
+  "total_count": 4,
+  "total_monthly_savings": 14.85
+}

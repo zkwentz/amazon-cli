@@ -1,0 +1,36 @@
+{
+  "items": [
+    {
+      "asin": "B08N5WRWNW",
+      "title": "Sony WH-1000XM4 Wireless Premium Noise Canceling Headphones",
+      "price": 278.00,
+      "quantity": 1,
+      "subtotal": 278.00,
+      "prime": true,
+      "in_stock": true,
+      "image_url": "https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg",
+      "delivery_estimate": "Tomorrow, Jan 19"
+    },
+    {
+      "asin": "B09B8RTHWK",
+      "title": "Anker PowerCore 20000mAh Power Bank",
+      "price": 45.50,
+      "quantity": 2,
+      "subtotal": 91.00,
+      "prime": true,
+      "in_stock": true,
+      "image_url": "https://m.media-amazon.com/images/I/61IBBVJvSDL._AC_SL1500_.jpg",
+      "delivery_estimate": "Tomorrow, Jan 19"
+    }
+  ],
+  "subtotal": 369.00,
+  "estimated_tax": 32.51,
+  "shipping": 0.00,
+  "total": 401.51,
+  "item_count": 3,
+  "savings": {
+    "prime_savings": 0.00,
+    "coupon_savings": 0.00,
+    "total_savings": 0.00
+  }
+}

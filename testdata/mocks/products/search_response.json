@@ -1,0 +1,78 @@
+{
+  "query": "wireless headphones",
+  "results": [
+    {
+      "asin": "B08N5WRWNW",
+      "title": "Sony WH-1000XM4 Wireless Premium Noise Canceling Headphones",
+      "price": 278.00,
+      "original_price": 349.99,
+      "rating": 4.7,
+      "review_count": 52431,
+      "prime": true,
+      "in_stock": true,
+      "delivery_estimate": "Tomorrow",
+      "image_url": "https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg",
+      "discount_percent": 21
+    },
+    {
+      "asin": "B0CHXHTKKN",
+      "title": "Bose QuietComfort Ultra Wireless Noise Cancelling Headphones",
+      "price": 379.00,
+      "original_price": 429.00,
+      "rating": 4.4,
+      "review_count": 3245,
+      "prime": true,
+      "in_stock": true,
+      "delivery_estimate": "Jan 25",
+      "image_url": "https://m.media-amazon.com/images/I/51QeS0jHTwL._AC_SL1500_.jpg",
+      "discount_percent": 12
+    },
+    {
+      "asin": "B0BSHF7WHW",
+      "title": "Apple AirPods Pro (2nd Generation) with MagSafe Case (USB-C)",
+      "price": 199.99,
+      "original_price": 249.00,
+      "rating": 4.6,
+      "review_count": 18902,
+      "prime": true,
+      "in_stock": true,
+      "delivery_estimate": "Tomorrow",
+      "image_url": "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg",
+      "discount_percent": 20
+    },
+    {
+      "asin": "B0D1XD1ZV3",
+      "title": "Beats Studio Pro - Wireless Bluetooth Noise Cancelling Headphones",
+      "price": 229.95,
+      "original_price": 349.99,
+      "rating": 4.5,
+      "review_count": 9876,
+      "prime": true,
+      "in_stock": true,
+      "delivery_estimate": "Jan 26",
+      "image_url": "https://m.media-amazon.com/images/I/51SKGz1rBDL._AC_SL1500_.jpg",
+      "discount_percent": 34
+    },
+    {
+      "asin": "B09JQMJHXY",
+      "title": "Anker Soundcore Space Q45 Adaptive Active Noise Cancelling Headphones",
+      "price": 99.99,
+      "original_price": 149.99,
+      "rating": 4.5,
+      "review_count": 15432,
+      "prime": true,
+      "in_stock": true,
+      "delivery_estimate": "Tomorrow",
+      "image_url": "https://m.media-amazon.com/images/I/51b6yyYHi5L._AC_SL1500_.jpg",
+      "discount_percent": 33
+    }
+  ],
+  "total_results": 1247,
+  "page": 1,
+  "filters_applied": {
+    "category": "Electronics",
+    "prime_only": false,
+    "min_price": null,
+    "max_price": null
+  }
+}

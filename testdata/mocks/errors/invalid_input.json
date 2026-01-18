@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "INVALID_INPUT",
+    "message": "Invalid input provided.",
+    "details": {
+      "field": "asin",
+      "value": "INVALID123",
+      "constraint": "ASIN must be exactly 10 alphanumeric characters",
+      "example": "B08N5WRWNW"
+    }
+  }
+}

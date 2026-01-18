@@ -1,0 +1,15 @@
+{
+  "subscription_id": "S01-1234567-8901234",
+  "asin": "B00EXAMPLE1",
+  "title": "Coffee Pods 100 Count - Medium Roast",
+  "price": 45.99,
+  "discount_percent": 15,
+  "frequency_weeks": 4,
+  "status": "cancelled",
+  "cancellation_date": "2024-01-18",
+  "total_saved_over_lifetime": 97.44,
+  "total_deliveries": 12,
+  "message": "Subscription cancelled successfully. You will not be charged for future deliveries.",
+  "reactivation_available": true,
+  "reactivation_url": "https://amazon.com/subscriptions/reactivate/S01-1234567-8901234"
+}

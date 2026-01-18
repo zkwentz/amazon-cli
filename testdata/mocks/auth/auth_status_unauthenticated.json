@@ -1,0 +1,4 @@
+{
+  "authenticated": false,
+  "message": "Not authenticated. Run 'amazon-cli auth login' to authenticate."
+}

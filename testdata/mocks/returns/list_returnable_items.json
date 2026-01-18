@@ -1,0 +1,34 @@
+{
+  "returnable_items": [
+    {
+      "order_id": "123-4567890-1234567",
+      "item_id": "ITEM001",
+      "asin": "B08N5WRWNW",
+      "title": "Sony WH-1000XM4 Wireless Headphones - Black",
+      "price": 278.00,
+      "purchase_date": "2024-01-15",
+      "return_window": "2024-02-14",
+      "returnable": true
+    },
+    {
+      "order_id": "123-4567890-2345678",
+      "item_id": "ITEM002",
+      "asin": "B0BSHF7WHW",
+      "title": "Amazon Echo Dot (5th Gen)",
+      "price": 29.99,
+      "purchase_date": "2024-01-10",
+      "return_window": "2024-02-09",
+      "returnable": true
+    },
+    {
+      "order_id": "123-4567890-3456789",
+      "item_id": "ITEM003",
+      "asin": "B09B8RTHWK",
+      "title": "Anker PowerCore 20000mAh Power Bank",
+      "price": 45.50,
+      "purchase_date": "2024-01-08",
+      "return_window": "2024-02-07",
+      "returnable": true
+    }
+  ]
+}

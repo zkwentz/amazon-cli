@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "AMAZON_ERROR",
+    "message": "Amazon returned an error.",
+    "details": {
+      "amazon_error_code": "ServiceUnavailable",
+      "amazon_message": "The service is temporarily unavailable. Please try again later.",
+      "http_status": 503,
+      "retry_suggested": true
+    }
+  }
+}

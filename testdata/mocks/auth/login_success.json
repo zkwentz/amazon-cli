@@ -1,0 +1,8 @@
+{
+  "status": "authenticated",
+  "access_token": "mock_access_token_abc123xyz789",
+  "refresh_token": "mock_refresh_token_def456uvw012",
+  "expires_at": "2024-02-18T15:30:00Z",
+  "expires_in_seconds": 2592000,
+  "message": "Successfully authenticated with Amazon"
+}

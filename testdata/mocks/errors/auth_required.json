@@ -1,0 +1,10 @@
+{
+  "error": {
+    "code": "AUTH_REQUIRED",
+    "message": "Authentication required. Run 'amazon-cli auth login' to authenticate.",
+    "details": {
+      "action": "auth login",
+      "help_url": "https://github.com/zkwentz/amazon-cli#authentication"
+    }
+  }
+}

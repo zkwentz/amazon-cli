@@ -1,0 +1,39 @@
+{
+  "carrier": "UPS",
+  "tracking_number": "1Z999AA10123456784",
+  "status": "delivered",
+  "delivery_date": "2024-01-17",
+  "estimated_delivery": "2024-01-17",
+  "events": [
+    {
+      "timestamp": "2024-01-17T14:30:00Z",
+      "status": "Delivered",
+      "location": "Seattle, WA, US",
+      "description": "Package delivered to front door"
+    },
+    {
+      "timestamp": "2024-01-17T08:15:00Z",
+      "status": "Out for Delivery",
+      "location": "Seattle, WA, US",
+      "description": "Package is out for delivery"
+    },
+    {
+      "timestamp": "2024-01-16T22:45:00Z",
+      "status": "In Transit",
+      "location": "Seattle, WA, US",
+      "description": "Package arrived at facility"
+    },
+    {
+      "timestamp": "2024-01-16T10:20:00Z",
+      "status": "In Transit",
+      "location": "Portland, OR, US",
+      "description": "Package departed facility"
+    },
+    {
+      "timestamp": "2024-01-15T18:00:00Z",
+      "status": "Picked Up",
+      "location": "Los Angeles, CA, US",
+      "description": "Package picked up by carrier"
+    }
+  ]
+}

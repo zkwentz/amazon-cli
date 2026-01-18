@@ -1,0 +1,62 @@
+{
+  "asin": "B08N5WRWNW",
+  "title": "Sony WH-1000XM4 Wireless Premium Noise Canceling Headphones with Alexa",
+  "price": 278.00,
+  "original_price": 349.99,
+  "rating": 4.7,
+  "review_count": 52431,
+  "prime": true,
+  "in_stock": true,
+  "delivery_estimate": "Tomorrow, Jan 19",
+  "description": "Industry-leading noise cancellation with Dual Noise Sensor technology. Next-level music with Edge-AI, co-developed with Sony Music Studios Tokyo. Up to 30-hour battery life with quick charging (10 min charge for 5 hours of playback). Touch Sensor controls to pause play skip tracks, control volume, activate your voice assistant, and answer phone calls. Speak-to-chat technology automatically reduces volume during conversations.",
+  "features": [
+    "Industry-leading noise cancellation with Dual Noise Sensor technology",
+    "Next-level music with Edge-AI, co-developed with Sony Music Studios Tokyo",
+    "Up to 30-hour battery life with quick charging",
+    "Touch Sensor controls to pause play skip tracks, control volume, activate your voice assistant",
+    "Speak-to-chat technology automatically reduces volume during conversations",
+    "Superior call quality with precise voice pickup",
+    "Wearing detection pauses playback when headphones are removed",
+    "Seamless multiple device pairing",
+    "Adaptive Sound Control provides a personalized listening experience",
+    "Updated design with more cushioning for long-lasting comfort"
+  ],
+  "images": [
+    "https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg",
+    "https://m.media-amazon.com/images/I/61nMJLqSVmL._AC_SL1500_.jpg",
+    "https://m.media-amazon.com/images/I/71gxQ2R9LBL._AC_SL1500_.jpg",
+    "https://m.media-amazon.com/images/I/71s9FQ1YEVL._AC_SL1500_.jpg"
+  ],
+  "specifications": {
+    "brand": "Sony",
+    "model": "WH-1000XM4",
+    "color": "Black",
+    "connectivity": "Bluetooth, Wired",
+    "battery_life": "30 hours",
+    "weight": "254 grams",
+    "dimensions": "7.27 x 9.94 x 3.03 inches"
+  },
+  "variants": [
+    {
+      "asin": "B08N5WRWNW",
+      "color": "Black",
+      "price": 278.00
+    },
+    {
+      "asin": "B08N5XSG5T",
+      "color": "Silver",
+      "price": 288.00
+    },
+    {
+      "asin": "B08N5YP8TQ",
+      "color": "Blue",
+      "price": 298.00
+    }
+  ],
+  "categories": [
+    "Electronics",
+    "Headphones, Earbuds & Accessories",
+    "Headphones",
+    "Over-Ear Headphones"
+  ]
+}

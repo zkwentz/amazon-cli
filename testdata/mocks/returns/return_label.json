@@ -1,0 +1,28 @@
+{
+  "return_id": "R01-1234567-8901234",
+  "label_url": "https://amazon.com/returns/label/R01-1234567-8901234.pdf",
+  "carrier": "UPS",
+  "tracking_number": "1Z999AA10999888777",
+  "barcode": "R011234567890123456789",
+  "instructions": [
+    "Print this return label",
+    "Pack your item securely in a box",
+    "Attach the label to the outside of the package",
+    "Drop off at any UPS location or schedule a pickup",
+    "Keep the tracking number for your records"
+  ],
+  "dropoff_locations": [
+    {
+      "name": "UPS Store",
+      "address": "456 Pine St, Seattle, WA 98101",
+      "hours": "Mon-Fri: 8am-7pm, Sat: 9am-5pm, Sun: Closed",
+      "distance": "0.5 miles"
+    },
+    {
+      "name": "UPS Access Point - 7-Eleven",
+      "address": "123 1st Ave, Seattle, WA 98101",
+      "hours": "Daily: 6am-11pm",
+      "distance": "0.8 miles"
+    }
+  ]
+}

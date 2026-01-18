@@ -1,0 +1,45 @@
+{
+  "order_id": "123-4567890-7890123",
+  "status": "confirmed",
+  "order_date": "2024-01-18T15:30:00Z",
+  "items": [
+    {
+      "asin": "B08N5WRWNW",
+      "title": "Sony WH-1000XM4 Wireless Premium Noise Canceling Headphones",
+      "price": 278.00,
+      "quantity": 1,
+      "subtotal": 278.00
+    },
+    {
+      "asin": "B09B8RTHWK",
+      "title": "Anker PowerCore 20000mAh Power Bank",
+      "price": 45.50,
+      "quantity": 2,
+      "subtotal": 91.00
+    }
+  ],
+  "subtotal": 369.00,
+  "tax": 32.51,
+  "shipping": 0.00,
+  "total": 401.51,
+  "shipping_address": {
+    "name": "John Doe",
+    "street": "123 Main St",
+    "city": "Seattle",
+    "state": "WA",
+    "zip": "98101",
+    "country": "US"
+  },
+  "payment_method": {
+    "type": "credit_card",
+    "brand": "Visa",
+    "last4": "1234"
+  },
+  "estimated_delivery": "Tomorrow, Jan 19",
+  "tracking": {
+    "carrier": "Amazon Logistics",
+    "tracking_number": "TBA987654321000",
+    "tracking_url": "https://amazon.com/track/TBA987654321000"
+  },
+  "message": "Your order has been placed successfully"
+}

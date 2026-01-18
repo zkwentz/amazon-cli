@@ -1,0 +1,9 @@
+{
+  "authenticated": true,
+  "expires_at": "2024-02-18T15:30:00Z",
+  "expires_in_seconds": 2592000,
+  "user": {
+    "name": "John Doe",
+    "email": "john.doe@example.com"
+  }
+}

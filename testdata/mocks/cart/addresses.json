@@ -1,0 +1,43 @@
+{
+  "addresses": [
+    {
+      "id": "addr_default",
+      "name": "John Doe",
+      "street": "123 Main St",
+      "street2": "Apt 4B",
+      "city": "Seattle",
+      "state": "WA",
+      "zip": "98101",
+      "country": "US",
+      "phone": "(206) 555-0123",
+      "default": true,
+      "type": "residential"
+    },
+    {
+      "id": "addr_work",
+      "name": "John Doe",
+      "street": "456 Business Ave",
+      "street2": "Suite 200",
+      "city": "Seattle",
+      "state": "WA",
+      "zip": "98102",
+      "country": "US",
+      "phone": "(206) 555-0456",
+      "default": false,
+      "type": "commercial"
+    },
+    {
+      "id": "addr_parents",
+      "name": "Jane & Robert Doe",
+      "street": "789 Oak Street",
+      "street2": "",
+      "city": "Portland",
+      "state": "OR",
+      "zip": "97201",
+      "country": "US",
+      "phone": "(503) 555-0789",
+      "default": false,
+      "type": "residential"
+    }
+  ]
+}

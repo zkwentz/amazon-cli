@@ -1,0 +1,16 @@
+{
+  "error": {
+    "code": "PURCHASE_FAILED",
+    "message": "Purchase could not be completed.",
+    "details": {
+      "reason": "payment_declined",
+      "payment_method": "Visa ending in 1234",
+      "suggestions": [
+        "Verify your payment method is valid",
+        "Check with your bank for declined transactions",
+        "Try a different payment method"
+      ],
+      "cart_preserved": true
+    }
+  }
+}
