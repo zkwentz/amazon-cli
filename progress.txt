@@ -1,0 +1,78 @@
+## Task: Test error cases: invalid order ID, auth expired, network errors
+
+### Completed:
+1. Set up basic Go project structure
+   - Initialized go.mod with module github.com/zkwentz/amazon-cli
+   - Created pkg/models and internal/amazon directories
+
+2. Created error handling infrastructure (pkg/models/errors.go)
+   - Implemented CLIError struct with Code, Message, and Details fields
+   - Defined all error codes from PRD (AUTH_REQUIRED, AUTH_EXPIRED, NOT_FOUND, RATE_LIMITED, INVALID_INPUT, PURCHASE_FAILED, NETWORK_ERROR, AMAZON_ERROR)
+   - Created error constructor functions for common errors:
+     * NewAuthExpiredError() - for expired authentication tokens
+     * NewNotFoundError() - for missing resources
+     * NewNetworkError() - for network connectivity issues
+     * NewInvalidInputError() - for invalid user inputs
+
+3. Created order models (pkg/models/order.go)
+   - Order struct with OrderID, Date, Total, Status, Items, Tracking
+   - OrderItem struct with ASIN, Title, Quantity, Price
+   - Tracking struct with Carrier, TrackingNumber, Status, DeliveryDate
+   - OrdersResponse struct for list responses
+
+4. Implemented orders client with validation (internal/amazon/orders.go)
+   - ValidateOrderID() function that checks Amazon order ID format (XXX-XXXXXXX-XXXXXXX)
+   - OrdersClient struct with GetOrder(), GetOrders(), and GetOrderTracking() methods
+   - Proper error handling with CLIError types
+
+5. Comprehensive test coverage (internal/amazon/orders_test.go)
+   - TestValidateOrderID_Invalid: 6 test cases for order ID validation
+     * Empty order ID
+     * Too short format
+     * Missing dashes
+     * Letters instead of numbers
+     * Wrong structure
+     * Valid format (positive case)
+
+   - TestGetOrder_InvalidOrderID: 4 test cases for invalid order IDs
+     * Verifies CLIError with INVALID_INPUT code is returned
+     * Checks error details contain field information
+
+   - TestGetOrder_AuthExpired / TestOrdersClient_AuthExpired:
+     * Tests auth expiration scenario
+     * Verifies CLIError with AUTH_EXPIRED code
+     * Validates helpful error message with "auth login" instruction
+     * Mock HTTP server returning 401 Unauthorized
+
+   - TestGetOrder_NetworkError / TestOrdersClient_NetworkError:
+     * Tests network connectivity failures
+     * Verifies CLIError with NETWORK_ERROR code
+     * Validates original error is preserved in details
+     * Simulates connection refused scenarios
+
+   - TestAllErrorCases_Integration:
+     * Integration test covering all three error scenarios
+     * Verifies consistent error handling across all cases
+     * Tests JSON serializability of errors
+
+### Test Results:
+All tests passing (7 test functions, 13 sub-tests):
+- TestValidateOrderID_Invalid: PASS (6 cases)
+- TestGetOrder_InvalidOrderID: PASS (4 cases)
+- TestGetOrder_AuthExpired: PASS
+- TestOrdersClient_AuthExpired: PASS
+- TestGetOrder_NetworkError: PASS
+- TestOrdersClient_NetworkError: PASS
+- TestAllErrorCases_Integration: PASS (3 cases)
+
+### Error Cases Covered:
+1. ✅ Invalid Order ID - multiple format validation test cases
+2. ✅ Auth Expired - token expiration with helpful remediation message
+3. ✅ Network Errors - connection failures with original error preservation
+
+### Files Created:
+- go.mod
+- pkg/models/errors.go
+- pkg/models/order.go
+- internal/amazon/orders.go
+- internal/amazon/orders_test.go
