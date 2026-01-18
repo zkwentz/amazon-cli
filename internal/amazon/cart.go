@@ -31,6 +31,12 @@ func NewClient() *Client {
 	}
 }
 
+const (
+	// MaxQuantityPerItem is the maximum allowed quantity for a single item
+	// Amazon typically allows up to 999 items, but we set a reasonable limit of 100
+	MaxQuantityPerItem = 100
+)
+
 // AddToCart adds an item to the cart
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) AddToCart(asin string, quantity int) (*models.Cart, error) {
@@ -39,6 +45,9 @@ func (c *Client) AddToCart(asin string, quantity int) (*models.Cart, error) {
 	}
 	if quantity <= 0 {
 		return nil, fmt.Errorf("quantity must be positive")
+	}
+	if quantity > MaxQuantityPerItem {
+		return nil, fmt.Errorf("quantity exceeds maximum allowed (%d)", MaxQuantityPerItem)
 	}
 
 	// TODO: Implement actual Amazon cart add API call

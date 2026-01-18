@@ -193,6 +193,34 @@ func TestAddToCart(t *testing.T) {
 			wantErr:   false,
 			errString: "",
 		},
+		{
+			name:      "quantity at maximum allowed (100)",
+			asin:      "B08N5WRWNW",
+			quantity:  100,
+			wantErr:   false,
+			errString: "",
+		},
+		{
+			name:      "quantity exceeds maximum (101)",
+			asin:      "B08N5WRWNW",
+			quantity:  101,
+			wantErr:   true,
+			errString: "quantity exceeds maximum allowed (100)",
+		},
+		{
+			name:      "quantity far exceeds maximum (999)",
+			asin:      "B08N5WRWNW",
+			quantity:  999,
+			wantErr:   true,
+			errString: "quantity exceeds maximum allowed (100)",
+		},
+		{
+			name:      "quantity at edge case (99)",
+			asin:      "B08N5WRWNW",
+			quantity:  99,
+			wantErr:   false,
+			errString: "",
+		},
 	}
 
 	for _, tt := range tests {
