@@ -1,0 +1,64 @@
+## Completed Tasks
+
+### Task: Implement `NewPrinter(format string, quiet bool) *Printer`
+
+**Date:** 2026-01-18
+
+**Files Created:**
+- `internal/output/output.go` - Main output package implementation
+- `internal/output/output_test.go` - Comprehensive test suite
+- `go.mod` - Go module initialization
+
+**Implementation Details:**
+
+1. **Created OutputFormat type and constants:**
+   - FormatJSON - JSON output format
+   - FormatTable - Table output format (with placeholder)
+   - FormatRaw - Raw string output format
+
+2. **Implemented Printer struct:**
+   - `format` field to store the output format preference
+   - `quiet` field to control output suppression
+   - `writer` field for output destination (defaults to os.Stdout)
+
+3. **Implemented NewPrinter function:**
+   - Takes `format` string and `quiet` bool parameters
+   - Parses format string to OutputFormat type
+   - Defaults to JSON format for invalid/empty format strings
+   - Returns fully initialized *Printer instance
+
+4. **Additional Methods Implemented:**
+   - `Print(data interface{}) error` - Outputs data based on format
+   - `PrintError(err error) error` - Outputs errors as JSON (even in quiet mode)
+   - `SetWriter(w io.Writer)` - Allows custom output writers for testing
+   - Private methods: `printJSON`, `printTable`, `printRaw`
+
+5. **Test Coverage:**
+   - TestNewPrinter - Tests all format variations and quiet mode
+   - TestPrinter_PrintJSON - Tests JSON output formatting
+   - TestPrinter_PrintRaw - Tests raw output formatting
+   - TestPrinter_PrintError - Tests error output (always prints, even in quiet mode)
+   - TestPrinter_QuietMode - Verifies quiet mode suppresses normal output
+   - TestPrinter_SetWriter - Tests custom writer functionality
+   - TestOutputFormatConstants - Validates constant values
+
+**Test Results:**
+All tests passing (7 test functions, 14 subtests)
+- ✓ Format parsing (json, table, raw, invalid, empty)
+- ✓ Quiet mode behavior
+- ✓ JSON marshaling and output
+- ✓ Raw output formatting
+- ✓ Error output (always prints)
+- ✓ Custom writer support
+
+**Key Features:**
+- Defaults to JSON format for invalid input
+- Quiet mode suppresses normal output but not errors
+- Errors always output as structured JSON
+- Supports custom writers for testing
+- Comprehensive error handling
+
+**Notes:**
+- Table formatting is marked as TODO for future implementation with tablewriter package
+- Currently falls back to JSON for table format
+- Writer is injectable for testing purposes
