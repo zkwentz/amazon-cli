@@ -1,0 +1,97 @@
+## Implementation Progress: `returns status <return-id>` Command
+
+### Completed Tasks
+
+1. **Project Structure Setup**
+   - Initialized Go module: github.com/zkwentz/amazon-cli
+   - Created directory structure (cmd/, internal/, pkg/models/)
+   - Installed dependencies: Cobra (CLI framework) and Viper (config management)
+
+2. **Foundation Components**
+   - internal/config/config.go: Configuration management with JSON persistence
+   - pkg/models/errors.go: Error handling with structured CLIError types
+   - internal/output/output.go: JSON output formatting system
+   - pkg/models/return.go: Return data models (Return, ReturnableItem, ReturnOption, ReturnLabel)
+
+3. **Amazon Client Implementation**
+   - internal/amazon/client.go: Base HTTP client with user agent rotation
+   - internal/amazon/returns.go: Returns API client with GetReturnStatus() function
+     - Implemented return status fetching (placeholder for actual Amazon API integration)
+     - Added input validation (empty return ID check)
+     - Added reason code validation for CreateReturn
+     - Defined all returns-related methods (list, options, create, label, status)
+
+4. **CLI Commands**
+   - cmd/root.go: Root command with global flags (--output, --quiet, --verbose, etc.)
+   - cmd/returns.go: Full returns command suite including:
+     - returns status <return-id>: Check return status (PRIMARY IMPLEMENTATION)
+     - returns list: List returnable items
+     - returns options <order-id> <item-id>: Get return options
+     - returns create <order-id> <item-id>: Create return with --reason and --confirm flags
+     - returns label <return-id>: Get return shipping label
+   - main.go: Application entry point
+
+5. **Testing**
+   - internal/amazon/returns_test.go: Unit tests for returns API client
+     - TestGetReturnStatus: Validates return status fetching
+     - TestCreateReturnValidation: Validates reason code validation
+   - cmd/returns_test.go: Integration tests
+     - TestGetReturnStatusIntegration: Tests GetReturnStatus with valid ID
+     - TestGetReturnStatusEmptyID: Tests error handling for invalid input
+   - All tests passing
+
+### Command Usage
+
+```bash
+# Check return status
+amazon-cli returns status <return-id>
+
+# Example
+amazon-cli returns status RET123456789
+```
+
+### Output Format (JSON)
+
+```json
+{
+  "return_id": "RET123456789",
+  "order_id": "111-2222222-3333333",
+  "item_id": "ITEM_RET123456789",
+  "status": "initiated",
+  "reason": "defective",
+  "created_at": "2026-01-18T15:00:00-05:00",
+  "updated_at": "2026-01-18T15:00:00-05:00"
+}
+```
+
+### Return Status Values
+- initiated: Return has been created but item not yet shipped
+- shipped: Item has been shipped back to Amazon
+- received: Amazon has received the returned item
+- refunded: Refund has been processed
+
+### Notes
+
+The implementation provides a complete skeleton for the `returns status <return-id>` command with:
+- Proper error handling and validation
+- JSON output formatting
+- Comprehensive test coverage
+- Full CLI integration with help text
+
+The actual Amazon API/scraping integration is marked as TODO in internal/amazon/returns.go:96-117.
+When implementing the real integration, the placeholder response should be replaced with actual
+HTTP requests to Amazon's returns API/page and HTML/JSON parsing logic.
+
+### Files Created/Modified
+- go.mod, go.sum (dependencies)
+- main.go
+- cmd/root.go
+- cmd/returns.go
+- cmd/returns_test.go
+- internal/config/config.go
+- internal/output/output.go
+- internal/amazon/client.go
+- internal/amazon/returns.go
+- internal/amazon/returns_test.go
+- pkg/models/errors.go
+- pkg/models/return.go
