@@ -1,0 +1,46 @@
+Task: Test skip delivery with/without confirm
+
+Completed:
+1. Created subscription data models (pkg/models/subscription.go)
+   - Subscription struct with all required fields
+   - SubscriptionsResponse for listing subscriptions
+   - UpcomingDelivery for tracking upcoming deliveries
+
+2. Implemented subscription management methods (internal/amazon/subscriptions.go)
+   - GetSubscriptions() - retrieves all subscriptions
+   - GetSubscription(subscriptionID) - retrieves specific subscription
+   - SkipDelivery(subscriptionID, confirm) - skips next delivery with confirm flag
+   - UpdateFrequency(subscriptionID, weeks) - updates delivery frequency
+   - CancelSubscription(subscriptionID) - cancels a subscription
+   - GetUpcomingDeliveries() - retrieves upcoming deliveries
+
+3. Comprehensive test coverage (internal/amazon/subscriptions_test.go)
+   - TestSkipDelivery_WithConfirm - tests skip delivery when confirm=true
+     * Validates subscriptionID is required
+     * Verifies delivery date is updated when confirmed
+     * Tests multiple subscription IDs
+
+   - TestSkipDelivery_WithoutConfirm - tests skip delivery when confirm=false (preview mode)
+     * Validates preview mode doesn't modify data
+     * Ensures original delivery date is preserved
+     * Verifies subscription status remains active
+
+   - TestSkipDelivery_ConfirmVsPreview - compares preview vs confirmed behavior
+     * Demonstrates difference between preview and actual skip
+     * Validates both modes return valid subscription data
+
+   - Additional tests for all subscription methods:
+     * TestGetSubscription - validates subscription retrieval
+     * TestGetSubscriptions - validates listing all subscriptions
+     * TestUpdateFrequency - validates frequency updates with boundary conditions
+     * TestCancelSubscription - validates subscription cancellation
+     * TestGetUpcomingDeliveries - validates upcoming deliveries retrieval
+
+All tests passing (18 test cases total for subscriptions, all existing tests still passing).
+
+Key implementation details:
+- SkipDelivery method accepts a confirm boolean parameter
+- When confirm=false, returns preview without making changes (dry run)
+- When confirm=true, actually skips delivery by moving next delivery date forward
+- All methods include proper validation and error handling
+- Follows the same pattern as existing cart/checkout methods with confirm flags
