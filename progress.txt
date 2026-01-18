@@ -1,0 +1,64 @@
+## Task: Test price range filtering
+
+### Completed Implementation:
+
+1. **Go Module Setup**
+   - Initialized Go module: github.com/zkwentz/amazon-cli
+   - Created project directory structure (pkg/models, internal/amazon)
+
+2. **Product Data Models** (pkg/models/product.go)
+   - Implemented Product struct with all required fields (ASIN, Title, Price, etc.)
+   - Implemented SearchResponse struct for search results
+   - Implemented SearchOptions struct with MinPrice, MaxPrice, PrimeOnly, and other filters
+
+3. **Search Functionality** (internal/amazon/search.go)
+   - Implemented Search() function with price range filtering
+   - Implemented filterByPriceRange() function that handles:
+     - Min price only filtering
+     - Max price only filtering
+     - Both min and max price filtering
+     - No price filtering (returns all products)
+   - Implemented filterByPrime() function for Prime-eligible filtering
+   - Added mock product data for testing purposes
+
+4. **Comprehensive Test Suite** (internal/amazon/search_test.go)
+   - TestSearch: 10 test cases covering:
+     - Empty query validation
+     - No price filters (returns all)
+     - Min price only filtering
+     - Max price only filtering
+     - Both min and max price filtering
+     - Narrow price range filtering
+     - Price range excluding all products
+     - Exact price match
+     - Prime-only filtering
+     - Combined price range and Prime filtering
+
+   - TestFilterByPriceRange: 6 test cases covering:
+     - No filters
+     - Min price only
+     - Max price only
+     - Both filters
+     - No matches
+     - Exact price match
+
+   - TestFilterByPrime: Validates Prime-eligible filtering
+
+   - TestPriceRangeEdgeCases: 4 edge case tests covering:
+     - Very low prices (cents)
+     - Very high prices
+     - Boundary conditions (min equals price, max equals price)
+
+### Test Results:
+All 21 tests passed successfully:
+- TestSearch: 10/10 passed
+- TestFilterByPriceRange: 6/6 passed
+- TestFilterByPrime: 1/1 passed
+- TestPriceRangeEdgeCases: 4/4 passed
+
+### Implementation Notes:
+- Price range filtering logic correctly handles inclusive boundaries (>= minPrice, <= maxPrice)
+- Empty price values (0 or negative) are treated as "no filter"
+- Filters can be combined (price range + Prime filtering)
+- Edge cases like exact price matches and boundary values are properly handled
+- Test coverage includes positive cases, negative cases, and edge cases
