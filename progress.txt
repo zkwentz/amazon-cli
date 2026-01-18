@@ -1,0 +1,57 @@
+## Order Parsing Unit Tests - Completed
+
+### Summary
+Implemented comprehensive unit tests for order parsing logic as part of Phase 3.4 of the Amazon CLI project.
+
+### What was done:
+1. Created Go module structure (go.mod)
+2. Created order data models in pkg/models/order.go:
+   - Order struct with OrderID, Date, Total, Status, Items, and Tracking
+   - OrderItem struct with ASIN, Title, Quantity, and Price
+   - Tracking struct with carrier and delivery information
+   - OrdersResponse struct for list operations
+
+3. Implemented order parsing functions in internal/amazon/orders.go:
+   - ParseOrderFromJSON: Parse orders from JSON data
+   - ParseOrdersResponse: Parse list of orders from JSON
+   - ParseOrderFromHTML: Parse orders from HTML scraped content
+   - ValidateOrder: Validate order has required fields
+   - IsValidOrderID: Validate Amazon order ID format (XXX-XXXXXXX-XXXXXXX)
+   - FilterOrdersByStatus: Filter orders by status (delivered, pending, etc.)
+   - CalculateOrderTotal: Calculate total from order items
+
+4. Created comprehensive test suite in internal/amazon/orders_test.go:
+   - TestParseOrderFromJSON: 4 test cases for JSON parsing
+   - TestParseOrdersResponse: 3 test cases for orders list parsing
+   - TestParseOrderFromHTML: 4 test cases for HTML parsing
+   - TestValidateOrder: 7 test cases for validation logic
+   - TestIsValidOrderID: 7 test cases for order ID validation
+   - TestFilterOrdersByStatus: 6 test cases including case-insensitive filtering
+   - TestCalculateOrderTotal: 5 test cases for total calculation
+   - TestOrderJSONRoundTrip: Round-trip serialization test
+
+### Test Results:
+All 8 test functions with 36 sub-tests passed successfully:
+- ✓ JSON parsing with complete and partial orders
+- ✓ HTML parsing with various formats
+- ✓ Order validation with edge cases
+- ✓ Order ID format validation
+- ✓ Status filtering with case-insensitivity
+- ✓ Total calculation with multiple items
+- ✓ JSON round-trip serialization
+
+### Files Created:
+- pkg/models/order.go (data models)
+- internal/amazon/orders.go (parsing implementation)
+- internal/amazon/orders_test.go (unit tests)
+- go.mod (Go module definition)
+
+### Test Coverage:
+The test suite covers:
+- Valid and invalid JSON inputs
+- HTML parsing with different formats
+- Edge cases (nil, empty, malformed data)
+- Amazon-specific order ID format validation
+- Case-insensitive status filtering
+- Multiple items with quantity calculations
+- Round-trip JSON serialization
