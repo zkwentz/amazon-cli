@@ -1,0 +1,28 @@
+## Completed Tasks
+
+### PostForm Implementation
+- Created directory structure: internal/amazon, internal/config, internal/ratelimit, pkg/models
+- Initialized Go module: github.com/zkwentz/amazon-cli
+- Implemented config package (internal/config/config.go):
+  - Config struct with Auth, Defaults, and RateLimiting
+  - LoadConfig and SaveConfig functions
+  - GetConfigPath helper function
+- Implemented rate limiter (internal/ratelimit/limiter.go):
+  - RateLimiter with Wait, WaitWithBackoff, and ShouldRetry methods
+  - Jitter for request timing
+  - Exponential backoff for retries
+- Implemented HTTP client (internal/amazon/client.go):
+  - Client struct with http.Client, RateLimiter, and Config
+  - User-Agent rotation with 10 different browser UAs
+  - Do method with automatic retry logic for 429/503 responses
+  - Get method for HTTP GET requests
+  - **PostForm method for HTTP POST with form data**
+    - Properly encodes url.Values as application/x-www-form-urlencoded
+    - Sends form data in request body (not query string)
+    - Uses Do method for rate limiting and retry logic
+- Created comprehensive tests (internal/amazon/client_test.go):
+  - TestPostForm: Verifies POST method, Content-Type header, and body encoding
+  - TestPostFormWithRetry: Tests retry logic with 429 responses
+  - TestGet: Tests basic GET functionality
+  - TestUserAgentRotation: Verifies UA rotation works
+  - All tests pass successfully
