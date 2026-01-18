@@ -1,0 +1,48 @@
+## Completed Tasks
+
+### pkg/models/cart.go - Cart Models Implementation
+
+Created `pkg/models/cart.go` with the following data structures:
+
+1. **CartItem** - Represents a single item in the shopping cart with:
+   - ASIN (product identifier)
+   - Title, Price, Quantity
+   - Subtotal (calculated)
+   - Prime eligibility and stock status
+
+2. **Cart** - Complete shopping cart with:
+   - Items array
+   - Subtotal, EstimatedTax, Total
+   - ItemCount
+
+3. **Address** - Saved shipping address with:
+   - ID, Name, Street, City, State, Zip, Country
+   - Default flag
+
+4. **PaymentMethod** - Saved payment method with:
+   - ID, Type, Last4 digits
+   - Default flag
+
+5. **CheckoutPreview** - Preview before completing checkout:
+   - Cart, Address, PaymentMethod
+   - DeliveryOptions array
+
+6. **OrderConfirmation** - Confirmation after purchase:
+   - OrderID, Total, EstimatedDelivery
+
+All structs include proper JSON tags for API compatibility.
+
+### Tests
+
+Created comprehensive unit tests in `pkg/models/cart_test.go`:
+- JSON marshaling/unmarshaling for all structs
+- Field validation
+- Empty cart handling
+- All tests passing (7/7)
+
+### Project Setup
+
+- Initialized Go module: `github.com/zkwentz/amazon-cli`
+- Created `pkg/models/` directory structure
+
+This implements Phase 6.1 (Data Models) from the PRD.
