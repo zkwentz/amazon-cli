@@ -1,0 +1,26 @@
+## Phase 1.2 Progress - Cobra CLI Framework Setup
+
+### Completed Tasks:
+- Created `cmd/version.go` - Simple version command that prints version information
+  - Displays version string, commit hash, and build date
+  - Version variables designed to be set via ldflags during build
+  - Follows Cobra command pattern with proper initialization
+
+- Created `cmd/version_test.go` - Unit tests for version command
+  - Tests version command output format
+  - Tests that all expected strings are present in output
+  - Tests that version variables exist and have default values
+
+### Files Created:
+- cmd/version.go - Version command implementation
+- cmd/version_test.go - Test coverage for version command
+
+### Technical Details:
+- Version command uses three variables (version, commit, date) with defaults
+- Variables can be overridden at build time using ldflags
+- Command registered with rootCmd in init() function
+- Output format: "amazon-cli version X.X.X\ncommit: <hash>\nbuilt: <date>"
+
+### Next Steps (from PRD):
+- Wire up main.go to execute root command
+- Verify CLI runs with `go run main.go --help`
