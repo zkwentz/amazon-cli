@@ -1,0 +1,44 @@
+# Progress Log
+
+## 2026-01-18: Implemented `cart list` command
+
+### What was implemented:
+1. Created `cmd/cart.go` with cart parent command and cart list subcommand
+   - Implemented `cart` parent command with description and help text
+   - Implemented `cart list` subcommand that retrieves and displays cart contents
+   - Command outputs JSON format with proper indentation for readability
+   - Integration with existing `internal/amazon` Client.GetCart() method
+
+2. Created comprehensive test suite in `cmd/cart_test.go`
+   - TestCartListCommand: Verifies command executes successfully and returns valid cart JSON
+   - TestCartListCommandJSONFormat: Validates JSON output contains all required fields
+   - TestCartCommandExists: Verifies command structure and properties
+   - TestCartListCommandOutput: Validates output structure and field presence
+   - All tests passing successfully
+
+### Features:
+- Command: `amazon-cli cart list`
+- Output format: JSON with indentation
+- Returns complete cart information:
+  - items: Array of cart items (ASIN, title, price, quantity, subtotal, prime, in_stock)
+  - subtotal: Cart subtotal
+  - estimated_tax: Estimated tax amount
+  - total: Total amount including tax
+  - item_count: Total number of items in cart
+
+### Testing:
+- All unit tests pass (4/4 tests)
+- Command builds successfully
+- Manual testing confirms correct JSON output
+- Help text displays correctly for both `cart` and `cart list` commands
+
+### Files modified/created:
+- cmd/cart.go (new)
+- cmd/cart_test.go (new)
+
+### Next steps:
+This implementation provides the foundation for additional cart commands:
+- cart add <asin>
+- cart remove <asin>
+- cart clear
+- cart checkout
