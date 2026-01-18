@@ -1,0 +1,70 @@
+## Task: Implement `GetConfigPath() string` helper that respects `--config` flag
+
+### Implementation Summary
+
+Successfully implemented the `GetConfigPath() string` helper function in `internal/config/config.go` that respects the `--config` flag.
+
+### Files Created/Modified:
+
+1. **go.mod** - Initialized Go module `github.com/zkwentz/amazon-cli`
+   - Added dependencies: cobra v1.10.2, viper v1.21.0
+
+2. **Project Structure** - Created directory structure:
+   - `cmd/` - Command definitions
+   - `internal/config/` - Configuration management
+   - `internal/amazon/` - Amazon API client (placeholder)
+   - `internal/output/` - Output formatting (placeholder)
+   - `internal/ratelimit/` - Rate limiting (placeholder)
+   - `pkg/models/` - Shared data models (placeholder)
+
+3. **cmd/root.go** - Root command setup
+   - Defined `--config` persistent flag for custom config file path
+   - Added other global flags: `--output`, `--quiet`, `--verbose`, `--no-color`
+   - Integrated Viper for configuration management
+
+4. **internal/config/config.go** - Configuration management implementation
+   - **GetConfigPath()** - Main function that:
+     - Returns custom path if `--config` flag is set via Viper
+     - Returns default path `~/.amazon-cli/config.json` otherwise
+     - Handles fallback to relative path if home directory unavailable
+   - **Config struct** - Main configuration structure with Auth, Defaults, and RateLimiting
+   - **LoadConfig()** - Loads config from file, returns default values if file doesn't exist
+   - **SaveConfig()** - Saves config to file with proper permissions (0600 for file, 0700 for directory)
+
+5. **internal/config/config_test.go** - Comprehensive test suite
+   - TestGetConfigPath: 4 test cases
+     - Returns custom path when config flag is set
+     - Returns default path when config flag is not set
+     - Handles relative custom path
+     - Handles absolute custom path
+   - TestLoadConfig: 3 test cases
+     - Returns default config when file does not exist
+     - Loads valid config file
+     - Returns error for invalid JSON
+   - TestSaveConfig: 2 test cases
+     - Saves config successfully with correct permissions
+     - Creates directory if not exists
+   - All tests passing (9/9)
+
+6. **main.go** - CLI entry point
+   - Executes root command with proper error handling
+
+7. **cmd/config.go** - Config command for demonstration
+   - Displays current config path
+   - Useful for verifying --config flag behavior
+
+### Verification:
+
+✅ All tests pass (9/9 test cases)
+✅ Code builds successfully
+✅ Default path returns: `~/.amazon-cli/config.json`
+✅ Custom path with `--config /custom/path/config.json` returns: `/custom/path/config.json`
+✅ File permissions properly set (0600 for config file, 0700 for directory)
+
+### Key Features:
+
+- Respects `--config` flag via Viper integration
+- Falls back to default path when flag not set
+- Handles edge cases (missing home directory)
+- Comprehensive test coverage
+- Follows security best practices (restrictive file permissions)
