@@ -1,0 +1,65 @@
+## Implementation Progress
+
+### Cart Module Implementation (Phase 6: Cart & Checkout)
+
+#### Completed Tasks:
+
+1. **Created pkg/models/cart.go**
+   - Defined CartItem struct with ASIN, title, price, quantity, subtotal, Prime eligibility, and stock status
+   - Defined Cart struct with items array, subtotal, estimated tax, total, and item count
+   - Defined Address struct for shipping addresses (ID, name, street, city, state, zip, country, default flag)
+   - Defined PaymentMethod struct for payment methods (ID, type, last4 digits, default flag)
+   - Defined DeliveryOption struct for delivery options during checkout
+   - Defined CheckoutPreview struct for previewing checkout before purchase
+   - Defined OrderConfirmation struct for order confirmation after purchase
+
+2. **Created internal/amazon/cart.go**
+   - Implemented CartService struct with client reference
+   - Implemented NewCartService() constructor
+   - Implemented AddToCart(asin, quantity) - adds items to cart with validation
+   - Implemented GetCart() - retrieves current cart contents
+   - Implemented RemoveFromCart(asin) - removes specific item from cart
+   - Implemented ClearCart() - removes all items from cart
+   - Implemented GetAddresses() - retrieves saved shipping addresses
+   - Implemented GetPaymentMethods() - retrieves saved payment methods
+   - Implemented PreviewCheckout(addressID, paymentID) - previews checkout without purchasing
+   - Implemented CompleteCheckout(addressID, paymentID) - completes purchase and returns order confirmation
+   - Added placeholder HTML parsing functions (to be implemented with actual parsing logic using goquery)
+   - Added input validation for ASIN and quantity parameters
+   - Added proper error handling and error wrapping
+   - Included placeholder Client implementation for standalone compilation
+
+3. **Created internal/amazon/cart_test.go**
+   - Implemented TestAddToCart with multiple test cases (valid, empty ASIN, zero/negative quantity)
+   - Implemented TestRemoveFromCart with validation tests
+   - Implemented TestGetCart to verify cart retrieval
+   - Implemented TestClearCart to verify clearing all items
+   - Implemented TestGetAddresses to verify address retrieval
+   - Implemented TestGetPaymentMethods to verify payment method retrieval
+   - Implemented TestPreviewCheckout to verify checkout preview
+   - Implemented TestCompleteCheckout to verify purchase completion
+   - Implemented TestNewCartService to verify service creation
+   - Implemented TestCartItemStructure to verify model structure
+   - Implemented TestCartStructure to verify cart model structure
+   - All tests use httptest mock server for isolation
+   - Tests cover both success and error scenarios
+
+#### Implementation Notes:
+
+- The cart.go file includes all core functionality as specified in the PRD (Phase 6.2 and 6.3)
+- HTML parsing functions are stubbed with TODO comments indicating where actual parsing logic needs to be implemented
+- The implementation follows the Amazon cart workflow: add items, view cart, remove items, preview checkout, complete purchase
+- Safety features include input validation and separate preview/complete checkout methods
+- The code is structured to work with the overall amazon-cli architecture
+- All functions follow Go best practices with proper error handling and documentation
+- Tests provide good coverage of core functionality and edge cases
+
+#### Next Steps (for future implementation):
+
+1. Implement actual HTML parsing using goquery or colly
+2. Integrate with the main Client implementation from internal/amazon/client.go
+3. Handle Amazon-specific CSRF tokens and session management
+4. Implement retry logic and rate limiting integration
+5. Add support for quantity updates in cart
+6. Handle out-of-stock items and cart validation errors
+7. Parse actual Amazon HTML structure for cart, addresses, payment methods, and checkout pages
