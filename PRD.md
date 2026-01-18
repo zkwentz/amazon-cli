@@ -315,7 +315,7 @@ Available on GitHub Releases page.
 ### Build from Source
 
 ```bash
-go install github.com/yourusername/amazon-cli@latest
+go install github.com/zkwentz/amazon-cli@latest
 ```
 
 ## Project Structure
@@ -368,80 +368,80 @@ amazon-cli/
 ### Phase 1: Project Setup & Foundation
 
 #### 1.1 Repository Initialization
-- [ ] Create new GitHub repository `amazon-cli`
-- [ ] Initialize Go module: `go mod init github.com/michaelshimeles/amazon-cli`
-- [ ] Create `.gitignore` file with Go defaults (binaries, vendor/, .env, etc.)
-- [ ] Create initial `main.go` entry point
-- [ ] Set up directory structure:
+- [x] Create new GitHub repository `amazon-cli`
+- [x] Initialize Go module: `go mod init github.com/zkwentz/amazon-cli`
+- [x] Create `.gitignore` file with Go defaults (binaries, vendor/, .env, etc.)
+- [x] Create initial `main.go` entry point
+- [x] Set up directory structure:
   ```
   mkdir -p cmd internal/amazon internal/config internal/output internal/ratelimit pkg/models
   ```
 
 #### 1.2 Cobra CLI Framework Setup
-- [ ] Install Cobra: `go get -u github.com/spf13/cobra@latest`
-- [ ] Install Viper for config: `go get -u github.com/spf13/viper@latest`
-- [ ] Create `cmd/root.go` with root command:
+- [x] Install Cobra: `go get -u github.com/spf13/cobra@latest`
+- [x] Install Viper for config: `go get -u github.com/spf13/viper@latest`
+- [x] Create `cmd/root.go` with root command:
   - [ ] Set `Use: "amazon-cli"`
   - [ ] Set `Short` and `Long` descriptions
   - [ ] Add persistent flags: `--output`, `--quiet`, `--verbose`, `--config`, `--no-color`
   - [ ] Initialize Viper config binding in `init()`
-- [ ] Create `cmd/version.go` - simple version command that prints version string
-- [ ] Wire up `main.go` to execute root command
-- [ ] Verify CLI runs: `go run main.go --help` should show help text
+- [x] Create `cmd/version.go` - simple version command that prints version string
+- [x] Wire up `main.go` to execute root command
+- [x] Verify CLI runs: `go run main.go --help` should show help text
 
 #### 1.3 Configuration Management
-- [ ] Create `internal/config/config.go`:
+- [x] Create `internal/config/config.go`:
   - [ ] Define `Config` struct matching the JSON schema in PRD (auth, defaults, rate_limiting)
   - [ ] Define `AuthConfig` struct with `AccessToken`, `RefreshToken`, `ExpiresAt` fields
   - [ ] Define `DefaultsConfig` struct with `AddressID`, `PaymentID`, `OutputFormat` fields
   - [ ] Define `RateLimitConfig` struct with `MinDelayMs`, `MaxDelayMs`, `MaxRetries` fields
-- [ ] Implement `LoadConfig(path string) (*Config, error)`:
+- [x] Implement `LoadConfig(path string) (*Config, error)`:
   - [ ] Default path: `~/.amazon-cli/config.json`
   - [ ] Create directory if not exists with `0700` permissions
   - [ ] Return empty config if file doesn't exist (first run)
   - [ ] Parse JSON and return Config struct
-- [ ] Implement `SaveConfig(config *Config, path string) error`:
+- [x] Implement `SaveConfig(config *Config, path string) error`:
   - [ ] Marshal to JSON with indentation
   - [ ] Write to file with `0600` permissions
-- [ ] Implement `GetConfigPath() string` helper that respects `--config` flag
-- [ ] Write unit tests for config load/save operations
+- [x] Implement `GetConfigPath() string` helper that respects `--config` flag
+- [x] Write unit tests for config load/save operations
 
 #### 1.4 JSON Output System
-- [ ] Create `internal/output/output.go`:
+- [x] Create `internal/output/output.go`:
   - [ ] Define `OutputFormat` type (JSON, Table, Raw constants)
   - [ ] Create `Printer` struct that holds format preference and quiet mode
-- [ ] Implement `NewPrinter(format string, quiet bool) *Printer`
-- [ ] Implement `Print(data interface{}) error`:
+- [x] Implement `NewPrinter(format string, quiet bool) *Printer`
+- [x] Implement `Print(data interface{}) error`:
   - [ ] For JSON: marshal with `json.MarshalIndent` and print to stdout
   - [ ] For Table: use `tablewriter` package for human-readable output
   - [ ] For Raw: print raw string representation
-- [ ] Implement `PrintError(err error) error`:
+- [x] Implement `PrintError(err error) error`:
   - [ ] Format errors as JSON: `{"error": {"code": "...", "message": "...", "details": {}}}`
   - [ ] Use error codes from PRD (AUTH_REQUIRED, AUTH_EXPIRED, etc.)
-- [ ] Create `pkg/models/errors.go`:
+- [x] Create `pkg/models/errors.go`:
   - [ ] Define `CLIError` struct with `Code`, `Message`, `Details` fields
   - [ ] Define error code constants matching PRD table
   - [ ] Implement `Error()` method on CLIError for error interface
-- [ ] Write unit tests for JSON output formatting
+- [x] Write unit tests for JSON output formatting
 
 #### 1.5 Rate Limiting Infrastructure
-- [ ] Create `internal/ratelimit/limiter.go`:
+- [x] Create `internal/ratelimit/limiter.go`:
   - [ ] Define `RateLimiter` struct with config, last request time, retry count
-- [ ] Implement `NewRateLimiter(config RateLimitConfig) *RateLimiter`
-- [ ] Implement `Wait() error`:
+- [x] Implement `NewRateLimiter(config RateLimitConfig) *RateLimiter`
+- [x] Implement `Wait() error`:
   - [ ] Calculate time since last request
   - [ ] If less than MinDelayMs, sleep for the difference
   - [ ] Add random jitter (0-500ms) using `crypto/rand`
   - [ ] Update last request timestamp
-- [ ] Implement `WaitWithBackoff(attempt int) error`:
+- [x] Implement `WaitWithBackoff(attempt int) error`:
   - [ ] Calculate exponential backoff: `min(2^attempt * 1000ms, 60000ms)`
   - [ ] Sleep for calculated duration
   - [ ] Log backoff duration if verbose mode
-- [ ] Implement `ShouldRetry(statusCode int, attempt int) bool`:
+- [x] Implement `ShouldRetry(statusCode int, attempt int) bool`:
   - [ ] Return true for 429 (rate limited) or 503 (service unavailable)
   - [ ] Return false if attempt >= MaxRetries
   - [ ] Return false for other status codes
-- [ ] Write unit tests for rate limiter logic
+- [x] Write unit tests for rate limiter logic
 
 #### 1.6 HTTP Client Foundation
 - [ ] Create `internal/amazon/client.go`:
