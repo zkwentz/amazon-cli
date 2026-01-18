@@ -19,7 +19,7 @@ func TestCompleteCheckout(t *testing.T) {
 			paymentID:   "pay123",
 			setupCart:   nil,
 			wantErr:     true,
-			errContains: "addressID cannot be empty",
+			errContains: "address ID cannot be empty",
 		},
 		{
 			name:        "empty paymentID should fail",
@@ -27,7 +27,7 @@ func TestCompleteCheckout(t *testing.T) {
 			paymentID:   "",
 			setupCart:   nil,
 			wantErr:     true,
-			errContains: "paymentID cannot be empty",
+			errContains: "payment ID cannot be empty",
 		},
 		{
 			name:      "empty cart should fail",
@@ -177,14 +177,14 @@ func TestAddToCart(t *testing.T) {
 			asin:      "B08N5WRWNW",
 			quantity:  0,
 			wantErr:   true,
-			errString: "quantity must be positive",
+			errString: "quantity must be at least 1",
 		},
 		{
 			name:      "negative quantity should fail",
 			asin:      "B08N5WRWNW",
 			quantity:  -1,
 			wantErr:   true,
-			errString: "quantity must be positive",
+			errString: "quantity must be at least 1",
 		},
 		{
 			name:      "multiple quantity",
@@ -192,6 +192,27 @@ func TestAddToCart(t *testing.T) {
 			quantity:  5,
 			wantErr:   false,
 			errString: "",
+		},
+		{
+			name:      "invalid ASIN format - too short",
+			asin:      "B08N5WRW",
+			quantity:  1,
+			wantErr:   true,
+			errString: "invalid ASIN format",
+		},
+		{
+			name:      "invalid ASIN format - lowercase",
+			asin:      "b08n5wrwnw",
+			quantity:  1,
+			wantErr:   true,
+			errString: "invalid ASIN format",
+		},
+		{
+			name:      "quantity exceeds maximum",
+			asin:      "B08N5WRWNW",
+			quantity:  1000,
+			wantErr:   true,
+			errString: "quantity cannot exceed",
 		},
 	}
 
@@ -203,8 +224,8 @@ func TestAddToCart(t *testing.T) {
 			if tt.wantErr {
 				if err == nil {
 					t.Error("AddToCart() expected error but got none")
-				} else if err.Error() != tt.errString {
-					t.Errorf("AddToCart() error = %v, want %v", err.Error(), tt.errString)
+				} else if tt.errString != "" && !contains(err.Error(), tt.errString) {
+					t.Errorf("AddToCart() error = %v, want error containing %q", err, tt.errString)
 				}
 				return
 			}
@@ -269,6 +290,12 @@ func TestRemoveFromCart(t *testing.T) {
 			wantErr:   true,
 			errString: "ASIN cannot be empty",
 		},
+		{
+			name:      "invalid ASIN format",
+			asin:      "invalid",
+			wantErr:   true,
+			errString: "invalid ASIN format",
+		},
 	}
 
 	for _, tt := range tests {
@@ -279,8 +306,8 @@ func TestRemoveFromCart(t *testing.T) {
 			if tt.wantErr {
 				if err == nil {
 					t.Error("RemoveFromCart() expected error but got none")
-				} else if err.Error() != tt.errString {
-					t.Errorf("RemoveFromCart() error = %v, want %v", err.Error(), tt.errString)
+				} else if tt.errString != "" && !contains(err.Error(), tt.errString) {
+					t.Errorf("RemoveFromCart() error = %v, want error containing %q", err, tt.errString)
 				}
 				return
 			}
@@ -351,14 +378,14 @@ func TestPreviewCheckout(t *testing.T) {
 			addressID:   "",
 			paymentID:   "pay123",
 			wantErr:     true,
-			errContains: "addressID cannot be empty",
+			errContains: "address ID cannot be empty",
 		},
 		{
 			name:        "empty paymentID should fail",
 			addressID:   "addr123",
 			paymentID:   "",
 			wantErr:     true,
-			errContains: "paymentID cannot be empty",
+			errContains: "payment ID cannot be empty",
 		},
 	}
 

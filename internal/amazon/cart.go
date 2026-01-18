@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/michaelshimeles/amazon-cli/pkg/models"
+	"github.com/michaelshimeles/amazon-cli/pkg/validation"
 )
 
 // Client represents the Amazon API client
@@ -34,11 +35,14 @@ func NewClient() *Client {
 // AddToCart adds an item to the cart
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) AddToCart(asin string, quantity int) (*models.Cart, error) {
-	if asin == "" {
-		return nil, fmt.Errorf("ASIN cannot be empty")
+	// Validate ASIN format
+	if err := validation.ValidateASIN(asin); err != nil {
+		return nil, err
 	}
-	if quantity <= 0 {
-		return nil, fmt.Errorf("quantity must be positive")
+
+	// Validate quantity
+	if err := validation.ValidateQuantity(quantity); err != nil {
+		return nil, err
 	}
 
 	// TODO: Implement actual Amazon cart add API call
@@ -80,8 +84,9 @@ func (c *Client) GetCart() (*models.Cart, error) {
 // RemoveFromCart removes an item from the cart
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) RemoveFromCart(asin string) (*models.Cart, error) {
-	if asin == "" {
-		return nil, fmt.Errorf("ASIN cannot be empty")
+	// Validate ASIN format
+	if err := validation.ValidateASIN(asin); err != nil {
+		return nil, err
 	}
 
 	// TODO: Implement actual Amazon cart remove API call
@@ -112,11 +117,14 @@ func (c *Client) GetPaymentMethods() ([]models.PaymentMethod, error) {
 // PreviewCheckout initiates checkout flow without completing purchase
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) PreviewCheckout(addressID, paymentID string) (*models.CheckoutPreview, error) {
-	if addressID == "" {
-		return nil, fmt.Errorf("addressID cannot be empty")
+	// Validate address ID
+	if err := validation.ValidateAddressID(addressID); err != nil {
+		return nil, err
 	}
-	if paymentID == "" {
-		return nil, fmt.Errorf("paymentID cannot be empty")
+
+	// Validate payment ID
+	if err := validation.ValidatePaymentID(paymentID); err != nil {
+		return nil, err
 	}
 
 	// TODO: Implement actual Amazon checkout preview API call
@@ -150,12 +158,14 @@ func (c *Client) PreviewCheckout(addressID, paymentID string) (*models.CheckoutP
 // CompleteCheckout completes the checkout process and places the order
 // This method handles the final purchase submission with the specified address and payment method
 func (c *Client) CompleteCheckout(addressID, paymentID string) (*models.OrderConfirmation, error) {
-	// Validate input parameters
-	if addressID == "" {
-		return nil, fmt.Errorf("addressID cannot be empty")
+	// Validate address ID
+	if err := validation.ValidateAddressID(addressID); err != nil {
+		return nil, err
 	}
-	if paymentID == "" {
-		return nil, fmt.Errorf("paymentID cannot be empty")
+
+	// Validate payment ID
+	if err := validation.ValidatePaymentID(paymentID); err != nil {
+		return nil, err
 	}
 
 	// Step 1: Get current cart to validate items exist
