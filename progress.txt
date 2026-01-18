@@ -1,0 +1,63 @@
+## Task: Write unit tests for config load/save operations
+
+### Completed Work:
+
+1. **Initialized Go Module**
+   - Created go.mod with module path: github.com/zkwentz/amazon-cli
+
+2. **Created Project Structure**
+   - Created internal/config directory for configuration management
+   - Created pkg/models directory for shared data models
+
+3. **Implemented Config Package (internal/config/config.go)**
+   - Defined AuthConfig struct with AccessToken, RefreshToken, and ExpiresAt fields
+   - Defined DefaultsConfig struct with AddressID, PaymentID, and OutputFormat fields
+   - Defined RateLimitConfig struct with MinDelayMs, MaxDelayMs, and MaxRetries fields
+   - Defined main Config struct containing all sub-configs
+   - Implemented NewDefaultConfig() function returning sensible defaults
+   - Implemented LoadConfig(path) function with:
+     - Tilde (~) expansion for home directory paths
+     - Returns default config if file doesn't exist (first run scenario)
+     - JSON parsing with error handling
+   - Implemented SaveConfig(config, path) function with:
+     - Tilde expansion support
+     - Automatic directory creation with 0700 permissions
+     - JSON marshaling with indentation for readability
+     - File writing with 0600 permissions for security
+   - Implemented GetDefaultConfigPath() helper function
+
+4. **Wrote Comprehensive Unit Tests (internal/config/config_test.go)**
+   - TestNewDefaultConfig: Validates default configuration values
+   - TestLoadConfig_NonExistentFile: Ensures default config is returned when file doesn't exist
+   - TestSaveConfig: Verifies config saving with correct file/directory permissions
+   - TestLoadConfig_ExistingFile: Tests loading existing config file
+   - TestLoadConfig_InvalidJSON: Validates error handling for malformed JSON
+   - TestSaveAndLoadConfig_RoundTrip: Tests save/load cycle preserves all data
+   - TestSaveConfig_CreatesNestedDirectories: Verifies nested directory creation
+   - TestLoadConfig_EmptyFile: Tests error handling for empty files
+   - TestConfigJSONStructure: Validates JSON marshaling/unmarshaling
+   - TestGetDefaultConfigPath: Verifies default path generation
+   - TestLoadConfig_WithTildeExpansion: Tests path expansion functionality
+   - TestSaveConfig_WithTildeExpansion: Tests save with path expansion
+   - TestLoadConfig_ReadError: Tests error handling for read failures
+   - TestSaveConfig_MarshalSucceeds: Validates complete config marshaling
+
+### Test Results:
+- ✓ All 14 tests passing
+- ✓ 63.6% code coverage
+- ✓ Tests cover load, save, error handling, permissions, and edge cases
+
+### Files Created:
+- go.mod
+- internal/config/config.go
+- internal/config/config_test.go
+
+### Key Features Tested:
+- Configuration loading and saving
+- Default configuration generation
+- File and directory permission settings (0600 for files, 0700 for directories)
+- JSON marshaling and unmarshaling
+- Tilde (~) path expansion
+- Error handling for invalid/missing files
+- Round-trip data integrity
+- Nested directory creation
