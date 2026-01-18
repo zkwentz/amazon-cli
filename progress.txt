@@ -1,0 +1,22 @@
+## Completed Tasks
+
+### Subscriptions Upcoming Command Implementation
+- Created pkg/models/subscription.go with Subscription, SubscriptionsResponse, and UpcomingDelivery models
+- Implemented internal/amazon/subscriptions.go with all subscription management methods:
+  - GetSubscriptions() - retrieves all subscriptions
+  - GetSubscription() - retrieves a specific subscription
+  - SkipDelivery() - skips next delivery for a subscription
+  - UpdateFrequency() - changes delivery frequency
+  - CancelSubscription() - cancels a subscription
+  - GetUpcomingDeliveries() - retrieves all upcoming deliveries sorted by date
+- Created cmd/subscriptions.go with full subscription command support:
+  - subscriptions list - lists all subscriptions
+  - subscriptions get <id> - gets specific subscription details
+  - subscriptions skip <id> --confirm - skips next delivery
+  - subscriptions frequency <id> --interval N --confirm - changes frequency
+  - subscriptions cancel <id> --confirm - cancels subscription
+  - subscriptions upcoming - lists all upcoming deliveries
+- Implemented comprehensive tests in internal/amazon/subscriptions_test.go
+- All tests passing (7/7)
+- Command outputs proper JSON format as specified in PRD
+- Dry-run functionality working for commands requiring --confirm flag
