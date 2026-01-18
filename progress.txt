@@ -1,0 +1,106 @@
+## Implementation Progress
+
+### Completed: Auth Login Command
+
+**Date:** 2026-01-18
+
+**What was implemented:**
+
+1. **Project Structure Setup**
+   - Initialized Go module: `github.com/zkwentz/amazon-cli`
+   - Created directory structure:
+     - `cmd/` - CLI commands
+     - `internal/config/` - Configuration management
+     - `internal/amazon/` - Amazon API client
+     - `internal/output/` - Output formatting
+     - `internal/ratelimit/` - Rate limiting
+     - `pkg/models/` - Shared data models
+   - Installed dependencies: Cobra, Viper, browser package
+
+2. **Core Infrastructure**
+   - `main.go` - Application entry point
+   - `cmd/root.go` - Root command with global flags (--config, --output, --quiet, --verbose, --no-color)
+   - `internal/config/config.go` - Configuration management with:
+     - Config struct (Auth, Defaults, RateLimiting)
+     - LoadConfig/SaveConfig functions
+     - Default config path: `~/.amazon-cli/config.json`
+     - File permissions: 0700 for directory, 0600 for config file
+     - Helper methods: IsAuthenticated(), IsTokenExpired()
+
+3. **Authentication System**
+   - `internal/amazon/auth.go` - OAuth authentication client:
+     - AuthClient struct for managing authentication
+     - Login() method implementing OAuth flow:
+       - Generates CSRF state parameter
+       - Starts local HTTP server for OAuth callback (port 8085)
+       - Opens browser to Amazon OAuth consent page
+       - Handles callback and exchanges code for tokens
+       - 2-minute timeout for user authentication
+     - RefreshTokenIfNeeded() for automatic token refresh
+     - Uses environment variables for credentials: AMAZON_CLIENT_ID, AMAZON_CLIENT_SECRET
+
+4. **Auth Commands**
+   - `cmd/auth.go` - Authentication commands:
+     - `auth login` - Opens browser for OAuth authentication, stores tokens locally
+     - `auth status` - Shows authentication status and token expiry
+     - `auth logout` - Clears stored authentication tokens
+   - JSON output format for all commands
+   - Error handling with structured error responses
+
+5. **Testing**
+   - `internal/config/config_test.go` - Tests for configuration management:
+     - TestLoadConfigNewFile - Loading non-existent config returns defaults
+     - TestSaveAndLoadConfig - Saving and loading config preserves data
+     - TestIsAuthenticated - Verifies authentication state checking
+     - TestIsTokenExpired - Verifies token expiry checking
+     - TestConfigFilePermissions - Ensures secure file permissions
+
+   - `cmd/auth_test.go` - Tests for auth commands:
+     - TestAuthStatusNotAuthenticated - Status when not logged in
+     - TestAuthStatusAuthenticated - Status when logged in with valid tokens
+     - TestAuthLogout - Logout clears tokens from config
+
+**Files created:**
+- main.go
+- go.mod, go.sum
+- cmd/root.go
+- cmd/auth.go
+- cmd/auth_test.go
+- internal/config/config.go
+- internal/config/config_test.go
+- internal/amazon/auth.go
+
+**How to use:**
+1. Set environment variables:
+   ```bash
+   export AMAZON_CLIENT_ID="your-client-id"
+   export AMAZON_CLIENT_SECRET="your-client-secret"
+   ```
+   (Register app at https://developer.amazon.com/)
+
+2. Run authentication:
+   ```bash
+   ./amazon-cli auth login
+   ```
+
+3. Check authentication status:
+   ```bash
+   ./amazon-cli auth status
+   ```
+
+4. Logout:
+   ```bash
+   ./amazon-cli auth logout
+   ```
+
+**Testing:**
+All tests pass:
+- `go test ./internal/config/...` - 5/5 tests passing
+- `go test ./cmd/...` - 3/3 tests passing
+
+**Notes:**
+- OAuth implementation follows Amazon's Login with Amazon (LWA) API
+- Tokens stored securely with restrictive file permissions
+- CSRF protection via state parameter
+- Automatic token refresh when within 5 minutes of expiry
+- Commands output structured JSON for AI agent consumption
