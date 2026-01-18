@@ -1,0 +1,213 @@
+## Cookie-Based Authentication Implementation
+
+### Overview
+Implemented cookie-based authentication as a fallback for Amazon OAuth, as specified in Phase 2.4 of the PRD (line 516).
+
+### What Was Implemented
+
+#### 1. Configuration Module (`internal/config/config.go`)
+- Extended `AuthConfig` struct to support cookie storage:
+  - Added `Cookies []Cookie` field to store session cookies
+  - Added `CookiesSetAt time.Time` to track cookie age
+  - Added `AuthMethod string` to differentiate between "oauth" and "cookie" auth
+- Implemented `Cookie` struct with all necessary HTTP cookie fields:
+  - Name, Value, Domain, Path, Expires, Secure, HttpOnly
+- Configuration automatically saves/loads cookies with 0600 permissions for security
+- Tests: 4 tests covering config save/load, defaults, and file permissions
+
+#### 2. Cookie Authentication Module (`internal/amazon/auth_cookie.go`)
+- Implemented `CookieAuth` struct with the following methods:
+
+  **LoginWithBrowser()**:
+  - Uses Rod library to launch a headless/visible browser
+  - Opens Amazon login page
+  - Waits up to 5 minutes for user to complete login
+  - Automatically detects successful login by URL change
+  - Captures all session cookies after authentication
+  - Stores cookies in config with timestamp
+
+  **ApplyCookies(client *http.Client)**:
+  - Applies stored cookies to HTTP client's cookie jar
+  - Validates cookie existence before applying
+
+  **NeedsRefresh() bool**:
+  - Checks if cookies are older than 80% of max age (365 days)
+  - Returns true if cookies need refreshing
+
+  **ValidateCookies(client *http.Client) error**:
+  - Makes test request to Amazon to verify cookies are valid
+  - Detects redirects to login page (invalid cookies)
+  - Returns error if authentication fails
+
+#### 3. Authentication Manager (`internal/amazon/auth.go`)
+- Implemented `AuthManager` as a unified interface for both OAuth and cookie auth:
+
+  **NewAuthManager(cfg *config.Config)**:
+  - Creates HTTP client with cookie jar
+  - Automatically applies stored cookies if available
+  - Supports both OAuth and cookie authentication methods
+
+  **Login(useBrowser bool)**:
+  - Routes to cookie-based auth when useBrowser=true
+  - Placeholder for OAuth when useBrowser=false
+
+  **IsAuthenticated() bool**:
+  - Checks authentication status for current method
+  - Works for both cookie and OAuth
+
+  **NeedsRefresh() bool**:
+  - Delegates to appropriate auth method
+  - Cookie: checks age (365 days with 80% threshold)
+  - OAuth: checks token expiry (5 minute threshold)
+
+  **ValidateAuth() error**:
+  - Validates current authentication is still valid
+  - Makes live request for cookies
+
+  **RefreshAuthIfNeeded() error**:
+  - Prompts user to re-authenticate if needed
+
+  **GetAuthStatus() map[string]interface{}**:
+  - Returns detailed status information
+  - Includes method-specific details (cookie count, expiry, etc.)
+
+  **Logout() error**:
+  - Clears all stored credentials for both methods
+
+#### 4. CLI Commands (`cmd/auth.go`)
+- Implemented three auth subcommands:
+
+  **auth login [--browser]**:
+  - Default: uses browser-based cookie authentication
+  - Opens browser for user to login to Amazon
+  - Captures and stores session cookies
+  - Outputs JSON with authentication status
+
+  **auth status**:
+  - Shows current authentication status
+  - Displays auth method, cookie/token details
+  - Shows age and refresh requirements
+
+  **auth logout**:
+  - Clears all stored credentials
+  - Outputs confirmation JSON
+
+#### 5. Tests
+- `internal/config/config_test.go`: 4 tests for config operations
+- `internal/amazon/auth_test.go`: 5 test suites with 13 sub-tests
+  - TestNewAuthManager
+  - TestIsAuthenticated (3 scenarios)
+  - TestNeedsRefresh (5 scenarios)
+  - TestLogout
+  - TestGetAuthStatus
+- All tests passing ✓
+
+### Dependencies Added
+- `github.com/spf13/cobra` v1.10.2 - CLI framework
+- `github.com/go-rod/rod` v0.116.2 - Browser automation
+- Related Rod dependencies for browser control
+
+### Key Features
+
+1. **Secure Cookie Storage**:
+   - Cookies stored in `~/.amazon-cli/config.json` with 0600 permissions
+   - No plaintext passwords stored
+   - Session cookies only
+
+2. **Browser Automation**:
+   - Uses Rod (DevTools Protocol) for reliable browser control
+   - Supports visible browser for user to complete login
+   - Handles MFA and other Amazon security challenges automatically
+   - 5-minute timeout for login completion
+
+3. **Cookie Lifecycle Management**:
+   - Tracks cookie age with timestamps
+   - 365-day maximum age
+   - Automatic refresh detection at 80% of max age
+   - Validation on each use
+
+4. **Flexible Authentication**:
+   - Supports both OAuth (placeholder) and cookie methods
+   - Easy to switch between methods
+   - Unified interface through AuthManager
+
+5. **JSON Output**:
+   - All commands output structured JSON
+   - Easy for AI agents and scripts to parse
+   - Consistent error reporting
+
+### Files Created
+```
+cmd/root.go                         # CLI root command setup
+cmd/auth.go                         # Authentication commands
+internal/config/config.go           # Configuration management
+internal/config/config_test.go      # Config tests
+internal/amazon/auth.go             # Unified auth manager
+internal/amazon/auth_cookie.go      # Cookie-based authentication
+internal/amazon/auth_test.go        # Auth tests
+main.go                             # Entry point
+go.mod                              # Go module definition
+```
+
+### Usage Example
+```bash
+# Login with browser-based auth
+$ amazon-cli auth login --browser
+Browser opened. Please login to Amazon...
+Waiting for successful login...
+Login detected! Capturing session cookies...
+Successfully captured 12 session cookies
+{
+  "status": "authenticated",
+  "auth_method": "cookie",
+  "cookies_count": 12
+}
+
+# Check status
+$ amazon-cli auth status
+{
+  "authenticated": true,
+  "auth_method": "cookie",
+  "cookies_count": 12,
+  "cookies_set_at": "2026-01-18T15:30:00Z",
+  "cookies_age_hours": 0,
+  "needs_refresh": false
+}
+
+# Logout
+$ amazon-cli auth logout
+{
+  "status": "logged_out"
+}
+```
+
+### Security Considerations
+- Config file has 0600 permissions (user read/write only)
+- No credentials logged in verbose mode
+- Cookies expire after 365 days
+- Automatic expiry detection
+- User must manually re-authenticate when cookies expire
+
+### Future Enhancements (Not Implemented)
+- OAuth authentication (PRD Phase 2.1-2.3)
+- Automatic token refresh for OAuth
+- Cookie rotation/refresh without manual re-login
+- Support for multiple Amazon accounts
+
+### Testing
+All tests pass:
+- Config module: 4/4 tests ✓
+- Auth module: 13/13 tests ✓
+- Binary builds successfully ✓
+- CLI commands functional ✓
+
+### Implementation Status
+✅ Cookie-based authentication fully implemented
+✅ Browser automation with Rod
+✅ Cookie storage in config file
+✅ Cookie refresh detection
+✅ Re-authentication prompts
+✅ CLI commands (login, status, logout)
+✅ Comprehensive test coverage
+✅ JSON output format
+✅ Secure credential storage
