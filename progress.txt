@@ -1,0 +1,84 @@
+# Amazon CLI - Progress Log
+
+## Completed: auth logout command implementation
+
+### What was implemented:
+
+1. **Project Structure Setup**
+   - Initialized Go module (github.com/zkwentz/amazon-cli)
+   - Created directory structure: cmd/, internal/config/, internal/output/, pkg/models/
+   - Installed dependencies: cobra, viper
+
+2. **Core Infrastructure**
+   - Created error models with standardized error codes (pkg/models/errors.go)
+   - Implemented configuration management system (internal/config/config.go):
+     - Load/Save config from ~/.amazon-cli/config.json
+     - Proper file permissions (0600 for config file, 0700 for directory)
+     - Support for auth, defaults, and rate limiting configuration sections
+   - Created output formatting system (internal/output/output.go):
+     - JSON output support
+     - Error output in structured JSON format
+     - Printer abstraction for future table/raw format support
+
+3. **CLI Framework**
+   - Created root command with global flags (cmd/root.go):
+     - --config, --output, --quiet, --verbose, --no-color
+     - Exit code mapping for different error types
+   - Created auth command structure (cmd/auth.go):
+     - Parent "auth" command
+     - Implemented "auth logout" subcommand
+
+4. **Auth Logout Command** (cmd/auth.go)
+   - Loads configuration from ~/.amazon-cli/config.json
+   - Clears all authentication tokens (access_token, refresh_token, expires_at)
+   - Preserves other configuration sections (defaults, rate_limiting)
+   - Saves updated configuration with proper permissions
+   - Returns JSON output: {"status": "logged_out"}
+
+5. **Testing**
+   - Comprehensive tests for config package (internal/config/config_test.go):
+     - Test loading non-existent config (returns defaults)
+     - Test save and load round-trip
+     - Test directory creation with proper permissions
+     - Test config path generation
+   - Comprehensive tests for auth logout (cmd/auth_test.go):
+     - Test logout with existing tokens
+     - Test logout with empty/non-existent config
+     - Verify tokens are cleared
+     - Verify other config sections remain intact
+   - All tests passing (6/6 tests pass)
+
+6. **Main Entry Point**
+   - Created main.go to execute the CLI
+
+### Files Created:
+- main.go
+- go.mod, go.sum
+- pkg/models/errors.go
+- internal/config/config.go
+- internal/config/config_test.go
+- internal/output/output.go
+- cmd/root.go
+- cmd/auth.go
+- cmd/auth_test.go
+
+### Command Usage:
+```bash
+# Clear authentication credentials
+amazon-cli auth logout
+
+# Output:
+{
+  "status": "logged_out"
+}
+
+# View help
+amazon-cli auth --help
+amazon-cli auth logout --help
+```
+
+### Next Steps for Complete Auth System:
+- Implement "auth login" command with OAuth flow
+- Implement "auth status" command to check authentication state
+- Add token refresh logic
+- Add auth middleware for authenticated API calls
