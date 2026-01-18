@@ -1,0 +1,47 @@
+## Implemented: GetOrderTracking(orderID string) (*Tracking, error)
+
+### What was done:
+1. Set up Go module: github.com/zkwentz/amazon-cli
+2. Created project structure:
+   - pkg/models/order.go - Data models for Order, OrderItem, Tracking, and OrdersResponse
+   - internal/amazon/orders.go - Amazon client with GetOrderTracking implementation
+   - internal/amazon/orders_test.go - Comprehensive test suite
+
+3. Implemented GetOrderTracking function with the following features:
+   - Input validation (empty check and format validation for order IDs)
+   - Order ID format validation using regex (XXX-XXXXXXX-XXXXXXX pattern)
+   - HTTP request to Amazon tracking endpoint with proper headers
+   - Response status code handling (401 Unauthorized, 404 Not Found, etc.)
+   - HTML parsing to extract tracking information:
+     * Carrier name
+     * Tracking number
+     * Delivery status
+     * Delivery date
+   - Comprehensive error handling with descriptive error messages
+
+4. Created robust test suite with 8 test cases:
+   - Empty order ID validation
+   - Invalid order ID format validation (5 test cases)
+   - Valid order ID handling
+   - Not found (404) handling
+   - Valid HTML parsing
+   - Empty HTML error handling
+   - Partial data parsing
+   - Multiple carrier format support (UPS, USPS, FedEx)
+
+### Test Results:
+All 8 tests passing (1.639s execution time)
+
+### Files Created:
+- pkg/models/order.go (34 lines)
+- internal/amazon/orders.go (123 lines)
+- internal/amazon/orders_test.go (173 lines)
+- go.mod
+
+### Implementation Notes:
+- The function validates Amazon order ID format (XXX-XXXXXXX-XXXXXXX)
+- Uses regex-based HTML parsing to extract tracking information
+- Returns a *Tracking struct containing carrier, tracking number, status, and delivery date
+- Properly handles various error conditions with meaningful error messages
+- Mimics browser headers for Amazon requests
+- Ready for integration with the CLI commands layer
