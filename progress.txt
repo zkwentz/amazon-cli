@@ -1,0 +1,73 @@
+## Completed: PreviewCheckout Implementation
+
+### What was implemented:
+
+1. **Data Models** (pkg/models/cart.go):
+   - CartItem - represents individual items in the cart
+   - Cart - represents the shopping cart with items and totals
+   - Address - represents a shipping address
+   - PaymentMethod - represents a payment method
+   - DeliveryOption - represents delivery options with dates and costs
+   - CheckoutPreview - complete preview structure with cart, address, payment, delivery options, and pricing
+   - OrderConfirmation - order confirmation structure
+
+2. **PreviewCheckout Method** (internal/amazon/cart.go):
+   - PreviewCheckout(addressID, paymentID string) (*CheckoutPreview, error)
+   - Fetches current cart contents
+   - Validates cart is not empty
+   - Retrieves specified address (or default if not specified)
+   - Retrieves specified payment method (or default if not specified)
+   - Generates checkout preview with:
+     - Cart details
+     - Selected address
+     - Selected payment method
+     - Delivery options (Standard, Two-Day)
+     - Tax calculation based on state
+     - Total price calculation
+
+3. **Supporting Methods**:
+   - getCartForCheckout() - retrieves cart for checkout
+   - getAddressForCheckout(addressID) - smart address selection (specific ID, default, or first)
+   - getPaymentMethodForCheckout(paymentID) - smart payment method selection
+   - fetchCheckoutPreview() - generates the preview structure
+   - calculateEstimatedTax() - calculates tax based on state and subtotal
+   - parseFloat() - utility to parse price strings
+
+4. **Client Infrastructure** (internal/amazon/client.go):
+   - Client struct with HTTP client and user agent rotation
+   - NewClient() - creates configured client with cookie jar
+   - Do(req) - executes HTTP requests with proper headers
+   - Get(url) - convenience method for GET requests
+
+5. **Comprehensive Tests** (internal/amazon/cart_test.go):
+   - TestCalculateEstimatedTax - tests tax calculation for various states
+   - TestParseFloat - tests price string parsing
+   - TestGetAddressForCheckout - documents address selection logic
+   - TestGetPaymentMethodForCheckout - documents payment selection logic
+   - TestPreviewCheckoutValidation - documents validation scenarios
+   - TestFetchCheckoutPreview - validates preview structure
+
+All tests pass successfully.
+
+### Implementation Notes:
+
+- The PreviewCheckout method follows the specification in PRD.md Phase 6.3
+- It initiates the checkout flow without completing the purchase
+- Returns a comprehensive preview including delivery options and totals
+- Supports both explicit address/payment IDs and defaults
+- Includes placeholder HTTP calls that will need to be completed with actual Amazon endpoint parsing
+- Tax calculation uses simplified state-based rates (would need updating for production)
+- The implementation provides a solid foundation for the complete checkout flow
+
+### Future Work:
+
+The following methods have placeholder implementations that need to be completed:
+- AddToCart() - add items to cart
+- GetCart() - fetch current cart
+- RemoveFromCart() - remove items
+- ClearCart() - clear all cart items
+- GetAddresses() - fetch user addresses
+- GetPaymentMethods() - fetch payment methods
+- CompleteCheckout() - finalize the purchase
+
+These will require HTML parsing or API integration with Amazon's actual endpoints.
