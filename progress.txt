@@ -1,0 +1,46 @@
+## Task: Create pkg/models/order.go
+
+### Completed:
+
+1. **Created directory structure**:
+   - Created `pkg/models/` directory
+
+2. **Implemented Order model** (`pkg/models/order.go`):
+   - `Order` struct with OrderID, Date, Total, Status, Items, and Tracking fields
+   - `OrderItem` struct with ASIN, Title, Quantity, and Price fields
+   - `Tracking` struct with Carrier, TrackingNumber, Status, and DeliveryDate fields
+   - `OrdersResponse` struct with Orders slice and TotalCount
+   - All structs include proper JSON tags matching the PRD specification
+   - Tracking field uses `omitempty` tag to exclude nil values from JSON output
+
+3. **Created comprehensive tests** (`pkg/models/order_test.go`):
+   - TestOrderJSONMarshaling: Validates full order marshaling/unmarshaling
+   - TestOrderWithoutTracking: Verifies tracking omission when nil
+   - TestOrderItemJSONMarshaling: Tests individual order item serialization
+   - TestTrackingJSONMarshaling: Tests tracking info serialization
+   - TestOrdersResponseJSONMarshaling: Tests response wrapper
+   - TestOrdersResponseWithMultipleOrders: Tests multiple orders in response
+   - TestOrderWithMultipleItems: Tests order with multiple items
+   - TestOrderJSONSchemaCompliance: Validates output matches PRD schema
+   - All 8 tests passing successfully
+
+4. **Initialized Go module**:
+   - Created `go.mod` with module path `github.com/zkwentz/amazon-cli`
+
+### Test Results:
+```
+PASS: TestOrderJSONMarshaling
+PASS: TestOrderWithoutTracking
+PASS: TestOrderItemJSONMarshaling
+PASS: TestTrackingJSONMarshaling
+PASS: TestOrdersResponseJSONMarshaling
+PASS: TestOrdersResponseWithMultipleOrders
+PASS: TestOrderWithMultipleItems
+PASS: TestOrderJSONSchemaCompliance
+ok      github.com/zkwentz/amazon-cli/pkg/models    0.502s
+```
+
+### Files Created:
+- `pkg/models/order.go` (33 lines)
+- `pkg/models/order_test.go` (333 lines)
+- `go.mod`
