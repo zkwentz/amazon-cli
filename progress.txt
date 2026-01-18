@@ -1,0 +1,44 @@
+## Completed Tasks
+
+### GetReturnLabel Implementation
+- Implemented `GetReturnLabel(returnID string) (*ReturnLabel, error)` in `internal/amazon/returns.go`
+- Created comprehensive data models in `pkg/models/return.go`:
+  - ReturnableItem
+  - ReturnOption
+  - Return
+  - ReturnLabel
+- Created HTTP client infrastructure in `internal/amazon/client.go`:
+  - Client struct with HTTPDoer interface for testability
+  - User-agent rotation
+  - Retry logic with exponential backoff for 429/503 errors
+  - Request timeout and rate limiting support
+- Implemented helper functions for parsing return label information:
+  - extractLabelURL() - extracts PDF label URL from HTML response
+  - extractCarrier() - identifies shipping carrier (UPS, USPS, FedEx, Amazon)
+  - extractInstructions() - extracts return instructions from response
+
+### Test Coverage
+- Created comprehensive test suite in `internal/amazon/returns_test.go`:
+  - TestGetReturnLabel: Tests various scenarios including:
+    - Empty return ID validation
+    - Successful label retrieval with JSON format
+    - Successful label retrieval with HTML format
+    - Error handling for 404, 500, 401 status codes
+  - TestGetReturnLabelWithRetries: Tests retry logic with 503 errors
+  - TestGetReturnLabelIntegration: Integration test for complete flow
+  - Created testTransport helper for redirecting requests to test server
+  - All tests passing (3.26s runtime)
+
+### Project Structure
+- Initialized Go module: github.com/zkwentz/amazon-cli
+- Created directory structure:
+  - internal/amazon/ - Amazon API client implementation
+  - pkg/models/ - Shared data models
+
+### Implementation Notes
+- GetReturnLabel makes HTTP GET request to Amazon returns label endpoint
+- Includes validation for empty return IDs
+- Handles various response formats (HTML and JSON)
+- Implements automatic retry logic for transient failures
+- Returns structured ReturnLabel with URL, carrier, and instructions
+- Designed for easy integration with CLI commands later
