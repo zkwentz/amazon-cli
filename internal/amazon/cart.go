@@ -229,6 +229,27 @@ func (c *Client) submitCheckout(addressID, paymentID string, cart *models.Cart) 
 	// 3. Submit POST request to Amazon's checkout endpoint
 	// 4. Parse the response to extract order ID
 	// 5. Handle any errors (payment declined, items out of stock, etc.)
+	// 6. Use ReadAndCheckResponse to detect unexpected HTML responses (CAPTCHA, login redirects)
+
+	// Example of how to use HTML response detection:
+	// resp, err := c.httpClient.Post(checkoutURL, contentType, body)
+	// if err != nil {
+	//     return "", models.NewNetworkError(err)
+	// }
+	// defer resp.Body.Close()
+	//
+	// // This will detect and return appropriate errors for CAPTCHA/login pages
+	// bodyBytes, err := ReadAndCheckResponse(resp)
+	// if err != nil {
+	//     return "", err // Returns CLIError with appropriate code
+	// }
+	//
+	// // Parse the response to extract order ID
+	// orderID, err := parseOrderConfirmation(bodyBytes)
+	// if err != nil {
+	//     return "", models.NewAmazonError("failed to parse order confirmation", nil)
+	// }
+	// return orderID, nil
 
 	// For testing/development, return a mock order ID without making actual HTTP requests
 	// In production, this would be replaced with actual Amazon API calls
