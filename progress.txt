@@ -1,0 +1,80 @@
+## Progress Log
+
+### 2026-01-18: Implemented `product get <asin>` command
+
+**Summary:**
+Implemented the complete `product get <asin>` command as specified in the PRD (Phase 5, section 5.4).
+
+**What was done:**
+
+1. **Project initialization:**
+   - Initialized Go module: `github.com/zkwentz/amazon-cli`
+   - Created directory structure per PRD specification:
+     - `cmd/` - Command implementations
+     - `internal/amazon/` - Amazon API client
+     - `internal/config/` - Configuration management
+     - `internal/output/` - Output formatting
+     - `internal/ratelimit/` - Rate limiting logic
+     - `pkg/models/` - Shared data models
+
+2. **Data models created:**
+   - `pkg/models/product.go` - Product, SearchResponse, Review, ReviewsResponse structs
+   - `pkg/models/errors.go` - CLIError with error codes from PRD
+
+3. **Core infrastructure:**
+   - `internal/config/config.go` - Configuration loading/saving with auth, defaults, and rate limiting
+   - `internal/output/output.go` - JSON output printer with error formatting
+   - `internal/ratelimit/limiter.go` - Rate limiter with exponential backoff and jitter
+   - `internal/amazon/client.go` - HTTP client with user-agent rotation and retry logic
+
+4. **Product command implementation:**
+   - `internal/amazon/product.go` - GetProduct() method with:
+     - ASIN validation (10 alphanumeric characters)
+     - HTML parsing using goquery
+     - Extraction of: title, price, original price, rating, reviews, Prime status, stock status, delivery estimate, description, features, images
+     - Error handling with proper error codes
+   - `cmd/root.go` - Root command with global flags (--output, --quiet, --verbose, --config, --no-color)
+   - `cmd/product.go` - Product parent command and `get <asin>` subcommand
+   - `main.go` - Entry point
+
+5. **Testing:**
+   - `internal/amazon/product_test.go` - Comprehensive unit tests:
+     - ASIN validation (7 test cases)
+     - Price parsing (6 test cases)
+     - Rating parsing (5 test cases)
+     - Review count parsing (5 test cases)
+     - Invalid ASIN error handling
+     - HTML parsing with mock data
+   - All tests passing (6 passes, 1 skip for integration test)
+
+6. **Verification:**
+   - Built CLI binary successfully
+   - Verified help text at all levels (root, product, get)
+   - Tested ASIN validation with invalid input
+   - Confirmed proper JSON error output format
+
+**Implementation details:**
+- Follows PRD specifications exactly for command structure and output format
+- Uses goquery for HTML parsing as specified in PRD
+- Implements proper rate limiting (1s minimum delay + jitter + exponential backoff)
+- Uses user-agent rotation to avoid detection
+- Validates ASIN format before making requests
+- Returns structured JSON errors with error codes from PRD
+- Supports global flags: --output, --quiet, --verbose, --config, --no-color
+
+**Files created:**
+- go.mod, go.sum
+- main.go
+- cmd/root.go, cmd/product.go
+- internal/amazon/client.go, internal/amazon/product.go, internal/amazon/product_test.go
+- internal/config/config.go
+- internal/output/output.go
+- internal/ratelimit/limiter.go
+- pkg/models/product.go, pkg/models/errors.go
+
+**Next steps:**
+The command is fully functional and ready for use. Future phases would add:
+- Authentication (Phase 2)
+- Additional product commands (reviews)
+- Search functionality
+- Cart and order management
