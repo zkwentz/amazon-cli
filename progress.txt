@@ -1,0 +1,31 @@
+## Phase 1.2: Cobra CLI Framework Setup - cmd/root.go
+
+### Completed:
+- Created `cmd/` directory structure
+- Created `cmd/root.go` with root command implementation:
+  - Set `Use: "amazon-cli"`
+  - Set Short and Long descriptions matching PRD specifications
+  - Added all persistent flags:
+    - `--config`: Path to config file (default: ~/.amazon-cli/config.json)
+    - `--output, -o`: Output format (json/table/raw, default: json)
+    - `--quiet, -q`: Suppress non-essential output
+    - `--verbose, -v`: Enable verbose logging
+    - `--no-color`: Disable colored output
+  - Initialized Viper config binding in `init()` function
+  - Implemented `initConfig()` function to:
+    - Load config from custom path if --config flag is provided
+    - Default to ~/.amazon-cli/config.json location
+    - Auto-read environment variables
+    - Handle config file not found gracefully
+  - Exported `Execute()` function for main.go integration
+
+- Created `cmd/root_test.go` with comprehensive test coverage:
+  - TestRootCommand: Tests help output and command execution
+  - TestRootCommandFlags: Tests all flag parsing (long and short forms)
+  - TestRootCommandDefaultValues: Verifies default flag values
+
+### Notes:
+- The root command is ready to be wired up to main.go
+- Viper configuration is bound to all persistent flags
+- Config file path follows PRD spec: ~/.amazon-cli/config.json
+- All global flags from PRD section "Global Flags" are implemented
