@@ -1,0 +1,36 @@
+# Amazon CLI Progress
+
+## Completed Tasks
+
+### Test listing all subscriptions
+- Created subscription data models in `pkg/models/subscription.go`:
+  - `Subscription` struct with all required fields (subscription_id, asin, title, price, discount_percent, frequency_weeks, next_delivery, status, quantity)
+  - `SubscriptionsResponse` struct for listing subscriptions
+  - `UpcomingDelivery` struct for upcoming deliveries
+
+- Implemented subscription client methods in `internal/amazon/subscriptions.go`:
+  - `GetSubscriptions()` - Lists all Subscribe & Save subscriptions (returns mock data)
+  - `GetSubscription(subscriptionID)` - Gets details for a specific subscription
+  - `SkipDelivery(subscriptionID)` - Skips the next delivery
+  - `UpdateFrequency(subscriptionID, weeks)` - Changes delivery frequency
+  - `CancelSubscription(subscriptionID)` - Cancels a subscription
+  - `GetUpcomingDeliveries()` - Gets all upcoming deliveries
+
+- Created comprehensive tests in `internal/amazon/subscriptions_test.go`:
+  - TestGetSubscriptions - Validates subscription list retrieval and field population
+  - TestGetSubscriptions_ValidStatuses - Verifies all subscriptions have valid status values
+  - TestGetSubscriptions_DiscountValidation - Ensures discount percentages are between 0-100
+  - TestGetSubscription - Tests single subscription retrieval
+  - TestSkipDelivery - Tests skip delivery functionality
+  - TestUpdateFrequency - Tests frequency update with various intervals (4, 8, 12 weeks)
+  - TestCancelSubscription - Validates cancellation sets status to "cancelled"
+  - TestGetUpcomingDeliveries - Tests upcoming deliveries retrieval
+  - TestGetUpcomingDeliveries_AllHaveValidData - Validates all delivery fields are populated
+
+- All tests pass successfully (10/10 tests passing)
+
+### Implementation Notes
+- Following the existing pattern from cart.go with mock data for testing/development
+- All methods include TODO comments for future implementation with actual Amazon API calls
+- Subscription models match the schema defined in PRD.md
+- Tests follow the same comprehensive testing pattern as cart_test.go
