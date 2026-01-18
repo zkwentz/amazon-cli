@@ -1,0 +1,47 @@
+## Implementation Progress
+
+### Subscription Management - CancelSubscription Method
+
+**Date:** 2026-01-18
+
+**Implemented:**
+1. Created `pkg/models/subscription.go` with complete subscription data models:
+   - `Subscription` struct with all required fields (SubscriptionID, ASIN, Title, Price, DiscountPercent, FrequencyWeeks, NextDelivery, Status, Quantity)
+   - `SubscriptionsResponse` struct for list operations
+   - `UpcomingDelivery` struct for upcoming delivery tracking
+
+2. Created `internal/amazon/subscriptions.go` with full subscription management API:
+   - `GetSubscriptions()` - Retrieve all subscriptions
+   - `GetSubscription(subscriptionID)` - Get specific subscription details
+   - `SkipDelivery(subscriptionID)` - Skip next delivery
+   - `UpdateFrequency(subscriptionID, weeks)` - Change delivery frequency (validates 1-26 weeks)
+   - `CancelSubscription(subscriptionID)` - **Cancel a subscription with validation**
+   - `GetUpcomingDeliveries()` - List all upcoming deliveries
+
+3. Created `internal/amazon/subscriptions_test.go` with comprehensive test coverage:
+   - `TestCancelSubscription` - Tests valid IDs, empty ID validation, status change to "cancelled"
+   - `TestCancelSubscription_AlreadyCancelled` - Tests double-cancellation scenario
+   - `TestGetSubscription` - Tests retrieval with validation
+   - `TestGetSubscriptions` - Tests list operation
+   - `TestSkipDelivery` - Tests skip functionality
+   - `TestUpdateFrequency` - Tests frequency updates with boundary validation (1-26 weeks)
+   - `TestGetUpcomingDeliveries` - Tests upcoming deliveries retrieval
+
+**Test Results:**
+- All 7 test functions passed
+- 15 subtests executed successfully
+- Test coverage includes error cases, validation, and happy paths
+
+**Key Features of CancelSubscription:**
+- Validates subscriptionID is not empty
+- Retrieves subscription details before cancellation
+- Validates subscription is not already cancelled
+- Updates subscription status to "cancelled"
+- Returns updated subscription object
+- Proper error handling with descriptive messages
+
+**Notes:**
+- All methods are placeholder implementations with TODO comments for actual Amazon API integration
+- Mock data is used for testing and development
+- Error handling follows Go best practices with wrapped errors
+- Input validation prevents invalid operations
