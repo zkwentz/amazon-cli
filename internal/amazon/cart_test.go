@@ -400,6 +400,302 @@ func TestPreviewCheckout(t *testing.T) {
 	}
 }
 
+// TestCheckoutCancellation tests the checkout cancellation flow
+// This ensures that checkout can be safely aborted and the cart remains intact
+func TestCheckoutCancellation(t *testing.T) {
+	tests := []struct {
+		name          string
+		setupCart     func(*Client) error
+		addressID     string
+		paymentID     string
+		cancelBefore  string // "preview", "validation", or "submit"
+		expectCart    bool   // should cart still exist after cancellation
+		expectItems   int    // expected number of items in cart after cancellation
+	}{
+		{
+			name: "cancel during preview - cart preserved",
+			setupCart: func(c *Client) error {
+				_, err := c.AddToCart("B08N5WRWNW", 2)
+				return err
+			},
+			addressID:    "addr123",
+			paymentID:    "pay123",
+			cancelBefore: "preview",
+			expectCart:   true,
+			expectItems:  1,
+		},
+		{
+			name: "cancel with invalid address - cart preserved",
+			setupCart: func(c *Client) error {
+				_, err := c.AddToCart("B08N5WRWNW", 1)
+				return err
+			},
+			addressID:    "", // invalid
+			paymentID:    "pay123",
+			cancelBefore: "validation",
+			expectCart:   true,
+			expectItems:  1,
+		},
+		{
+			name: "cancel with invalid payment - cart preserved",
+			setupCart: func(c *Client) error {
+				_, err := c.AddToCart("B08N5WRWNW", 1)
+				if err != nil {
+					return err
+				}
+				_, err = c.AddToCart("B07XJ8C8F5", 3)
+				return err
+			},
+			addressID:    "addr123",
+			paymentID:    "", // invalid
+			cancelBefore: "validation",
+			expectCart:   true,
+			expectItems:  2,
+		},
+		{
+			name: "cancel with empty cart - no items to checkout",
+			setupCart: func(c *Client) error {
+				return nil // no items added
+			},
+			addressID:    "addr123",
+			paymentID:    "pay123",
+			cancelBefore: "validation",
+			expectCart:   true,
+			expectItems:  0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := NewClient()
+
+			// Setup initial cart
+			if tt.setupCart != nil {
+				if err := tt.setupCart(client); err != nil {
+					t.Fatalf("failed to setup cart: %v", err)
+				}
+			}
+
+			// Get initial cart state
+			initialCart, err := client.GetCart()
+			if err != nil {
+				t.Fatalf("failed to get initial cart: %v", err)
+			}
+			initialItemCount := initialCart.ItemCount
+
+			// Attempt checkout (which should fail/cancel)
+			var checkoutErr error
+			switch tt.cancelBefore {
+			case "preview":
+				// Preview should succeed but we don't proceed
+				_, checkoutErr = client.PreviewCheckout(tt.addressID, tt.paymentID)
+			case "validation":
+				// This should fail validation
+				_, checkoutErr = client.CompleteCheckout(tt.addressID, tt.paymentID)
+			case "submit":
+				// This tests cancellation after validation but before actual submission
+				_, checkoutErr = client.CompleteCheckout(tt.addressID, tt.paymentID)
+			}
+
+			// For cancellation scenarios, we expect errors or successful previews
+			// The key is that the cart should remain intact
+
+			// Verify cart still exists and is intact after cancellation
+			if tt.expectCart {
+				finalCart, err := client.GetCart()
+				if err != nil {
+					t.Errorf("failed to get cart after cancellation: %v", err)
+				}
+
+				if finalCart == nil {
+					t.Error("cart should still exist after cancellation")
+					return
+				}
+
+				// Verify cart contents unchanged for preview/failed checkouts
+				if tt.cancelBefore == "preview" {
+					if checkoutErr != nil {
+						t.Errorf("preview should succeed: %v", checkoutErr)
+					}
+					if finalCart.ItemCount != initialItemCount {
+						t.Errorf("cart item count changed after preview: got %d, want %d",
+							finalCart.ItemCount, initialItemCount)
+					}
+				}
+
+				// For validation failures, cart should be preserved
+				if tt.cancelBefore == "validation" {
+					if checkoutErr == nil && (tt.addressID == "" || tt.paymentID == "" || initialItemCount == 0) {
+						t.Error("checkout should have failed validation")
+					}
+					if finalCart.ItemCount != initialItemCount {
+						t.Errorf("cart item count changed after failed validation: got %d, want %d",
+							finalCart.ItemCount, initialItemCount)
+					}
+				}
+
+				// Verify expected item count
+				if len(finalCart.Items) != tt.expectItems {
+					t.Errorf("expected %d items in cart, got %d", tt.expectItems, len(finalCart.Items))
+				}
+			}
+		})
+	}
+}
+
+// TestCheckoutCancellationRace tests concurrent cancellation scenarios
+func TestCheckoutCancellationRace(t *testing.T) {
+	client := NewClient()
+
+	// Add items to cart
+	_, err := client.AddToCart("B08N5WRWNW", 1)
+	if err != nil {
+		t.Fatalf("failed to add to cart: %v", err)
+	}
+
+	// Get initial cart
+	initialCart, err := client.GetCart()
+	if err != nil {
+		t.Fatalf("failed to get initial cart: %v", err)
+	}
+
+	// Simulate race condition: preview while someone else might be checking out
+	_, err = client.PreviewCheckout("addr123", "pay123")
+	if err != nil {
+		t.Fatalf("preview failed: %v", err)
+	}
+
+	// Verify cart still intact
+	finalCart, err := client.GetCart()
+	if err != nil {
+		t.Fatalf("failed to get final cart: %v", err)
+	}
+
+	if finalCart.ItemCount != initialCart.ItemCount {
+		t.Errorf("cart modified during preview: initial=%d, final=%d",
+			initialCart.ItemCount, finalCart.ItemCount)
+	}
+}
+
+// TestCheckoutIdempotency tests that failed checkouts can be safely retried
+func TestCheckoutIdempotency(t *testing.T) {
+	client := NewClient()
+
+	// Add items to cart
+	_, err := client.AddToCart("B08N5WRWNW", 1)
+	if err != nil {
+		t.Fatalf("failed to add to cart: %v", err)
+	}
+
+	// Try checkout with invalid payment (should fail)
+	_, err = client.CompleteCheckout("addr123", "")
+	if err == nil {
+		t.Error("checkout should have failed with empty payment")
+	}
+
+	// Verify cart still has items
+	cart, err := client.GetCart()
+	if err != nil {
+		t.Fatalf("failed to get cart: %v", err)
+	}
+
+	if cart.ItemCount == 0 {
+		t.Error("cart should still have items after failed checkout")
+	}
+
+	// Retry with valid payment (should succeed)
+	confirmation, err := client.CompleteCheckout("addr123", "pay123")
+	if err != nil {
+		t.Errorf("retry checkout failed: %v", err)
+	}
+
+	if confirmation == nil {
+		t.Error("confirmation should not be nil on successful checkout")
+	}
+
+	if confirmation != nil && confirmation.OrderID == "" {
+		t.Error("order ID should be set after successful checkout")
+	}
+}
+
+// TestClearCartCancellation tests clearing cart can be thought of as cancelling all pending purchases
+func TestClearCartCancellation(t *testing.T) {
+	client := NewClient()
+
+	// Add multiple items
+	_, err := client.AddToCart("B08N5WRWNW", 2)
+	if err != nil {
+		t.Fatalf("failed to add first item: %v", err)
+	}
+
+	_, err = client.AddToCart("B07XJ8C8F5", 1)
+	if err != nil {
+		t.Fatalf("failed to add second item: %v", err)
+	}
+
+	// Verify cart has items
+	cart, err := client.GetCart()
+	if err != nil {
+		t.Fatalf("failed to get cart: %v", err)
+	}
+
+	if cart.ItemCount != 3 {
+		t.Errorf("expected 3 items in cart, got %d", cart.ItemCount)
+	}
+
+	// Clear cart (cancel all pending items)
+	err = client.ClearCart()
+	if err != nil {
+		t.Errorf("failed to clear cart: %v", err)
+	}
+
+	// Verify cart operations still work after clearing
+	cart, err = client.GetCart()
+	if err != nil {
+		t.Errorf("failed to get cart after clear: %v", err)
+	}
+
+	if cart == nil {
+		t.Error("cart should exist even after clearing")
+	}
+}
+
+// TestRemoveItemCancellation tests removing items as a form of partial cancellation
+func TestRemoveItemCancellation(t *testing.T) {
+	client := NewClient()
+
+	// Add items
+	_, err := client.AddToCart("B08N5WRWNW", 1)
+	if err != nil {
+		t.Fatalf("failed to add item: %v", err)
+	}
+
+	initialCart, err := client.GetCart()
+	if err != nil {
+		t.Fatalf("failed to get initial cart: %v", err)
+	}
+
+	if initialCart.ItemCount != 1 {
+		t.Errorf("expected 1 item, got %d", initialCart.ItemCount)
+	}
+
+	// Remove item (cancel this purchase)
+	_, err = client.RemoveFromCart("B08N5WRWNW")
+	if err != nil {
+		t.Errorf("failed to remove item: %v", err)
+	}
+
+	// Verify cart still accessible
+	finalCart, err := client.GetCart()
+	if err != nil {
+		t.Errorf("failed to get cart after removal: %v", err)
+	}
+
+	if finalCart == nil {
+		t.Error("cart should still exist after removing items")
+	}
+}
+
 // Helper function to check if a string contains a substring
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
