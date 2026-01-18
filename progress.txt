@@ -1,0 +1,79 @@
+## Subscriptions Frequency Command Implementation
+
+### Completed Tasks:
+
+1. **Created subscription models** (pkg/models/subscription.go)
+   - Defined Subscription struct with all required fields
+   - Created SubscriptionsResponse for list operations
+   - Added UpcomingDelivery model for upcoming deliveries
+
+2. **Implemented subscription API client** (internal/amazon/subscriptions.go)
+   - GetSubscriptions() - retrieves all subscriptions
+   - GetSubscription() - retrieves a specific subscription by ID
+   - SkipDelivery() - skips next delivery
+   - UpdateFrequency() - changes delivery frequency (1-26 weeks)
+   - CancelSubscription() - cancels a subscription
+   - GetUpcomingDeliveries() - retrieves upcoming deliveries
+   - All methods include proper error handling and validation
+
+3. **Implemented subscriptions command** (cmd/subscriptions.go)
+   - Created parent subscriptions command
+   - Implemented all subscription subcommands:
+     * subscriptions list
+     * subscriptions get <subscription-id>
+     * subscriptions skip <subscription-id> --confirm
+     * subscriptions frequency <subscription-id> --interval <weeks> --confirm
+     * subscriptions cancel <subscription-id> --confirm
+     * subscriptions upcoming
+   - Added dry-run mode (without --confirm flag) for all modification commands
+   - Proper flag handling and validation
+
+4. **Implemented frequency command specifically**:
+   - Requires --interval flag (1-26 weeks)
+   - Requires --confirm flag to execute
+   - Shows preview without --confirm (dry run mode)
+   - Validates interval range (1-26 weeks)
+   - Returns updated subscription with new frequency
+   - Proper error messages for invalid inputs
+
+5. **Created comprehensive tests** (internal/amazon/subscriptions_test.go)
+   - TestGetSubscriptions
+   - TestGetSubscription (including empty ID validation)
+   - TestSkipDelivery (including error cases)
+   - TestUpdateFrequency (8 test cases):
+     * Valid frequency update
+     * Minimum valid frequency (1 week)
+     * Maximum valid frequency (26 weeks)
+     * Empty subscription ID validation
+     * Zero weeks validation
+     * Negative weeks validation
+     * Weeks above 26 validation (27 and 52)
+   - TestCancelSubscription
+   - TestGetUpcomingDeliveries
+   - All tests pass successfully
+
+### Command Usage Examples:
+
+```bash
+# Dry run - preview frequency change
+./bin/amazon-cli subscriptions frequency S01-1234567-8901234 --interval 8
+
+# Execute frequency change
+./bin/amazon-cli subscriptions frequency S01-1234567-8901234 --interval 8 --confirm
+
+# Error validation
+./bin/amazon-cli subscriptions frequency S01-1234567-8901234 --confirm
+# Error: --interval flag is required
+
+./bin/amazon-cli subscriptions frequency S01-1234567-8901234 --interval 30 --confirm
+# Error: interval must be between 1 and 26 weeks
+```
+
+### Implementation Details:
+
+- Follows existing code patterns from cart implementation
+- JSON output for all responses
+- Safety rails with --confirm flag requirement
+- Comprehensive input validation
+- Proper error handling and messaging
+- All tests pass (17 test cases for subscriptions)
