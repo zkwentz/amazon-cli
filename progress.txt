@@ -1,0 +1,49 @@
+## Test Checkout Preview Without --confirm
+
+### What was done:
+Added comprehensive tests for checkout preview functionality without the --confirm flag.
+
+### Tests Added:
+1. **TestPreviewCheckout_EmptyCart**: Verifies that PreviewCheckout works correctly even when the cart is empty
+   - Tests that the function returns a valid preview structure
+   - Confirms no errors are thrown for empty cart previews
+   - Validates all required preview fields (Cart, Address, PaymentMethod)
+
+2. **TestPreviewCheckout_DoesNotModifyCart**: Ensures PreviewCheckout is read-only
+   - Adds items to cart before preview
+   - Records cart state (item count and total) before calling preview
+   - Calls PreviewCheckout to simulate checkout without --confirm
+   - Verifies cart state remains unchanged after preview
+   - This is critical for the dry-run behavior (preview without --confirm)
+
+3. **TestPreviewCheckout_WithMultipleItems**: Tests preview with complex cart
+   - Adds multiple items with different quantities to cart
+   - Calls PreviewCheckout to preview the checkout
+   - Verifies all cart items are included in preview
+   - Confirms correct item count calculation (1 + 3 = 4)
+   - Validates address ID and payment method ID are correctly passed through
+   - Ensures delivery options are included in the preview
+
+### Test Results:
+All 12 test functions passed successfully:
+- TestCompleteCheckout (5 sub-tests)
+- TestCompleteCheckout_OrderConfirmation
+- TestAddToCart (5 sub-tests)
+- TestGetCart
+- TestRemoveFromCart (2 sub-tests)
+- TestClearCart
+- TestGetAddresses
+- TestGetPaymentMethods
+- TestPreviewCheckout (3 sub-tests)
+- TestPreviewCheckout_EmptyCart ✓ NEW
+- TestPreviewCheckout_DoesNotModifyCart ✓ NEW
+- TestPreviewCheckout_WithMultipleItems ✓ NEW
+
+### Key Behaviors Tested:
+- Preview checkout works without modifying cart state (dry-run behavior)
+- Preview returns complete information needed to show user what would happen
+- Preview validates input parameters (addressID, paymentID) before proceeding
+- Preview handles edge cases like empty cart gracefully
+- Preview correctly includes all cart items in complex scenarios
+
+This fulfills the PRD requirement (line 868-869) to test checkout preview without --confirm flag.

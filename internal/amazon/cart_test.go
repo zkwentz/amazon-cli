@@ -400,6 +400,141 @@ func TestPreviewCheckout(t *testing.T) {
 	}
 }
 
+// TestPreviewCheckout_EmptyCart tests that preview checkout works even with empty cart
+func TestPreviewCheckout_EmptyCart(t *testing.T) {
+	client := NewClient()
+
+	// Verify cart is empty
+	cart, err := client.GetCart()
+	if err != nil {
+		t.Fatalf("GetCart() error = %v", err)
+	}
+	if cart.ItemCount != 0 {
+		t.Fatalf("Expected empty cart but got %d items", cart.ItemCount)
+	}
+
+	// Preview checkout with empty cart should still work
+	preview, err := client.PreviewCheckout("addr123", "pay123")
+	if err != nil {
+		t.Errorf("PreviewCheckout() unexpected error with empty cart: %v", err)
+	}
+
+	if preview == nil {
+		t.Error("PreviewCheckout() returned nil preview")
+		return
+	}
+
+	// Verify preview contains correct structure
+	if preview.Cart == nil {
+		t.Error("PreviewCheckout() Cart is nil")
+	}
+	if preview.Address == nil {
+		t.Error("PreviewCheckout() Address is nil")
+	}
+	if preview.PaymentMethod == nil {
+		t.Error("PreviewCheckout() PaymentMethod is nil")
+	}
+}
+
+// TestPreviewCheckout_DoesNotModifyCart verifies that preview doesn't change cart state
+func TestPreviewCheckout_DoesNotModifyCart(t *testing.T) {
+	client := NewClient()
+
+	// Add items to cart
+	_, err := client.AddToCart("B08N5WRWNW", 2)
+	if err != nil {
+		t.Fatalf("AddToCart() error = %v", err)
+	}
+
+	// Get cart state before preview
+	cartBefore, err := client.GetCart()
+	if err != nil {
+		t.Fatalf("GetCart() before preview error = %v", err)
+	}
+
+	beforeItemCount := cartBefore.ItemCount
+	beforeTotal := cartBefore.Total
+
+	// Call preview checkout
+	preview, err := client.PreviewCheckout("addr789", "pay789")
+	if err != nil {
+		t.Fatalf("PreviewCheckout() error = %v", err)
+	}
+
+	if preview == nil {
+		t.Fatal("PreviewCheckout() returned nil")
+	}
+
+	// Get cart state after preview
+	cartAfter, err := client.GetCart()
+	if err != nil {
+		t.Fatalf("GetCart() after preview error = %v", err)
+	}
+
+	// Verify cart state is unchanged
+	if cartAfter.ItemCount != beforeItemCount {
+		t.Errorf("PreviewCheckout() modified cart item count: before=%d, after=%d", beforeItemCount, cartAfter.ItemCount)
+	}
+
+	if cartAfter.Total != beforeTotal {
+		t.Errorf("PreviewCheckout() modified cart total: before=%v, after=%v", beforeTotal, cartAfter.Total)
+	}
+}
+
+// TestPreviewCheckout_WithMultipleItems tests preview with multiple items in cart
+func TestPreviewCheckout_WithMultipleItems(t *testing.T) {
+	client := NewClient()
+
+	// Add multiple different items to cart
+	_, err := client.AddToCart("B08N5WRWNW", 1)
+	if err != nil {
+		t.Fatalf("AddToCart() first item error = %v", err)
+	}
+
+	_, err = client.AddToCart("B07XJ8C8F5", 3)
+	if err != nil {
+		t.Fatalf("AddToCart() second item error = %v", err)
+	}
+
+	// Preview checkout
+	preview, err := client.PreviewCheckout("addr999", "pay999")
+	if err != nil {
+		t.Fatalf("PreviewCheckout() error = %v", err)
+	}
+
+	if preview == nil {
+		t.Fatal("PreviewCheckout() returned nil")
+	}
+
+	// Verify preview contains the cart with correct items
+	if preview.Cart == nil {
+		t.Fatal("PreviewCheckout() Cart is nil")
+	}
+
+	if len(preview.Cart.Items) != 2 {
+		t.Errorf("PreviewCheckout() cart items count = %d, want 2", len(preview.Cart.Items))
+	}
+
+	expectedItemCount := 4 // 1 + 3
+	if preview.Cart.ItemCount != expectedItemCount {
+		t.Errorf("PreviewCheckout() ItemCount = %d, want %d", preview.Cart.ItemCount, expectedItemCount)
+	}
+
+	// Verify preview includes address and payment info
+	if preview.Address.ID != "addr999" {
+		t.Errorf("PreviewCheckout() Address.ID = %s, want addr999", preview.Address.ID)
+	}
+
+	if preview.PaymentMethod.ID != "pay999" {
+		t.Errorf("PreviewCheckout() PaymentMethod.ID = %s, want pay999", preview.PaymentMethod.ID)
+	}
+
+	// Verify delivery options are present
+	if len(preview.DeliveryOptions) == 0 {
+		t.Error("PreviewCheckout() should include delivery options")
+	}
+}
+
 // Helper function to check if a string contains a substring
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
