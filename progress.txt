@@ -1,0 +1,122 @@
+## Implementation Progress
+
+### Completed: GetReturnOptions Function Implementation
+
+**Date:** 2026-01-18
+
+#### What was implemented:
+
+1. **Project Structure Setup**
+   - Created directory structure: cmd, internal/amazon, internal/config, internal/output, internal/ratelimit, pkg/models
+   - Initialized Go module: github.com/zkwentz/amazon-cli
+
+2. **Data Models (pkg/models/return.go)**
+   - Implemented `ReturnableItem` struct for returnable items
+   - Implemented `ReturnOption` struct with fields:
+     - Method: string (e.g., "UPS_DROPOFF", "AMAZON_LOCKER")
+     - Label: string (human-readable label)
+     - DropoffLocation: string (optional location info)
+     - Fee: float64 (return fee, if any)
+   - Implemented `Return` struct for return requests
+   - Implemented `ReturnLabel` struct for return shipping labels
+
+3. **Client Infrastructure (internal/amazon/client.go)**
+   - Implemented `Client` struct with HTTP client and rate limiting
+   - Implemented request rate limiting with configurable delays
+   - Implemented user agent rotation (5 default user agents)
+   - Implemented retry logic with exponential backoff for 429/503 errors
+   - Implemented random jitter (0-500ms) to avoid detection
+
+4. **GetReturnOptions Implementation (internal/amazon/returns.go)**
+   - Signature: `GetReturnOptions(orderID, itemID string) ([]ReturnOption, error)`
+   - Input validation for empty orderID and itemID
+   - HTTP request construction with proper URL encoding
+   - Rate limiting and retry logic via Client.Do()
+   - Comprehensive error handling for:
+     - 404 Not Found -> "order or item not found"
+     - 401 Unauthorized -> "authentication required or expired"
+     - Other status codes -> "unexpected status code"
+   - Dual parsing approach:
+     - JSON parsing for API responses (parseJSONReturnOptions)
+     - HTML parsing for scraped responses (parseHTMLReturnOptions)
+   - Placeholder implementations ready for actual Amazon API/page structure
+
+5. **Helper Functions**
+   - `parseReturnOptions()`: Detects response format (JSON vs HTML)
+   - `parseJSONReturnOptions()`: Parses JSON API responses
+   - `parseHTMLReturnOptions()`: Placeholder for HTML parsing (ready for goquery integration)
+   - Stub implementations for other return methods (CreateReturn, GetReturnLabel, GetReturnStatus)
+
+6. **Comprehensive Test Suite (internal/amazon/returns_test.go)**
+   - TestGetReturnOptions: 7 test cases covering:
+     - Successful JSON response parsing
+     - HTML response handling
+     - Empty orderID validation
+     - Empty itemID validation
+     - 404 Not Found error handling
+     - 401 Unauthorized error handling
+     - 500 Server error handling
+   - TestParseJSONReturnOptions: 5 test cases covering:
+     - Valid single return option
+     - Multiple return options
+     - Missing returnOptions key
+     - Invalid data type
+     - Empty array
+   - TestParseHTMLReturnOptions: 3 test cases covering:
+     - HTML with "return option" keyword
+     - HTML with "returnOptions" keyword
+     - HTML without return options
+   - All tests pass successfully
+
+#### Technical Details:
+
+**Error Handling:**
+- Input validation before HTTP requests
+- HTTP status code checking with specific error messages
+- Response body reading with proper error propagation
+- Parsing errors with context
+
+**Rate Limiting:**
+- Minimum 1000ms delay between requests
+- Random jitter 0-500ms
+- Exponential backoff for retries (2^n seconds, max 60s)
+- Max 3 retry attempts
+
+**Request Headers:**
+- Rotated User-Agent strings
+- Accept, Accept-Language, Accept-Encoding headers
+- DNT (Do Not Track) header
+- Connection keep-alive
+
+#### Files Created/Modified:
+- pkg/models/return.go (new)
+- internal/amazon/client.go (new)
+- internal/amazon/returns.go (new)
+- internal/amazon/returns_test.go (new)
+- go.mod (new)
+
+#### Testing Results:
+```
+=== RUN   TestGetReturnOptions
+--- PASS: TestGetReturnOptions (0.00s)
+=== RUN   TestParseJSONReturnOptions
+--- PASS: TestParseJSONReturnOptions (0.00s)
+=== RUN   TestParseHTMLReturnOptions
+--- PASS: TestParseHTMLReturnOptions (0.00s)
+PASS
+ok  	github.com/zkwentz/amazon-cli/internal/amazon	0.256s
+```
+
+#### Next Steps (Future Work):
+1. Implement actual Amazon returns page scraping (requires goquery or similar)
+2. Add integration tests with mock HTTP server
+3. Implement other return methods: CreateReturn, GetReturnLabel, GetReturnStatus
+4. Add authentication support
+5. Implement configuration management
+6. Create CLI commands for returns operations
+
+#### Notes:
+- The implementation uses a dual approach (JSON/HTML) to be flexible with Amazon's actual API/page structure
+- The HTML parsing is currently a placeholder and needs real goquery selectors based on Amazon's page structure
+- Rate limiting is built in to prevent triggering Amazon's anti-automation measures
+- All error messages are descriptive and follow the error handling patterns from the PRD
