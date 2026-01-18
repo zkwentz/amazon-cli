@@ -1,0 +1,49 @@
+# Progress Log
+
+## 2026-01-18: Implemented cart remove command
+
+### Changes Made:
+1. **Updated `internal/amazon/cart.go`**:
+   - Enhanced the `RemoveFromCart` method to actually remove items from the in-memory cart
+   - Added logic to find and remove the first matching item by ASIN
+   - Implemented proper recalculation of cart totals (subtotal, tax, total) after removal
+   - Added error handling for non-existent items in cart
+   - Updated ItemCount tracking when items are removed
+
+2. **Created `cmd/cart.go`**:
+   - Implemented cart command group with subcommands: add, list, remove, clear
+   - Added `cart remove <asin>` command that accepts an ASIN and removes that item from cart
+   - Outputs updated cart as JSON after removal
+   - Includes proper error handling and user-friendly error messages
+   - Added --quantity flag for cart add command
+   - Added --confirm flag for cart clear command (safety feature)
+
+3. **Updated `internal/amazon/cart_test.go`**:
+   - Added comprehensive tests for RemoveFromCart functionality
+   - Test cases cover:
+     - Removing item from cart with one item (results in empty cart)
+     - Removing item from cart with multiple items (keeps other items)
+     - Attempting to remove non-existent item (should fail with error)
+     - Attempting to remove with empty ASIN (should fail with validation error)
+     - Attempting to remove from empty cart (should fail with error)
+   - All tests pass successfully
+
+### Test Results:
+- All cart tests pass (9 test functions, multiple sub-tests)
+- Application builds successfully
+- CLI commands work as expected:
+  - `amazon-cli cart --help` shows cart command help
+  - `amazon-cli cart remove --help` shows remove command help
+  - `amazon-cli cart add <asin>` adds items to cart
+  - `amazon-cli cart remove <asin>` removes items from cart
+
+### Implementation Details:
+- The RemoveFromCart method removes only the first matching ASIN if multiple exist
+- Cart totals are automatically recalculated after removal
+- The implementation maintains the in-memory cart state correctly
+- Error messages are descriptive and help users understand what went wrong
+- The command follows the same patterns as other cart commands for consistency
+
+### Next Steps:
+- This feature is ready for use in the CLI
+- Future enhancement: Actual Amazon API integration (currently uses in-memory cart for testing)

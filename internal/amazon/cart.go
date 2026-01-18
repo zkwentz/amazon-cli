@@ -85,7 +85,35 @@ func (c *Client) RemoveFromCart(asin string) (*models.Cart, error) {
 	}
 
 	// TODO: Implement actual Amazon cart remove API call
-	return c.GetCart()
+	// For now, remove from in-memory cart
+	found := false
+	newItems := []models.CartItem{}
+
+	for _, item := range c.cart.Items {
+		if item.ASIN == asin && !found {
+			// Skip the first matching item (remove it)
+			found = true
+			c.cart.ItemCount -= item.Quantity
+		} else {
+			newItems = append(newItems, item)
+		}
+	}
+
+	if !found {
+		return nil, fmt.Errorf("item with ASIN %s not found in cart", asin)
+	}
+
+	c.cart.Items = newItems
+
+	// Recalculate totals
+	c.cart.Subtotal = 0
+	for _, item := range c.cart.Items {
+		c.cart.Subtotal += item.Subtotal
+	}
+	c.cart.EstimatedTax = c.cart.Subtotal * 0.08 // 8% tax rate
+	c.cart.Total = c.cart.Subtotal + c.cart.EstimatedTax
+
+	return c.cart, nil
 }
 
 // ClearCart removes all items from the cart
