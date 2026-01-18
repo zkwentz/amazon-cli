@@ -1,0 +1,30 @@
+## Completed Tasks
+
+### AddToCart Implementation
+- Created project directory structure (pkg/models, internal/amazon)
+- Implemented Cart and CartItem data models in pkg/models/cart.go
+- Implemented AddToCart(asin string, quantity int) (*Cart, error) function in internal/amazon/cart.go
+  - Validates ASIN format (10 uppercase alphanumeric characters)
+  - Validates quantity (must be positive)
+  - Returns updated Cart with items, subtotal, tax, and total
+- Created comprehensive test suite in internal/amazon/cart_test.go
+  - Tests for valid ASINs and quantities
+  - Tests for invalid ASIN formats (too short, too long, lowercase, special characters)
+  - Tests for invalid quantities (zero, negative)
+  - Tests for validateASIN helper function
+  - All tests passing (17 test cases)
+- Initialized Go module: github.com/zkwentz/amazon-cli
+
+### Implementation Notes
+The AddToCart function includes:
+- ASIN validation ensuring 10-character format with uppercase letters and numbers only
+- Quantity validation ensuring positive integers
+- Mock implementation that returns a properly structured Cart object
+- Comprehensive error handling with descriptive error messages
+- Full test coverage for all validation and error cases
+
+### Files Created/Modified
+- pkg/models/cart.go (new)
+- internal/amazon/cart.go (new)
+- internal/amazon/cart_test.go (new)
+- go.mod (new)
