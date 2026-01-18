@@ -315,7 +315,7 @@ Available on GitHub Releases page.
 ### Build from Source
 
 ```bash
-go install github.com/yourusername/amazon-cli@latest
+go install github.com/zkwentz/amazon-cli@latest
 ```
 
 ## Project Structure
@@ -368,25 +368,25 @@ amazon-cli/
 ### Phase 1: Project Setup & Foundation
 
 #### 1.1 Repository Initialization
-- [ ] Create new GitHub repository `amazon-cli`
-- [ ] Initialize Go module: `go mod init github.com/michaelshimeles/amazon-cli`
-- [ ] Create `.gitignore` file with Go defaults (binaries, vendor/, .env, etc.)
-- [ ] Create initial `main.go` entry point
-- [ ] Set up directory structure:
+- [x] Create new GitHub repository `amazon-cli`
+- [x] Initialize Go module: `go mod init github.com/zkwentz/amazon-cli`
+- [x] Create `.gitignore` file with Go defaults (binaries, vendor/, .env, etc.)
+- [x] Create initial `main.go` entry point
+- [x] Set up directory structure:
   ```
   mkdir -p cmd internal/amazon internal/config internal/output internal/ratelimit pkg/models
   ```
 
 #### 1.2 Cobra CLI Framework Setup
-- [ ] Install Cobra: `go get -u github.com/spf13/cobra@latest`
-- [ ] Install Viper for config: `go get -u github.com/spf13/viper@latest`
-- [ ] Create `cmd/root.go` with root command:
+- [x] Install Cobra: `go get -u github.com/spf13/cobra@latest`
+- [x] Install Viper for config: `go get -u github.com/spf13/viper@latest`
+- [x] Create `cmd/root.go` with root command:
   - [ ] Set `Use: "amazon-cli"`
   - [ ] Set `Short` and `Long` descriptions
   - [ ] Add persistent flags: `--output`, `--quiet`, `--verbose`, `--config`, `--no-color`
   - [ ] Initialize Viper config binding in `init()`
-- [ ] Create `cmd/version.go` - simple version command that prints version string
-- [ ] Wire up `main.go` to execute root command
+- [x] Create `cmd/version.go` - simple version command that prints version string
+- [x] Wire up `main.go` to execute root command
 - [ ] Verify CLI runs: `go run main.go --help` should show help text
 
 #### 1.3 Configuration Management

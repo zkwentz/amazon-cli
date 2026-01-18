@@ -1,0 +1,27 @@
+## Completed Tasks
+
+### LoadConfig Implementation
+- Created Go module structure (github.com/zkwentz/amazon-cli)
+- Created internal/config directory
+- Implemented Config struct with three sub-structs:
+  - AuthConfig: Holds access_token, refresh_token, and expires_at
+  - DefaultsConfig: Holds address_id, payment_id, and output_format
+  - RateLimitConfig: Holds min_delay_ms, max_delay_ms, and max_retries
+- Implemented LoadConfig(path string) (*Config, error) function:
+  - Uses default path (~/.amazon-cli/config.json) if path is empty
+  - Creates directory with 0700 permissions if it doesn't exist
+  - Returns default config if file doesn't exist (first run scenario)
+  - Parses JSON and returns populated Config struct for existing files
+  - Proper error handling for all failure cases
+- Implemented getDefaultConfig() helper function with sensible defaults:
+  - Output format: "json"
+  - Min delay: 1000ms
+  - Max delay: 5000ms
+  - Max retries: 3
+- Wrote comprehensive test suite (6 test cases, all passing):
+  - TestLoadConfig_NonExistentFile: Verifies default config is returned
+  - TestLoadConfig_ExistingFile: Verifies correct parsing of existing config
+  - TestLoadConfig_InvalidJSON: Verifies error handling for malformed JSON
+  - TestLoadConfig_EmptyPath: Verifies default path handling
+  - TestLoadConfig_DirectoryCreation: Verifies directory creation with correct permissions
+  - TestGetDefaultConfig: Verifies all default values are correct
