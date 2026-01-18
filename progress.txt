@@ -1,0 +1,12 @@
+## Phase 1.1 - Repository Initialization Progress
+
+### Completed:
+- Set up directory structure:
+  - Created cmd/ directory for CLI command implementations
+  - Created internal/amazon/ directory for Amazon API/scraping client
+  - Created internal/config/ directory for configuration management
+  - Created internal/output/ directory for output formatting
+  - Created internal/ratelimit/ directory for rate limiting logic
+  - Created pkg/models/ directory for shared data models
+
+The directory structure now matches the project structure defined in the PRD and is ready for implementing the CLI framework and core functionality.
