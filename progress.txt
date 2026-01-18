@@ -1,0 +1,81 @@
+# Progress Log
+
+## Completed: internal/amazon/product.go
+
+### Date: 2026-01-18
+
+### What was implemented:
+
+1. **Created pkg/models/product.go**
+   - Defined Product struct with all required fields (ASIN, title, price, rating, etc.)
+   - Defined SearchResponse struct for search results
+   - Defined Review struct for individual product reviews
+   - Defined ReviewsResponse struct for review listings
+   - All structs include proper JSON tags for API responses
+
+2. **Created internal/amazon/product.go**
+   - Implemented GetProduct(asin string) function:
+     * ASIN validation (10 alphanumeric characters)
+     * Fetches product detail page from Amazon
+     * Parses HTML using goquery library
+     * Extracts: title, price, original price, rating, review count
+     * Detects Prime eligibility and stock status
+     * Extracts delivery estimates, description, feature bullets, and images
+     * Returns structured Product model
+     * Includes comprehensive error handling
+
+   - Implemented GetProductReviews(asin string, limit int) function:
+     * ASIN validation
+     * Fetches product reviews page
+     * Parses individual reviews from HTML
+     * Extracts: rating, title, body, author, date, verified purchase status
+     * Returns ReviewsResponse with reviews array and aggregate stats
+     * Supports limiting number of reviews returned
+
+   - Implemented helper functions:
+     * isValidASIN() - validates ASIN format using regex
+     * parsePrice() - extracts numeric price from formatted strings
+     * parseRating() - extracts rating from "X out of 5 stars" format
+     * parseStarRating() - extracts rating from CSS classes
+     * parseReviewCount() - extracts review count from text
+     * Get() - HTTP GET with rate limiting
+     * Do() - HTTP request execution with retry logic
+
+3. **Created internal/amazon/product_test.go**
+   - Comprehensive unit tests for all parser functions:
+     * TestIsValidASIN - validates ASIN format checking
+     * TestParsePrice - validates price extraction from various formats
+     * TestParseRating - validates rating parsing
+     * TestParseStarRating - validates CSS class rating extraction
+     * TestParseReviewCount - validates review count parsing
+
+   - Integration test stubs:
+     * TestGetProduct_InvalidASIN - validates error handling
+     * TestGetProduct_NotFound - validates 404 handling
+     * TestGetProductReviews_InvalidASIN - validates input validation
+     * TestGetProduct_ValidResponse - mock server test structure
+     * TestGetProductReviews_ValidResponse - mock server test structure
+     * TestClient_NextUserAgentIndex - validates user agent rotation
+
+### Technical Details:
+
+- Uses github.com/PuerkitoBio/goquery for HTML parsing
+- Implements rate limiting integration (stubs for now)
+- User agent rotation for avoiding detection
+- Retry logic for rate limit responses (429, 503)
+- Clean separation of concerns (parsing, validation, HTTP)
+- Comprehensive error handling with wrapped errors
+
+### Dependencies Required:
+
+```
+go get github.com/PuerkitoBio/goquery
+```
+
+### Notes:
+
+- The Client struct and RateLimiter are stubbed in this file for now
+- They will be properly implemented in client.go and ratelimit package
+- HTML selectors are based on current Amazon page structure
+- May need updates if Amazon changes their HTML structure
+- Functions handle missing data gracefully with zero values
