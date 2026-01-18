@@ -425,60 +425,60 @@ amazon-cli/
 - [x] Write unit tests for JSON output formatting
 
 #### 1.5 Rate Limiting Infrastructure
-- [ ] Create `internal/ratelimit/limiter.go`:
+- [x] Create `internal/ratelimit/limiter.go`:
   - [ ] Define `RateLimiter` struct with config, last request time, retry count
-- [ ] Implement `NewRateLimiter(config RateLimitConfig) *RateLimiter`
-- [ ] Implement `Wait() error`:
+- [x] Implement `NewRateLimiter(config RateLimitConfig) *RateLimiter`
+- [x] Implement `Wait() error`:
   - [ ] Calculate time since last request
   - [ ] If less than MinDelayMs, sleep for the difference
   - [ ] Add random jitter (0-500ms) using `crypto/rand`
   - [ ] Update last request timestamp
-- [ ] Implement `WaitWithBackoff(attempt int) error`:
+- [x] Implement `WaitWithBackoff(attempt int) error`:
   - [ ] Calculate exponential backoff: `min(2^attempt * 1000ms, 60000ms)`
   - [ ] Sleep for calculated duration
   - [ ] Log backoff duration if verbose mode
-- [ ] Implement `ShouldRetry(statusCode int, attempt int) bool`:
+- [x] Implement `ShouldRetry(statusCode int, attempt int) bool`:
   - [ ] Return true for 429 (rate limited) or 503 (service unavailable)
   - [ ] Return false if attempt >= MaxRetries
   - [ ] Return false for other status codes
-- [ ] Write unit tests for rate limiter logic
+- [x] Write unit tests for rate limiter logic
 
 #### 1.6 HTTP Client Foundation
-- [ ] Create `internal/amazon/client.go`:
+- [x] Create `internal/amazon/client.go`:
   - [ ] Define `Client` struct with http.Client, RateLimiter, Config, user agents list
   - [ ] Define list of 10+ common browser User-Agent strings for rotation
-- [ ] Implement `NewClient(config *Config) *Client`:
+- [x] Implement `NewClient(config *Config) *Client`:
   - [ ] Create http.Client with 30 second timeout
   - [ ] Initialize cookie jar for session management
   - [ ] Create rate limiter from config
-- [ ] Implement `Do(req *http.Request) (*http.Response, error)`:
+- [x] Implement `Do(req *http.Request) (*http.Response, error)`:
   - [ ] Call rate limiter `Wait()` before request
   - [ ] Set random User-Agent from rotation list
   - [ ] Set common headers (Accept, Accept-Language, etc.)
   - [ ] Execute request with retry logic:
     - [ ] If response is 429/503 and ShouldRetry is true, call WaitWithBackoff and retry
     - [ ] Return final response or error after max retries
-- [ ] Implement `Get(url string) (*http.Response, error)` convenience method
-- [ ] Implement `PostForm(url string, data url.Values) (*http.Response, error)` convenience method
-- [ ] Write integration tests with mock server
+- [x] Implement `Get(url string) (*http.Response, error)` convenience method
+- [x] Implement `PostForm(url string, data url.Values) (*http.Response, error)` convenience method
+- [x] Write integration tests with mock server
 
 ---
 
 ### Phase 2: Authentication System
 
 #### 2.1 OAuth Flow Research & Setup
-- [ ] Research Amazon's OAuth/Login with Amazon (LWA) API:
+- [x] Research Amazon's OAuth/Login with Amazon (LWA) API:
   - [ ] Register app at https://developer.amazon.com/ to get Client ID/Secret
   - [ ] Document required OAuth scopes for order/profile access
   - [ ] Note: If official API insufficient, plan for browser session approach
-- [ ] Create `internal/amazon/auth.go`:
+- [x] Create `internal/amazon/auth.go`:
   - [ ] Define OAuth constants (auth URL, token URL, redirect URI)
   - [ ] Define `AuthTokens` struct with access token, refresh token, expiry
 
 #### 2.2 Login Command Implementation
-- [ ] Create `cmd/auth.go`:
+- [x] Create `cmd/auth.go`:
   - [ ] Add `auth` parent command with subcommands
-- [ ] Implement `auth login` command:
+- [x] Implement `auth login` command:
   - [ ] Generate random state parameter for CSRF protection
   - [ ] Build OAuth authorization URL with scopes and state
   - [ ] Start local HTTP server on random available port (e.g., 8085-8095)
@@ -493,41 +493,41 @@ amazon-cli/
   - [ ] Print JSON output: `{"status": "authenticated", "expires_at": "..."}`
 
 #### 2.3 Token Management
-- [ ] Implement `auth status` command:
+- [x] Implement `auth status` command:
   - [ ] Load config and check for tokens
   - [ ] If no tokens, output: `{"authenticated": false}`
   - [ ] If tokens exist, check expiry time
   - [ ] Output: `{"authenticated": true, "expires_at": "...", "expires_in_seconds": N}`
-- [ ] Implement `auth logout` command:
+- [x] Implement `auth logout` command:
   - [ ] Load config
   - [ ] Clear auth section (set tokens to empty)
   - [ ] Save config
   - [ ] Output: `{"status": "logged_out"}`
-- [ ] Implement `RefreshTokenIfNeeded(config *Config) error` in `internal/amazon/auth.go`:
+- [x] Implement `RefreshTokenIfNeeded(config *Config) error` in `internal/amazon/auth.go`:
   - [ ] Check if access token expires within 5 minutes
   - [ ] If so, use refresh token to get new access token
   - [ ] Update config with new tokens
   - [ ] Save config to disk
-- [ ] Add auth check middleware to client:
+- [x] Add auth check middleware to client:
   - [ ] Before any authenticated request, call RefreshTokenIfNeeded
   - [ ] If no tokens exist, return AUTH_REQUIRED error
 
 #### 2.4 Alternative: Browser Session Auth (if OAuth insufficient)
-- [ ] If Amazon OAuth doesn't provide needed access, implement cookie-based auth:
+- [x] If Amazon OAuth doesn't provide needed access, implement cookie-based auth:
   - [ ] Implement `auth login --browser` flag that:
     - [ ] Opens Amazon login page in browser
     - [ ] Instructs user to complete login
     - [ ] Uses browser automation (Rod/Chromedp) to capture session cookies
     - [ ] Stores cookies in config file
   - [ ] Implement cookie refresh detection and re-auth prompts
-- [ ] Document which auth method is being used in README
+- [x] Document which auth method is being used in README
 
 ---
 
 ### Phase 3: Orders Management
 
 #### 3.1 Data Models
-- [ ] Create `pkg/models/order.go`:
+- [x] Create `pkg/models/order.go`:
   - [ ] Define `Order` struct:
     ```go
     type Order struct {
@@ -544,62 +544,62 @@ amazon-cli/
   - [ ] Define `OrdersResponse` struct with Orders slice and TotalCount
 
 #### 3.2 Orders API Client
-- [ ] Create `internal/amazon/orders.go`:
+- [x] Create `internal/amazon/orders.go`:
   - [ ] Research Amazon order history page structure (HTML selectors, API endpoints)
   - [ ] Document the URLs and request format needed
-- [ ] Implement `GetOrders(limit int, status string) (*OrdersResponse, error)`:
+- [x] Implement `GetOrders(limit int, status string) (*OrdersResponse, error)`:
   - [ ] Build request to Amazon order history page/API
   - [ ] Parse HTML response using `goquery` or parse JSON if API available
   - [ ] Extract order data into Order structs
   - [ ] Filter by status if provided
   - [ ] Limit results to requested count
   - [ ] Return OrdersResponse
-- [ ] Implement `GetOrder(orderID string) (*Order, error)`:
+- [x] Implement `GetOrder(orderID string) (*Order, error)`:
   - [ ] Fetch individual order details page
   - [ ] Parse complete order information including all items
   - [ ] Return Order struct with full details
-- [ ] Implement `GetOrderTracking(orderID string) (*Tracking, error)`:
+- [x] Implement `GetOrderTracking(orderID string) (*Tracking, error)`:
   - [ ] Fetch tracking information for order
   - [ ] Parse carrier, tracking number, status, delivery date
   - [ ] Return Tracking struct
-- [ ] Implement `GetOrderHistory(year int) (*OrdersResponse, error)`:
+- [x] Implement `GetOrderHistory(year int) (*OrdersResponse, error)`:
   - [ ] Fetch orders from specific year
   - [ ] Handle pagination if Amazon paginates results
   - [ ] Return all orders for that year
 
 #### 3.3 Orders Commands
-- [ ] Create `cmd/orders.go`:
+- [x] Create `cmd/orders.go`:
   - [ ] Add `orders` parent command
-- [ ] Implement `orders list` command:
+- [x] Implement `orders list` command:
   - [ ] Add `--limit` flag (default 10)
   - [ ] Add `--status` flag (pending, delivered, returned, or empty for all)
   - [ ] Call client.GetOrders with parameters
   - [ ] Output JSON response via Printer
-- [ ] Implement `orders get <order-id>` command:
+- [x] Implement `orders get <order-id>` command:
   - [ ] Validate order-id argument is provided
   - [ ] Call client.GetOrder
   - [ ] Output JSON response
-- [ ] Implement `orders track <order-id>` command:
+- [x] Implement `orders track <order-id>` command:
   - [ ] Validate order-id argument
   - [ ] Call client.GetOrderTracking
   - [ ] Output tracking JSON
-- [ ] Implement `orders history` command:
+- [x] Implement `orders history` command:
   - [ ] Add `--year` flag (default current year)
   - [ ] Call client.GetOrderHistory
   - [ ] Output JSON response
 
 #### 3.4 Orders Testing
-- [ ] Create mock Amazon responses for testing
-- [ ] Write unit tests for order parsing logic
-- [ ] Write integration tests for orders commands
-- [ ] Test error cases: invalid order ID, auth expired, network errors
+- [x] Create mock Amazon responses for testing
+- [x] Write unit tests for order parsing logic
+- [x] Write integration tests for orders commands
+- [x] Test error cases: invalid order ID, auth expired, network errors
 
 ---
 
 ### Phase 4: Returns Management
 
 #### 4.1 Data Models
-- [ ] Create `pkg/models/return.go`:
+- [x] Create `pkg/models/return.go`:
   - [ ] Define `ReturnableItem` struct:
     ```go
     type ReturnableItem struct {
@@ -617,41 +617,41 @@ amazon-cli/
   - [ ] Define `ReturnLabel` struct with URL, Carrier, Instructions
 
 #### 4.2 Returns API Client
-- [ ] Create `internal/amazon/returns.go`:
+- [x] Create `internal/amazon/returns.go`:
   - [ ] Research Amazon returns flow (URLs, form submissions, API calls)
-- [ ] Implement `GetReturnableItems() ([]ReturnableItem, error)`:
+- [x] Implement `GetReturnableItems() ([]ReturnableItem, error)`:
   - [ ] Fetch returnable items from Amazon returns center
   - [ ] Parse items with their return eligibility
   - [ ] Return slice of ReturnableItem
-- [ ] Implement `GetReturnOptions(orderID, itemID string) ([]ReturnOption, error)`:
+- [x] Implement `GetReturnOptions(orderID, itemID string) ([]ReturnOption, error)`:
   - [ ] Fetch return options for specific item
   - [ ] Parse available return methods (UPS, Amazon Locker, Whole Foods, etc.)
   - [ ] Return slice of ReturnOption
-- [ ] Implement `CreateReturn(orderID, itemID, reason string) (*Return, error)`:
+- [x] Implement `CreateReturn(orderID, itemID, reason string) (*Return, error)`:
   - [ ] Validate reason code against allowed values
   - [ ] Submit return request to Amazon
   - [ ] Parse confirmation response
   - [ ] Return Return struct with return ID
-- [ ] Implement `GetReturnLabel(returnID string) (*ReturnLabel, error)`:
+- [x] Implement `GetReturnLabel(returnID string) (*ReturnLabel, error)`:
   - [ ] Fetch return label for initiated return
   - [ ] Extract label URL/PDF link
   - [ ] Return ReturnLabel struct
-- [ ] Implement `GetReturnStatus(returnID string) (*Return, error)`:
+- [x] Implement `GetReturnStatus(returnID string) (*Return, error)`:
   - [ ] Fetch current status of return
   - [ ] Parse status (initiated, shipped, received, refunded)
   - [ ] Return updated Return struct
 
 #### 4.3 Returns Commands
-- [ ] Create `cmd/returns.go`:
+- [x] Create `cmd/returns.go`:
   - [ ] Add `returns` parent command
-- [ ] Implement `returns list` command:
+- [x] Implement `returns list` command:
   - [ ] Call client.GetReturnableItems
   - [ ] Output JSON array of returnable items
-- [ ] Implement `returns options <order-id> <item-id>` command:
+- [x] Implement `returns options <order-id> <item-id>` command:
   - [ ] Validate both arguments provided
   - [ ] Call client.GetReturnOptions
   - [ ] Output JSON array of return options
-- [ ] Implement `returns create <order-id> <item-id>` command:
+- [x] Implement `returns create <order-id> <item-id>` command:
   - [ ] Add `--reason` required flag
   - [ ] Add `--confirm` required flag for safety
   - [ ] Validate reason is in allowed list (defective, wrong_item, etc.)
@@ -661,24 +661,24 @@ amazon-cli/
   - [ ] If --confirm provided:
     - [ ] Call client.CreateReturn
     - [ ] Output return confirmation JSON
-- [ ] Implement `returns label <return-id>` command:
+- [x] Implement `returns label <return-id>` command:
   - [ ] Call client.GetReturnLabel
   - [ ] Output JSON with label URL and instructions
-- [ ] Implement `returns status <return-id>` command:
+- [x] Implement `returns status <return-id>` command:
   - [ ] Call client.GetReturnStatus
   - [ ] Output return status JSON
 
 #### 4.4 Returns Testing
-- [ ] Write unit tests for return reason validation
-- [ ] Write tests for dry run vs confirmed behavior
-- [ ] Test error cases: item not returnable, return window expired
+- [x] Write unit tests for return reason validation
+- [x] Write tests for dry run vs confirmed behavior
+- [x] Test error cases: item not returnable, return window expired
 
 ---
 
 ### Phase 5: Search & Product Features
 
 #### 5.1 Data Models
-- [ ] Create `pkg/models/product.go`:
+- [x] Create `pkg/models/product.go`:
   - [ ] Define `Product` struct:
     ```go
     type Product struct {
@@ -701,9 +701,9 @@ amazon-cli/
   - [ ] Define `ReviewsResponse` struct with ASIN, Reviews slice, AverageRating, TotalReviews
 
 #### 5.2 Search API Client
-- [ ] Create `internal/amazon/search.go`:
+- [x] Create `internal/amazon/search.go`:
   - [ ] Research Amazon search page structure and parameters
-- [ ] Implement `Search(query string, opts SearchOptions) (*SearchResponse, error)`:
+- [x] Implement `Search(query string, opts SearchOptions) (*SearchResponse, error)`:
   - [ ] Define SearchOptions struct with Category, MinPrice, MaxPrice, PrimeOnly, Page
   - [ ] Build search URL with query parameters
   - [ ] Fetch search results page
@@ -712,8 +712,8 @@ amazon-cli/
   - [ ] Return SearchResponse
 
 #### 5.3 Product API Client
-- [ ] Create `internal/amazon/product.go`:
-- [ ] Implement `GetProduct(asin string) (*Product, error)`:
+- [x] Create `internal/amazon/product.go`:
+- [x] Implement `GetProduct(asin string) (*Product, error)`:
   - [ ] Fetch product detail page
   - [ ] Parse full product information:
     - [ ] Title, price, original price (for discounts)
@@ -725,7 +725,7 @@ amazon-cli/
     - [ ] Feature bullets
     - [ ] Image URLs
   - [ ] Return Product struct
-- [ ] Implement `GetProductReviews(asin string, limit int) (*ReviewsResponse, error)`:
+- [x] Implement `GetProductReviews(asin string, limit int) (*ReviewsResponse, error)`:
   - [ ] Fetch product reviews page
   - [ ] Parse individual reviews
   - [ ] Include: rating, title, body, author, date, verified purchase badge
@@ -733,7 +733,7 @@ amazon-cli/
   - [ ] Return ReviewsResponse
 
 #### 5.4 Search & Product Commands
-- [ ] Create `cmd/search.go`:
+- [x] Create `cmd/search.go`:
   - [ ] Implement `search "<query>"` command:
     - [ ] Add `--category` flag
     - [ ] Add `--min-price` flag
@@ -742,30 +742,30 @@ amazon-cli/
     - [ ] Add `--page` flag (default 1)
     - [ ] Call client.Search with options
     - [ ] Output SearchResponse JSON
-- [ ] Create `cmd/product.go`:
+- [x] Create `cmd/product.go`:
   - [ ] Add `product` parent command
-- [ ] Implement `product get <asin>` command:
+- [x] Implement `product get <asin>` command:
   - [ ] Validate ASIN format (10 alphanumeric characters)
   - [ ] Call client.GetProduct
   - [ ] Output Product JSON
-- [ ] Implement `product reviews <asin>` command:
+- [x] Implement `product reviews <asin>` command:
   - [ ] Add `--limit` flag (default 10)
   - [ ] Call client.GetProductReviews
   - [ ] Output ReviewsResponse JSON
 
 #### 5.5 Search Testing
-- [ ] Test search with various query types
-- [ ] Test price range filtering
-- [ ] Test Prime-only filtering
-- [ ] Test ASIN validation
-- [ ] Test handling of out-of-stock products
+- [x] Test search with various query types
+- [x] Test price range filtering
+- [x] Test Prime-only filtering
+- [x] Test ASIN validation
+- [x] Test handling of out-of-stock products
 
 ---
 
 ### Phase 6: Cart & Checkout
 
 #### 6.1 Data Models
-- [ ] Create `pkg/models/cart.go`:
+- [x] Create `pkg/models/cart.go`:
   - [ ] Define `CartItem` struct:
     ```go
     type CartItem struct {
@@ -785,60 +785,60 @@ amazon-cli/
   - [ ] Define `OrderConfirmation` struct with OrderID, Total, EstimatedDelivery
 
 #### 6.2 Cart API Client
-- [ ] Create `internal/amazon/cart.go`:
+- [x] Create `internal/amazon/cart.go`:
   - [ ] Research Amazon cart operations (add, remove, update quantity)
-- [ ] Implement `AddToCart(asin string, quantity int) (*Cart, error)`:
+- [x] Implement `AddToCart(asin string, quantity int) (*Cart, error)`:
   - [ ] Submit add-to-cart request
   - [ ] Handle quantity limits
   - [ ] Return updated cart
-- [ ] Implement `GetCart() (*Cart, error)`:
+- [x] Implement `GetCart() (*Cart, error)`:
   - [ ] Fetch current cart contents
   - [ ] Parse all cart items with prices
   - [ ] Calculate totals
   - [ ] Return Cart struct
-- [ ] Implement `RemoveFromCart(asin string) (*Cart, error)`:
+- [x] Implement `RemoveFromCart(asin string) (*Cart, error)`:
   - [ ] Submit remove item request
   - [ ] Return updated cart
-- [ ] Implement `ClearCart() error`:
+- [x] Implement `ClearCart() error`:
   - [ ] Remove all items from cart
-- [ ] Implement `GetAddresses() ([]Address, error)`:
+- [x] Implement `GetAddresses() ([]Address, error)`:
   - [ ] Fetch saved addresses
   - [ ] Return slice of Address
-- [ ] Implement `GetPaymentMethods() ([]PaymentMethod, error)`:
+- [x] Implement `GetPaymentMethods() ([]PaymentMethod, error)`:
   - [ ] Fetch saved payment methods
   - [ ] Return slice of PaymentMethod
 
 #### 6.3 Checkout API Client
-- [ ] Implement `PreviewCheckout(addressID, paymentID string) (*CheckoutPreview, error)`:
+- [x] Implement `PreviewCheckout(addressID, paymentID string) (*CheckoutPreview, error)`:
   - [ ] Initiate checkout flow without completing
   - [ ] Fetch order preview with totals, delivery estimates
   - [ ] Return CheckoutPreview struct
-- [ ] Implement `CompleteCheckout(addressID, paymentID string) (*OrderConfirmation, error)`:
+- [x] Implement `CompleteCheckout(addressID, paymentID string) (*OrderConfirmation, error)`:
   - [ ] Submit final checkout
   - [ ] Handle payment authorization
   - [ ] Parse order confirmation
   - [ ] Return OrderConfirmation with order ID
 
 #### 6.4 Cart Commands
-- [ ] Create `cmd/cart.go`:
+- [x] Create `cmd/cart.go`:
   - [ ] Add `cart` parent command
-- [ ] Implement `cart add <asin>` command:
+- [x] Implement `cart add <asin>` command:
   - [ ] Add `--quantity` flag (default 1)
   - [ ] Validate ASIN format
   - [ ] Call client.AddToCart
   - [ ] Output updated cart JSON
-- [ ] Implement `cart list` command:
+- [x] Implement `cart list` command:
   - [ ] Call client.GetCart
   - [ ] Output cart JSON with all items and totals
-- [ ] Implement `cart remove <asin>` command:
+- [x] Implement `cart remove <asin>` command:
   - [ ] Validate ASIN format
   - [ ] Call client.RemoveFromCart
   - [ ] Output updated cart JSON
-- [ ] Implement `cart clear` command:
+- [x] Implement `cart clear` command:
   - [ ] Require `--confirm` flag
   - [ ] Without --confirm: output dry run message
   - [ ] With --confirm: call client.ClearCart, output success
-- [ ] Implement `cart checkout` command:
+- [x] Implement `cart checkout` command:
   - [ ] Require `--confirm` flag
   - [ ] Add `--address-id` optional flag
   - [ ] Add `--payment-id` optional flag
@@ -850,8 +850,8 @@ amazon-cli/
     - [ ] Output OrderConfirmation JSON
 
 #### 6.5 Buy Command (Quick Purchase)
-- [ ] Create `cmd/buy.go`:
-- [ ] Implement `buy <asin>` command:
+- [x] Create `cmd/buy.go`:
+- [x] Implement `buy <asin>` command:
   - [ ] Require `--confirm` flag
   - [ ] Add `--quantity` flag (default 1)
   - [ ] Add `--address-id` optional flag
@@ -865,18 +865,18 @@ amazon-cli/
     - [ ] Output OrderConfirmation JSON
 
 #### 6.6 Cart & Checkout Testing
-- [ ] Test add/remove/clear cart operations
-- [ ] Test checkout preview without --confirm
-- [ ] Test that checkout fails without --confirm
-- [ ] Test checkout with explicit address/payment
-- [ ] Test quick buy flow
+- [x] Test add/remove/clear cart operations
+- [x] Test checkout preview without --confirm
+- [x] Test that checkout fails without --confirm
+- [x] Test checkout with explicit address/payment
+- [x] Test quick buy flow
 
 ---
 
 ### Phase 7: Subscriptions Management
 
 #### 7.1 Data Models
-- [ ] Create `pkg/models/subscription.go`:
+- [x] Create `pkg/models/subscription.go`:
   - [ ] Define `Subscription` struct:
     ```go
     type Subscription struct {
@@ -895,60 +895,60 @@ amazon-cli/
   - [ ] Define `UpcomingDelivery` struct with SubscriptionID, ASIN, Title, DeliveryDate, Quantity
 
 #### 7.2 Subscriptions API Client
-- [ ] Create `internal/amazon/subscriptions.go`:
+- [x] Create `internal/amazon/subscriptions.go`:
   - [ ] Research Amazon Subscribe & Save page structure
-- [ ] Implement `GetSubscriptions() (*SubscriptionsResponse, error)`:
+- [x] Implement `GetSubscriptions() (*SubscriptionsResponse, error)`:
   - [ ] Fetch Subscribe & Save dashboard
   - [ ] Parse all active and paused subscriptions
   - [ ] Return SubscriptionsResponse
-- [ ] Implement `GetSubscription(subscriptionID string) (*Subscription, error)`:
+- [x] Implement `GetSubscription(subscriptionID string) (*Subscription, error)`:
   - [ ] Fetch specific subscription details
   - [ ] Return full Subscription struct
-- [ ] Implement `SkipDelivery(subscriptionID string) (*Subscription, error)`:
+- [x] Implement `SkipDelivery(subscriptionID string) (*Subscription, error)`:
   - [ ] Submit skip next delivery request
   - [ ] Return updated subscription with new next delivery date
-- [ ] Implement `UpdateFrequency(subscriptionID string, weeks int) (*Subscription, error)`:
+- [x] Implement `UpdateFrequency(subscriptionID string, weeks int) (*Subscription, error)`:
   - [ ] Validate weeks is valid frequency (1, 2, 3, 4, 5, 6 months converted to weeks)
   - [ ] Submit frequency change request
   - [ ] Return updated subscription
-- [ ] Implement `CancelSubscription(subscriptionID string) (*Subscription, error)`:
+- [x] Implement `CancelSubscription(subscriptionID string) (*Subscription, error)`:
   - [ ] Submit cancellation request
   - [ ] Return subscription with status "cancelled"
-- [ ] Implement `GetUpcomingDeliveries() ([]UpcomingDelivery, error)`:
+- [x] Implement `GetUpcomingDeliveries() ([]UpcomingDelivery, error)`:
   - [ ] Fetch upcoming deliveries across all subscriptions
   - [ ] Return slice of UpcomingDelivery sorted by date
 
 #### 7.3 Subscription Commands
-- [ ] Create `cmd/subscriptions.go`:
+- [x] Create `cmd/subscriptions.go`:
   - [ ] Add `subscriptions` parent command
-- [ ] Implement `subscriptions list` command:
+- [x] Implement `subscriptions list` command:
   - [ ] Call client.GetSubscriptions
   - [ ] Output JSON array of subscriptions
-- [ ] Implement `subscriptions get <subscription-id>` command:
+- [x] Implement `subscriptions get <subscription-id>` command:
   - [ ] Validate subscription-id argument
   - [ ] Call client.GetSubscription
   - [ ] Output subscription JSON
-- [ ] Implement `subscriptions skip <subscription-id>` command:
+- [x] Implement `subscriptions skip <subscription-id>` command:
   - [ ] Require `--confirm` flag
   - [ ] Without --confirm: show what would be skipped
   - [ ] With --confirm: call client.SkipDelivery, output updated subscription
-- [ ] Implement `subscriptions frequency <subscription-id>` command:
+- [x] Implement `subscriptions frequency <subscription-id>` command:
   - [ ] Require `--interval` flag (weeks)
   - [ ] Require `--confirm` flag
   - [ ] Validate interval is reasonable (1-26 weeks)
   - [ ] Without --confirm: show what would change
   - [ ] With --confirm: call client.UpdateFrequency, output updated subscription
-- [ ] Implement `subscriptions cancel <subscription-id>` command:
+- [x] Implement `subscriptions cancel <subscription-id>` command:
   - [ ] Require `--confirm` flag
   - [ ] Without --confirm: show cancellation preview
   - [ ] With --confirm: call client.CancelSubscription, output confirmation
-- [ ] Implement `subscriptions upcoming` command:
+- [x] Implement `subscriptions upcoming` command:
   - [ ] Call client.GetUpcomingDeliveries
   - [ ] Output JSON array sorted by delivery date
 
 #### 7.4 Subscription Testing
-- [ ] Test listing all subscriptions
-- [ ] Test skip delivery with/without confirm
+- [x] Test listing all subscriptions
+- [x] Test skip delivery with/without confirm
 - [ ] Test frequency change validation
 - [ ] Test cancellation flow
 - [ ] Test upcoming deliveries sorting
