@@ -1,0 +1,51 @@
+# Progress Log
+
+## Implemented: subscriptions skip <subscription-id> command
+
+### What was completed:
+1. Created subscription data models (pkg/models/subscription.go):
+   - Subscription struct with all required fields (subscription_id, asin, title, price, etc.)
+   - SubscriptionsResponse struct for list operations
+   - UpcomingDelivery struct for upcoming deliveries
+
+2. Implemented subscription API client methods (internal/amazon/subscriptions.go):
+   - GetSubscriptions() - retrieve all subscriptions
+   - GetSubscription(subscriptionID) - get specific subscription details
+   - SkipDelivery(subscriptionID) - skip next delivery and reschedule
+   - UpdateFrequency(subscriptionID, weeks) - change delivery frequency
+   - CancelSubscription(subscriptionID) - cancel a subscription
+   - GetUpcomingDeliveries() - list upcoming deliveries
+
+   Note: All methods are placeholder implementations that will be expanded with actual Amazon API calls in the future.
+
+3. Implemented CLI commands (cmd/subscriptions.go):
+   - subscriptions list - list all subscriptions
+   - subscriptions get <subscription-id> - get subscription details
+   - subscriptions skip <subscription-id> - skip next delivery (requires --confirm flag)
+   - subscriptions frequency <subscription-id> - change frequency (requires --interval and --confirm flags)
+   - subscriptions cancel <subscription-id> - cancel subscription (requires --confirm flag)
+   - subscriptions upcoming - view upcoming deliveries
+
+   All modification commands implement dry-run mode (without --confirm flag) for safety.
+
+4. Wrote comprehensive tests (internal/amazon/subscriptions_test.go):
+   - TestGetSubscription - validates subscription retrieval with valid/empty IDs
+   - TestSkipDelivery - verifies delivery date is properly updated when skipped
+   - TestUpdateFrequency - tests frequency updates with valid/invalid values
+   - TestCancelSubscription - confirms subscription status changes to "cancelled"
+   - TestGetSubscriptions - validates subscription list retrieval
+   - TestGetUpcomingDeliveries - validates upcoming deliveries retrieval
+
+   All tests pass successfully.
+
+### How it works:
+- The `subscriptions skip <subscription-id>` command without --confirm shows a dry-run preview
+- With --confirm flag, it skips the next delivery and updates the next delivery date
+- The next delivery is rescheduled based on the subscription's frequency setting
+- Example: A 4-week subscription on 2026-02-01 becomes 2026-03-01 after skipping
+
+### Files created/modified:
+- pkg/models/subscription.go (new)
+- internal/amazon/subscriptions.go (new)
+- internal/amazon/subscriptions_test.go (new)
+- cmd/subscriptions.go (new)
