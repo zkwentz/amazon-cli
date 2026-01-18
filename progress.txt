@@ -1,0 +1,48 @@
+## Completed Tasks
+
+### Write unit tests for JSON output formatting
+
+**What was implemented:**
+
+1. **Error Models** (`pkg/models/errors.go`):
+   - Created `CLIError` struct with Code, Message, and Details fields
+   - Defined all error code constants from PRD (AUTH_REQUIRED, AUTH_EXPIRED, NOT_FOUND, RATE_LIMITED, INVALID_INPUT, PURCHASE_FAILED, NETWORK_ERROR, AMAZON_ERROR)
+   - Implemented `Error()` method to satisfy the error interface
+   - Created `NewCLIError` helper function
+   - Created `ErrorResponse` struct for standard error output format
+
+2. **Output Formatting** (`internal/output/output.go`):
+   - Created `OutputFormat` type with constants for JSON, Table, and Raw formats
+   - Implemented `Printer` struct to handle output formatting
+   - Implemented `NewPrinter` and `NewPrinterWithWriter` constructors
+   - Implemented `Print()` method that outputs data in the configured format:
+     - JSON format: marshals with 2-space indentation
+     - Raw format: prints string representation
+     - Table format: placeholder (not yet implemented)
+   - Implemented `PrintError()` method that formats errors in standard JSON error format
+   - Added quiet mode support that suppresses all output when enabled
+
+3. **Unit Tests** (`internal/output/output_test.go`):
+   - **TestNewPrinter**: Validates printer creation with different formats and quiet modes
+   - **TestPrintJSON**: Tests JSON output with various data types (structs, arrays, maps, primitives, null)
+   - **TestPrintQuietMode**: Ensures no output when quiet mode is enabled
+   - **TestPrintError**: Tests error formatting for all error types (CLIError with/without details, generic errors)
+   - **TestPrintErrorQuietMode**: Ensures errors are suppressed in quiet mode
+   - **TestPrintRawFormat**: Tests raw format output
+   - **TestPrintTableFormatNotImplemented**: Ensures table format returns appropriate error
+   - **TestPrintUnknownFormat**: Tests handling of unknown format types
+   - **TestJSONOutputIndentation**: Validates proper 2-space JSON indentation
+   - **TestComplexDataStructures**: Tests with realistic order response structures from PRD
+   - **TestAllErrorCodes**: Validates all 8 error codes defined in PRD
+
+**Test Results:**
+- All 11 test cases passing (with 34 sub-tests)
+- Test coverage: 95.7% of statements
+- Tests validate JSON formatting, error handling, quiet mode, and all output formats
+- Tests ensure compliance with PRD error response format: `{"error": {"code": "...", "message": "...", "details": {}}}`
+
+**Files Created:**
+- `pkg/models/errors.go` - Error model definitions
+- `internal/output/output.go` - Output formatting implementation
+- `internal/output/output_test.go` - Comprehensive unit tests
+- `go.mod` - Go module initialization
