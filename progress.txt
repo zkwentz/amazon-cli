@@ -1,0 +1,92 @@
+## Implementation: returns options <order-id> <item-id> command
+
+### Completed Tasks:
+
+1. **Project Structure Setup**
+   - Initialized Go module: github.com/zkwentz/amazon-cli
+   - Created directory structure following PRD specifications:
+     - cmd/ - Command definitions
+     - internal/amazon/ - Amazon API client
+     - internal/output/ - Output formatting
+     - pkg/models/ - Data models
+
+2. **Core Implementation**
+   - Created data models (pkg/models/):
+     - return.go: ReturnableItem, ReturnOption, Return, ReturnLabel structs
+     - errors.go: CLIError type with error codes matching PRD specification
+
+   - Implemented Amazon client (internal/amazon/):
+     - client.go: Base client with HTTP client setup
+     - returns.go: GetReturnOptions() function with input validation
+     - Added placeholder implementations for other return operations
+
+   - Created output system (internal/output/):
+     - output.go: Printer with JSON output formatting
+     - Error formatting with proper JSON structure
+
+   - Built CLI commands (cmd/):
+     - root.go: Root command with global flags (--output, --quiet, --verbose, etc.)
+     - returns.go: Returns command group with subcommands
+       - returns options: Gets return options for order-id and item-id
+       - returns list: Placeholder for listing returnable items
+     - Proper exit code mapping for different error types
+
+3. **Testing**
+   - Created comprehensive unit tests:
+     - internal/amazon/returns_test.go: Tests for GetReturnOptions with various inputs
+     - pkg/models/errors_test.go: Tests for error creation and formatting
+     - cmd/returns_test.go: Tests for exit code mapping
+   - All tests passing (go test ./... -v)
+
+4. **Command Functionality**
+   - Command: `amazon-cli returns options <order-id> <item-id>`
+   - Validates both arguments are provided
+   - Returns JSON array of return options including:
+     - Method (UPS, AMAZON_LOCKER, USPS)
+     - Label (human-readable name)
+     - Dropoff location
+     - Fee
+     - Description
+   - Proper error handling with JSON error output
+   - Exit codes matching PRD specification
+
+5. **Current Status**
+   - Binary builds successfully
+   - Command works as expected with sample data
+   - Returns mock data (UPS, Amazon Locker, USPS options)
+   - TODO: Actual Amazon API integration (requires authentication setup)
+
+### Files Created:
+- main.go
+- go.mod, go.sum
+- cmd/root.go
+- cmd/returns.go
+- cmd/returns_test.go
+- internal/amazon/client.go
+- internal/amazon/returns.go
+- internal/amazon/returns_test.go
+- internal/output/output.go
+- pkg/models/return.go
+- pkg/models/errors.go
+- pkg/models/errors_test.go
+
+### Example Usage:
+```bash
+# Get help
+./amazon-cli returns options --help
+
+# Get return options
+./amazon-cli returns options 123-4567890-1234567 ITEM123
+
+# Output (JSON):
+[
+  {
+    "method": "UPS",
+    "label": "UPS Drop-off",
+    "dropoff_location": "UPS Store - 123 Main St",
+    "fee": 0,
+    "description": "Drop off at any UPS location with pre-printed label"
+  },
+  ...
+]
+```
