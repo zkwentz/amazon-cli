@@ -1,0 +1,73 @@
+## Implementation Progress
+
+### Task: Implement `NewRateLimiter(config RateLimitConfig) *RateLimiter`
+
+**Status: Completed**
+
+**Files Created:**
+1. `internal/config/config.go` - Configuration management including RateLimitConfig struct
+2. `internal/ratelimit/limiter.go` - Rate limiter implementation with NewRateLimiter function
+3. `internal/config/config_test.go` - Comprehensive tests for configuration management
+4. `internal/ratelimit/limiter_test.go` - Comprehensive tests for rate limiter
+
+**Implementation Details:**
+
+### RateLimitConfig Struct
+- Defined in `internal/config/config.go`
+- Fields:
+  - `MinDelayMs int` - Minimum delay between requests in milliseconds
+  - `MaxDelayMs int` - Maximum delay between requests in milliseconds
+  - `MaxRetries int` - Maximum number of retry attempts
+
+### RateLimiter Struct
+- Defined in `internal/ratelimit/limiter.go`
+- Fields:
+  - `config RateLimitConfig` - Configuration settings
+  - `lastRequestTime time.Time` - Timestamp of last request
+  - `retryCount int` - Current retry attempt count
+
+### NewRateLimiter Function
+- Signature: `func NewRateLimiter(cfg config.RateLimitConfig) *RateLimiter`
+- Creates and initializes a new RateLimiter instance
+- Sets configuration from provided RateLimitConfig
+- Initializes lastRequestTime to zero value (no previous request)
+- Initializes retryCount to 0
+
+### Additional Methods Implemented
+1. `Wait() error` - Enforces minimum delay between requests with random jitter (0-500ms)
+2. `WaitWithBackoff(attempt int) error` - Applies exponential backoff for retry attempts
+3. `ShouldRetry(statusCode int, attempt int) bool` - Determines if request should be retried
+4. `ResetRetryCount()` - Resets retry counter
+5. `IncrementRetryCount()` - Increments retry counter
+6. `GetRetryCount() int` - Returns current retry count
+7. `randomJitter(maxMs int) (time.Duration, error)` - Generates random jitter using crypto/rand
+
+### Test Coverage
+All tests pass successfully:
+
+**Config Tests (6 tests):**
+- TestLoadConfig_DefaultValues
+- TestSaveAndLoadConfig
+- TestSaveConfig_CreatesDirectory
+- TestLoadConfig_InvalidJSON
+- TestGetConfigPath
+- TestRateLimitConfig_Types
+
+**Rate Limiter Tests (6 test suites):**
+- TestNewRateLimiter (3 sub-tests for different configurations)
+- TestWait
+- TestWaitWithBackoff (4 sub-tests for different backoff scenarios)
+- TestShouldRetry (7 sub-tests for different status codes and attempts)
+- TestRetryCountMethods
+- TestRandomJitter
+
+**Key Features:**
+- Uses crypto/rand for secure random jitter generation
+- Implements exponential backoff with max cap at 60 seconds
+- Properly handles retry logic for 429 (rate limited) and 503 (service unavailable) status codes
+- Thread-safe timestamp tracking for request timing
+- Comprehensive error handling
+
+**Dependencies:**
+- Standard library only (time, crypto/rand, math/big)
+- Internal package dependency: github.com/zkwentz/amazon-cli/internal/config
