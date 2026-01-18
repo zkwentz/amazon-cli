@@ -1,0 +1,104 @@
+## Agent 84: Implemented `product reviews <asin>` command
+
+### What was implemented:
+
+1. **Project Structure Setup**
+   - Created Go module with proper directory structure (cmd/, internal/, pkg/)
+   - Initialized go.mod with module path github.com/zkwentz/amazon-cli
+
+2. **Core Components**
+   - main.go: Entry point that executes Cobra CLI
+   - cmd/root.go: Root command with global flags (--output, --quiet, --verbose, --config, --no-color)
+   - pkg/models/product.go: Data models for Product, Review, and ReviewsResponse
+
+3. **HTTP Client** (internal/amazon/client.go)
+   - Basic HTTP client with 30-second timeout
+   - User-Agent rotation capability
+   - Common request headers (Accept, Accept-Language)
+   - GET request convenience method
+
+4. **Product Reviews API** (internal/amazon/product.go)
+   - GetProductReviews(asin, limit) function that:
+     - Fetches reviews from Amazon product reviews page
+     - Parses HTML using goquery library
+     - Extracts average rating and total review count
+     - Extracts individual reviews with rating, title, body, author, date, and verified status
+     - Returns structured ReviewsResponse with configurable limit
+
+5. **Product Command** (cmd/product.go)
+   - `product reviews <asin>` subcommand
+   - ASIN validation (10 alphanumeric characters)
+   - --limit flag to control number of reviews (default: 10)
+   - JSON output formatting
+   - Error handling with descriptive messages
+
+6. **Tests**
+   - cmd/product_test.go: ASIN validation tests covering valid/invalid formats
+   - internal/amazon/product_test.go: Basic integration test structure
+
+7. **Dependencies**
+   - github.com/spf13/cobra@latest - CLI framework
+   - github.com/PuerkitoBio/goquery@latest - HTML parsing
+
+### Usage:
+
+```bash
+# Get 10 reviews (default)
+./amazon-cli product reviews B08N5WRWNW
+
+# Get 5 reviews
+./amazon-cli product reviews B08N5WRWNW --limit 5
+
+# View help
+./amazon-cli product reviews --help
+```
+
+### Output Format:
+
+The command outputs structured JSON:
+```json
+{
+  "asin": "B08N5WRWNW",
+  "reviews": [
+    {
+      "rating": 5.0,
+      "title": "Great product!",
+      "body": "This is an excellent product.",
+      "author": "John Doe",
+      "date": "January 1, 2024",
+      "verified": true
+    }
+  ],
+  "average_rating": 4.5,
+  "total_reviews": 1234
+}
+```
+
+### Technical Details:
+
+- Uses HTML scraping via goquery since Amazon doesn't provide a public API
+- Parses data-hook attributes from Amazon's review page structure
+- Handles both verified and non-verified purchase reviews
+- Extracts ratings from star rating elements
+- Validates ASIN format before making requests
+- Returns error for failed requests or invalid responses
+
+### Files Created:
+
+- main.go
+- cmd/root.go
+- cmd/product.go
+- cmd/product_test.go
+- internal/amazon/client.go
+- internal/amazon/product.go
+- internal/amazon/product_test.go
+- pkg/models/product.go
+- go.mod
+- go.sum
+
+### Build Status:
+
+✓ Project builds successfully
+✓ Tests pass
+✓ Command executes with proper help output
+✓ ASIN validation works correctly
