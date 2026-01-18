@@ -1,0 +1,8 @@
+Documented authentication method in README.md:
+- Created comprehensive README with authentication section
+- Documented Browser-based OAuth as the primary authentication method
+- Explained how OAuth flow works (browser-based login, token storage, automatic refresh)
+- Documented alternative browser session authentication method as fallback
+- Included token storage location (~/.amazon-cli/config.json) and security notes
+- Added authentication commands (login, status, logout)
+- Included full CLI documentation: installation, quick start, features, configuration, safety, examples
