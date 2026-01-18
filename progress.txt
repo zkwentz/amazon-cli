@@ -1,0 +1,78 @@
+# Progress Log
+
+## Implemented: Subscriptions List Command
+
+### Date: 2026-01-18
+
+### What was implemented:
+
+1. **Data Models** (pkg/models/subscription.go):
+   - Created Subscription struct with all required fields (subscription_id, asin, title, price, discount_percent, frequency_weeks, next_delivery, status, quantity)
+   - Created SubscriptionsResponse struct for list command response
+   - Created UpcomingDelivery struct for upcoming deliveries feature
+
+2. **API Client** (internal/amazon/subscriptions.go):
+   - Implemented GetSubscriptions() method with mock data
+   - Implemented GetSubscription() method for individual subscription details
+   - Implemented SkipDelivery() method for skipping next delivery
+   - Implemented UpdateFrequency() method for changing delivery frequency
+   - Implemented CancelSubscription() method for canceling subscriptions
+   - Implemented GetUpcomingDeliveries() method for viewing upcoming deliveries
+   - All methods use placeholder implementation with TODOs for future Amazon API integration
+
+3. **Command Implementation** (cmd/subscriptions.go):
+   - Created subscriptions parent command with comprehensive help text
+   - Implemented `subscriptions list` command - lists all Subscribe & Save subscriptions
+   - Implemented `subscriptions get <subscription-id>` command - gets details for specific subscription
+   - Implemented `subscriptions skip <subscription-id>` command with --confirm flag for safety
+   - Implemented `subscriptions frequency <subscription-id>` command with --interval and --confirm flags
+   - Implemented `subscriptions cancel <subscription-id>` command with --confirm flag
+   - Implemented `subscriptions upcoming` command - shows all upcoming deliveries
+   - All commands output structured JSON as per PRD requirements
+   - Dry-run functionality implemented for commands requiring --confirm flag
+
+4. **Tests** (internal/amazon/subscriptions_test.go):
+   - TestGetSubscriptions - validates list subscriptions functionality
+   - TestGetSubscription - validates get single subscription
+   - TestSkipDelivery - validates skip delivery functionality
+   - TestUpdateFrequency - validates frequency update
+   - TestCancelSubscription - validates cancellation with status change
+   - TestGetUpcomingDeliveries - validates upcoming deliveries retrieval
+   - All tests pass successfully
+
+### Commands Available:
+
+```bash
+# List all subscriptions
+amazon-cli subscriptions list
+
+# Get specific subscription details
+amazon-cli subscriptions get <subscription-id>
+
+# Skip next delivery (with dry-run)
+amazon-cli subscriptions skip <subscription-id>
+amazon-cli subscriptions skip <subscription-id> --confirm
+
+# Change delivery frequency (with dry-run)
+amazon-cli subscriptions frequency <subscription-id> --interval 4
+amazon-cli subscriptions frequency <subscription-id> --interval 4 --confirm
+
+# Cancel subscription (with dry-run)
+amazon-cli subscriptions cancel <subscription-id>
+amazon-cli subscriptions cancel <subscription-id> --confirm
+
+# View upcoming deliveries
+amazon-cli subscriptions upcoming
+```
+
+### Testing Results:
+- All 14 tests in internal/amazon package pass
+- CLI builds successfully
+- All subscription commands work as expected
+- JSON output format matches PRD specification
+- Dry-run/confirm functionality works correctly
+
+### Next Steps:
+- Future implementation will replace mock data with actual Amazon API calls
+- Rate limiting will be integrated when making real API calls
+- Authentication will be required for actual Amazon access
