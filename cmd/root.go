@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/michaelshimeles/amazon-cli/pkg/models"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -38,8 +39,15 @@ All commands output structured JSON for seamless AI agent integration.`,
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() error {
-	return rootCmd.Execute()
+// Returns an exit code based on the error type.
+func Execute() int {
+	err := rootCmd.Execute()
+	if err == nil {
+		return models.ExitSuccess
+	}
+
+	// Extract exit code from error
+	return models.GetExitCode(err)
 }
 
 func init() {
