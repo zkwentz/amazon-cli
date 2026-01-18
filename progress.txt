@@ -1,0 +1,21 @@
+## Completed Tasks
+
+### ShouldRetry Function Implementation
+- Created internal/ratelimit directory structure
+- Implemented `ShouldRetry(statusCode int, attempt int) bool` function in internal/ratelimit/limiter.go
+  - Returns true for HTTP status codes 429 (rate limited) and 503 (service unavailable)
+  - Returns false if attempt >= MaxRetries
+  - Returns false for all other status codes
+- Implemented complete RateLimiter struct with supporting functions:
+  - `NewRateLimiter(config RateLimitConfig) *RateLimiter` - constructor
+  - `Wait() error` - enforces minimum delay between requests with jitter
+  - `WaitWithBackoff(attempt int) error` - exponential backoff (2^attempt * 1000ms, max 60s)
+  - `ShouldRetry(statusCode int, attempt int) bool` - retry decision logic
+- Created comprehensive test suite in internal/ratelimit/limiter_test.go
+  - 13 test cases for ShouldRetry covering various scenarios
+  - Tests for 429 and 503 status codes with different attempt counts
+  - Tests for non-retryable status codes (200, 401, 404, 500)
+  - Tests for edge cases (max retries = 0, 1, attempt at boundary)
+  - Tests for NewRateLimiter, Wait, and WaitWithBackoff functions
+- All tests pass successfully (75.953s execution time for full test suite)
+- Initialized Go module: github.com/zkwentz/amazon-cli
