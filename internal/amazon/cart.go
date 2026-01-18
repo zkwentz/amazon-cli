@@ -35,10 +35,10 @@ func NewClient() *Client {
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) AddToCart(asin string, quantity int) (*models.Cart, error) {
 	if asin == "" {
-		return nil, fmt.Errorf("ASIN cannot be empty")
+		return nil, fmt.Errorf("add to cart: %w", models.ErrInvalidASIN)
 	}
 	if quantity <= 0 {
-		return nil, fmt.Errorf("quantity must be positive")
+		return nil, fmt.Errorf("add to cart: %w (got %d)", models.ErrInvalidQuantity, quantity)
 	}
 
 	// TODO: Implement actual Amazon cart add API call
@@ -81,11 +81,15 @@ func (c *Client) GetCart() (*models.Cart, error) {
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) RemoveFromCart(asin string) (*models.Cart, error) {
 	if asin == "" {
-		return nil, fmt.Errorf("ASIN cannot be empty")
+		return nil, fmt.Errorf("remove from cart: %w", models.ErrInvalidASIN)
 	}
 
 	// TODO: Implement actual Amazon cart remove API call
-	return c.GetCart()
+	cart, err := c.GetCart()
+	if err != nil {
+		return nil, fmt.Errorf("remove from cart: failed to retrieve cart: %w", err)
+	}
+	return cart, nil
 }
 
 // ClearCart removes all items from the cart
@@ -113,16 +117,16 @@ func (c *Client) GetPaymentMethods() ([]models.PaymentMethod, error) {
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) PreviewCheckout(addressID, paymentID string) (*models.CheckoutPreview, error) {
 	if addressID == "" {
-		return nil, fmt.Errorf("addressID cannot be empty")
+		return nil, fmt.Errorf("preview checkout: addressID cannot be empty")
 	}
 	if paymentID == "" {
-		return nil, fmt.Errorf("paymentID cannot be empty")
+		return nil, fmt.Errorf("preview checkout: paymentID cannot be empty")
 	}
 
 	// TODO: Implement actual Amazon checkout preview API call
 	cart, err := c.GetCart()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get cart: %w", err)
+		return nil, fmt.Errorf("preview checkout: failed to get cart: %w", err)
 	}
 
 	return &models.CheckoutPreview{
@@ -152,26 +156,26 @@ func (c *Client) PreviewCheckout(addressID, paymentID string) (*models.CheckoutP
 func (c *Client) CompleteCheckout(addressID, paymentID string) (*models.OrderConfirmation, error) {
 	// Validate input parameters
 	if addressID == "" {
-		return nil, fmt.Errorf("addressID cannot be empty")
+		return nil, fmt.Errorf("complete checkout: addressID cannot be empty")
 	}
 	if paymentID == "" {
-		return nil, fmt.Errorf("paymentID cannot be empty")
+		return nil, fmt.Errorf("complete checkout: paymentID cannot be empty")
 	}
 
 	// Step 1: Get current cart to validate items exist
 	cart, err := c.GetCart()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get cart: %w", err)
+		return nil, fmt.Errorf("complete checkout: failed to get cart: %w", err)
 	}
 
 	if cart.ItemCount == 0 {
-		return nil, fmt.Errorf("cart is empty, cannot complete checkout")
+		return nil, fmt.Errorf("complete checkout: %w", models.ErrEmptyCart)
 	}
 
 	// Step 2: Validate address exists
 	addresses, err := c.GetAddresses()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get addresses: %w", err)
+		return nil, fmt.Errorf("complete checkout: failed to get addresses: %w", err)
 	}
 
 	addressFound := false
@@ -182,13 +186,13 @@ func (c *Client) CompleteCheckout(addressID, paymentID string) (*models.OrderCon
 		}
 	}
 	if len(addresses) > 0 && !addressFound {
-		return nil, fmt.Errorf("address not found: %s", addressID)
+		return nil, fmt.Errorf("complete checkout: %w: %s", models.ErrAddressNotFound, addressID)
 	}
 
 	// Step 3: Validate payment method exists
 	paymentMethods, err := c.GetPaymentMethods()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get payment methods: %w", err)
+		return nil, fmt.Errorf("complete checkout: failed to get payment methods: %w", err)
 	}
 
 	paymentFound := false
@@ -199,14 +203,14 @@ func (c *Client) CompleteCheckout(addressID, paymentID string) (*models.OrderCon
 		}
 	}
 	if len(paymentMethods) > 0 && !paymentFound {
-		return nil, fmt.Errorf("payment method not found: %s", paymentID)
+		return nil, fmt.Errorf("complete checkout: %w: %s", models.ErrPaymentMethodNotFound, paymentID)
 	}
 
 	// Step 4: Submit checkout request to Amazon
 	// This is where the actual purchase happens
 	orderID, err := c.submitCheckout(addressID, paymentID, cart)
 	if err != nil {
-		return nil, fmt.Errorf("failed to submit checkout: %w", err)
+		return nil, fmt.Errorf("complete checkout: failed to submit checkout: %w", err)
 	}
 
 	// Step 5: Parse order confirmation

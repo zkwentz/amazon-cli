@@ -1,0 +1,31 @@
+## Task: Implement error wrapping with context using `fmt.Errorf` with `%w`
+
+### What was implemented:
+
+1. **Created sentinel errors** (pkg/models/errors.go):
+   - Defined sentinel errors like ErrInvalidASIN, ErrInvalidQuantity, ErrEmptyCart, ErrAddressNotFound, and ErrPaymentMethodNotFound
+   - These can be used with errors.Is() for error type checking
+   - Implemented CLIError struct with Unwrap() method for proper error chain support
+
+2. **Enhanced error wrapping in cart.go** (internal/amazon/cart.go):
+   - Updated AddToCart() to wrap ErrInvalidASIN and ErrInvalidQuantity with context
+   - Updated RemoveFromCart() to wrap ErrInvalidASIN with context
+   - Updated CompleteCheckout() to wrap ErrEmptyCart, ErrAddressNotFound, and ErrPaymentMethodNotFound with context
+   - Updated PreviewCheckout() to include context in error messages
+   - All errors now use fmt.Errorf with %w verb for proper error wrapping
+
+3. **Comprehensive test coverage** (pkg/models/errors_test.go and internal/amazon/cart_test.go):
+   - Created tests for error wrapping functionality using errors.Is()
+   - Created tests for CLIError struct and its Unwrap() method
+   - Created tests for error chaining with multiple levels of wrapping
+   - Created tests verifying error messages contain proper context
+   - Updated existing tests to check for error context rather than exact strings
+   - All tests pass successfully
+
+### Key improvements:
+
+- Errors now include contextual information (e.g., "add to cart: invalid ASIN")
+- Errors can be unwrapped using errors.Is() to check for specific error types
+- Error messages provide a clear trace of where the error occurred
+- Follows Go best practices for error handling with %w verb
+- Maintains backward compatibility while improving error observability

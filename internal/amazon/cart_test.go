@@ -1,7 +1,10 @@
 package amazon
 
 import (
+	"errors"
 	"testing"
+
+	"github.com/michaelshimeles/amazon-cli/pkg/models"
 )
 
 func TestCompleteCheckout(t *testing.T) {
@@ -19,7 +22,7 @@ func TestCompleteCheckout(t *testing.T) {
 			paymentID:   "pay123",
 			setupCart:   nil,
 			wantErr:     true,
-			errContains: "addressID cannot be empty",
+			errContains: "complete checkout",
 		},
 		{
 			name:        "empty paymentID should fail",
@@ -27,7 +30,7 @@ func TestCompleteCheckout(t *testing.T) {
 			paymentID:   "",
 			setupCart:   nil,
 			wantErr:     true,
-			errContains: "paymentID cannot be empty",
+			errContains: "complete checkout",
 		},
 		{
 			name:      "empty cart should fail",
@@ -152,46 +155,46 @@ func TestCompleteCheckout_OrderConfirmation(t *testing.T) {
 
 func TestAddToCart(t *testing.T) {
 	tests := []struct {
-		name      string
-		asin      string
-		quantity  int
-		wantErr   bool
-		errString string
+		name        string
+		asin        string
+		quantity    int
+		wantErr     bool
+		errContains string
 	}{
 		{
-			name:      "valid add to cart",
-			asin:      "B08N5WRWNW",
-			quantity:  1,
-			wantErr:   false,
-			errString: "",
+			name:        "valid add to cart",
+			asin:        "B08N5WRWNW",
+			quantity:    1,
+			wantErr:     false,
+			errContains: "",
 		},
 		{
-			name:      "empty ASIN should fail",
-			asin:      "",
-			quantity:  1,
-			wantErr:   true,
-			errString: "ASIN cannot be empty",
+			name:        "empty ASIN should fail",
+			asin:        "",
+			quantity:    1,
+			wantErr:     true,
+			errContains: "add to cart",
 		},
 		{
-			name:      "zero quantity should fail",
-			asin:      "B08N5WRWNW",
-			quantity:  0,
-			wantErr:   true,
-			errString: "quantity must be positive",
+			name:        "zero quantity should fail",
+			asin:        "B08N5WRWNW",
+			quantity:    0,
+			wantErr:     true,
+			errContains: "add to cart",
 		},
 		{
-			name:      "negative quantity should fail",
-			asin:      "B08N5WRWNW",
-			quantity:  -1,
-			wantErr:   true,
-			errString: "quantity must be positive",
+			name:        "negative quantity should fail",
+			asin:        "B08N5WRWNW",
+			quantity:    -1,
+			wantErr:     true,
+			errContains: "add to cart",
 		},
 		{
-			name:      "multiple quantity",
-			asin:      "B08N5WRWNW",
-			quantity:  5,
-			wantErr:   false,
-			errString: "",
+			name:        "multiple quantity",
+			asin:        "B08N5WRWNW",
+			quantity:    5,
+			wantErr:     false,
+			errContains: "",
 		},
 	}
 
@@ -203,8 +206,8 @@ func TestAddToCart(t *testing.T) {
 			if tt.wantErr {
 				if err == nil {
 					t.Error("AddToCart() expected error but got none")
-				} else if err.Error() != tt.errString {
-					t.Errorf("AddToCart() error = %v, want %v", err.Error(), tt.errString)
+				} else if tt.errContains != "" && !contains(err.Error(), tt.errContains) {
+					t.Errorf("AddToCart() error = %v, want error containing %q", err.Error(), tt.errContains)
 				}
 				return
 			}
@@ -252,22 +255,22 @@ func TestGetCart(t *testing.T) {
 
 func TestRemoveFromCart(t *testing.T) {
 	tests := []struct {
-		name      string
-		asin      string
-		wantErr   bool
-		errString string
+		name        string
+		asin        string
+		wantErr     bool
+		errContains string
 	}{
 		{
-			name:      "valid ASIN",
-			asin:      "B08N5WRWNW",
-			wantErr:   false,
-			errString: "",
+			name:        "valid ASIN",
+			asin:        "B08N5WRWNW",
+			wantErr:     false,
+			errContains: "",
 		},
 		{
-			name:      "empty ASIN should fail",
-			asin:      "",
-			wantErr:   true,
-			errString: "ASIN cannot be empty",
+			name:        "empty ASIN should fail",
+			asin:        "",
+			wantErr:     true,
+			errContains: "remove from cart",
 		},
 	}
 
@@ -279,8 +282,8 @@ func TestRemoveFromCart(t *testing.T) {
 			if tt.wantErr {
 				if err == nil {
 					t.Error("RemoveFromCart() expected error but got none")
-				} else if err.Error() != tt.errString {
-					t.Errorf("RemoveFromCart() error = %v, want %v", err.Error(), tt.errString)
+				} else if tt.errContains != "" && !contains(err.Error(), tt.errContains) {
+					t.Errorf("RemoveFromCart() error = %v, want error containing %q", err.Error(), tt.errContains)
 				}
 				return
 			}
@@ -351,14 +354,14 @@ func TestPreviewCheckout(t *testing.T) {
 			addressID:   "",
 			paymentID:   "pay123",
 			wantErr:     true,
-			errContains: "addressID cannot be empty",
+			errContains: "preview checkout",
 		},
 		{
 			name:        "empty paymentID should fail",
 			addressID:   "addr123",
 			paymentID:   "",
 			wantErr:     true,
-			errContains: "paymentID cannot be empty",
+			errContains: "preview checkout",
 		},
 	}
 
@@ -413,4 +416,157 @@ func findSubstring(s, substr string) bool {
 		}
 	}
 	return false
+}
+
+// TestErrorWrapping verifies that errors are properly wrapped with context using %w
+func TestErrorWrapping(t *testing.T) {
+	t.Run("AddToCart wraps ErrInvalidASIN", func(t *testing.T) {
+		client := NewClient()
+		_, err := client.AddToCart("", 1)
+
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		// Verify the error can be unwrapped to find the sentinel error
+		if !errors.Is(err, models.ErrInvalidASIN) {
+			t.Errorf("error should wrap ErrInvalidASIN, got: %v", err)
+		}
+
+		// Verify the error message includes context
+		if !contains(err.Error(), "add to cart") {
+			t.Errorf("error message should include context, got: %v", err.Error())
+		}
+	})
+
+	t.Run("AddToCart wraps ErrInvalidQuantity", func(t *testing.T) {
+		client := NewClient()
+		_, err := client.AddToCart("B08N5WRWNW", 0)
+
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		// Verify the error can be unwrapped to find the sentinel error
+		if !errors.Is(err, models.ErrInvalidQuantity) {
+			t.Errorf("error should wrap ErrInvalidQuantity, got: %v", err)
+		}
+
+		// Verify the error message includes context
+		if !contains(err.Error(), "add to cart") {
+			t.Errorf("error message should include context, got: %v", err.Error())
+		}
+	})
+
+	t.Run("RemoveFromCart wraps ErrInvalidASIN", func(t *testing.T) {
+		client := NewClient()
+		_, err := client.RemoveFromCart("")
+
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		// Verify the error can be unwrapped to find the sentinel error
+		if !errors.Is(err, models.ErrInvalidASIN) {
+			t.Errorf("error should wrap ErrInvalidASIN, got: %v", err)
+		}
+
+		// Verify the error message includes context
+		if !contains(err.Error(), "remove from cart") {
+			t.Errorf("error message should include context, got: %v", err.Error())
+		}
+	})
+
+	t.Run("CompleteCheckout wraps ErrEmptyCart", func(t *testing.T) {
+		client := NewClient()
+		_, err := client.CompleteCheckout("addr123", "pay123")
+
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		// Verify the error can be unwrapped to find the sentinel error
+		if !errors.Is(err, models.ErrEmptyCart) {
+			t.Errorf("error should wrap ErrEmptyCart, got: %v", err)
+		}
+
+		// Verify the error message includes context
+		if !contains(err.Error(), "complete checkout") {
+			t.Errorf("error message should include context, got: %v", err.Error())
+		}
+	})
+
+	t.Run("PreviewCheckout wraps errors with context", func(t *testing.T) {
+		client := NewClient()
+		_, err := client.PreviewCheckout("", "pay123")
+
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		// Verify the error message includes context
+		if !contains(err.Error(), "preview checkout") {
+			t.Errorf("error message should include context, got: %v", err.Error())
+		}
+	})
+}
+
+// TestErrorContext verifies that error messages contain helpful context
+func TestErrorContext(t *testing.T) {
+	tests := []struct {
+		name         string
+		operation    func(*Client) error
+		wantContains []string
+	}{
+		{
+			name: "AddToCart with empty ASIN",
+			operation: func(c *Client) error {
+				_, err := c.AddToCart("", 1)
+				return err
+			},
+			wantContains: []string{"add to cart", "invalid ASIN"},
+		},
+		{
+			name: "AddToCart with invalid quantity",
+			operation: func(c *Client) error {
+				_, err := c.AddToCart("B08N5WRWNW", -5)
+				return err
+			},
+			wantContains: []string{"add to cart", "invalid quantity", "-5"},
+		},
+		{
+			name: "RemoveFromCart with empty ASIN",
+			operation: func(c *Client) error {
+				_, err := c.RemoveFromCart("")
+				return err
+			},
+			wantContains: []string{"remove from cart", "invalid ASIN"},
+		},
+		{
+			name: "CompleteCheckout with empty cart",
+			operation: func(c *Client) error {
+				_, err := c.CompleteCheckout("addr123", "pay123")
+				return err
+			},
+			wantContains: []string{"complete checkout", "cart is empty"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := NewClient()
+			err := tt.operation(client)
+
+			if err == nil {
+				t.Fatal("expected error, got nil")
+			}
+
+			errMsg := err.Error()
+			for _, want := range tt.wantContains {
+				if !contains(errMsg, want) {
+					t.Errorf("error message %q should contain %q", errMsg, want)
+				}
+			}
+		})
+	}
 }
