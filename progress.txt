@@ -1,0 +1,77 @@
+# Progress Log
+
+## Task: Write unit tests for rate limiter logic
+
+### Completed:
+
+1. **Created project structure**
+   - Initialized Go module: `github.com/zkwentz/amazon-cli`
+   - Created directory structure: `internal/config`, `internal/ratelimit`, `pkg/models`
+
+2. **Implemented rate limiter**
+   - Created `internal/config/config.go` with configuration structures:
+     - `RateLimitConfig` with MinDelayMs, MaxDelayMs, MaxRetries
+     - Config load/save functionality
+   - Created `internal/ratelimit/limiter.go` with full rate limiting implementation:
+     - `NewRateLimiter()` - Constructor
+     - `Wait()` - Enforces minimum delay between requests with cryptographic jitter (0-500ms)
+     - `WaitWithBackoff()` - Implements exponential backoff (2^n seconds, max 60s)
+     - `ShouldRetry()` - Determines retry eligibility based on status codes (429, 503) and attempt count
+     - `generateJitter()` - Cryptographically secure random jitter generation
+     - `Reset()` and `GetLastRequestTime()` - Testing utilities
+     - Thread-safe implementation using sync.Mutex
+
+3. **Wrote comprehensive unit tests** (`internal/ratelimit/limiter_test.go`)
+   - **Constructor tests**: TestNewRateLimiter
+   - **Wait() function tests**:
+     - TestWait_FirstCall - Verifies first call behavior (jitter only)
+     - TestWait_EnforcesMinimumDelay - Confirms minimum delay enforcement
+     - TestWait_SuccessiveCallsTiming - Tests multiple consecutive calls
+     - TestWait_WithDelayBetweenCalls - Tests behavior when natural delays occur
+     - TestWait_ZeroMinDelay - Edge case with zero minimum delay
+     - TestWait_ThreadSafety - Concurrent access safety
+   - **Backoff tests**:
+     - TestWaitWithBackoff_ExponentialGrowth - Verifies exponential backoff (1s, 2s, 4s, 8s, 16s, 32s, 60s)
+     - TestWaitWithBackoff_MaximumCap - Confirms 60-second maximum cap
+   - **Retry logic tests**:
+     - TestShouldRetry_StatusCode429 - Rate limit (429) retry behavior
+     - TestShouldRetry_StatusCode503 - Service unavailable (503) retry behavior
+     - TestShouldRetry_OtherStatusCodes - Non-retryable status codes
+     - TestShouldRetry_CustomMaxRetries - Custom retry limit configuration
+   - **Jitter tests**:
+     - TestGenerateJitter - Random jitter generation
+     - TestGenerateJitter_ZeroMax - Edge case handling
+     - TestGenerateJitter_NegativeMax - Invalid input handling
+   - **Utility function tests**:
+     - TestReset - State reset functionality
+     - TestGetLastRequestTime - Time tracking verification
+   - **Integration tests**:
+     - TestRateLimiter_IntegrationScenario - End-to-end retry scenario
+     - TestRateLimiter_ConcurrentRequests - Concurrent request handling
+
+### Test Results:
+- All 19 unit tests passing
+- Total test coverage includes:
+  - Constructor and initialization
+  - Wait timing and delay enforcement
+  - Exponential backoff with proper capping
+  - Retry decision logic for various HTTP status codes
+  - Jitter generation (cryptographically secure)
+  - Thread safety for concurrent requests
+  - Edge cases and error conditions
+  - Integration scenarios
+
+### Files Created:
+- `go.mod` - Go module definition
+- `internal/config/config.go` - Configuration management
+- `internal/ratelimit/limiter.go` - Rate limiter implementation (121 lines)
+- `internal/ratelimit/limiter_test.go` - Comprehensive unit tests (600+ lines)
+
+### Implementation Details:
+The rate limiter implementation follows the PRD specifications exactly:
+- Minimum delay between requests (configurable, default 1000ms)
+- Random jitter (0-500ms) using crypto/rand for unpredictability
+- Exponential backoff on 429/503 responses (2^n seconds, capped at 60s)
+- Configurable max retries (default 3)
+- Thread-safe operation with mutex protection
+- Clean separation of concerns between configuration and rate limiting logic
