@@ -1,0 +1,30 @@
+## Completed Tasks
+
+### SaveConfig Implementation
+- Created project structure:
+  - Initialized Go module: github.com/zkwentz/amazon-cli
+  - Created internal/config directory structure
+
+- Implemented config.go (internal/config/config.go):
+  - Defined Config struct with Auth, Defaults, and RateLimiting fields
+  - Defined AuthConfig struct (AccessToken, RefreshToken, ExpiresAt)
+  - Defined DefaultsConfig struct (AddressID, PaymentID, OutputFormat)
+  - Defined RateLimitConfig struct (MinDelayMs, MaxDelayMs, MaxRetries)
+  - Implemented SaveConfig(config *Config, path string) error function:
+    - Creates parent directory if it doesn't exist with 0700 permissions
+    - Marshals config to JSON with proper indentation for readability
+    - Writes to file with secure 0600 permissions (read/write for owner only)
+    - Returns descriptive errors for nil config, directory creation failures, marshaling errors, and write failures
+
+- Implemented comprehensive tests (internal/config/config_test.go):
+  - TestSaveConfig: Tests successful save, nested directory creation, empty auth fields, and nil config error
+  - TestSaveConfigDirectoryPermissions: Verifies directory is created with correct 0700 permissions
+  - TestSaveConfigOverwrite: Ensures config can be overwritten with new values
+  - All tests verify:
+    - File creation and existence
+    - File permissions (0600)
+    - JSON content accuracy
+    - Proper indentation
+    - Error handling
+
+All tests pass successfully.
