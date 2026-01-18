@@ -1,0 +1,155 @@
+## Implementation Progress
+
+### Completed: internal/amazon/orders.go
+
+**Date:** January 18, 2026
+
+**Summary:**
+Created the orders management module for the Amazon CLI tool. This module provides functionality to retrieve and manage Amazon orders.
+
+**Files Created:**
+1. `internal/amazon/orders.go` - Main implementation
+2. `internal/amazon/orders_test.go` - Comprehensive test suite
+
+**Implemented Features:**
+
+1. **Data Structures:**
+   - `Order` - Complete order information including items and tracking
+   - `OrderItem` - Individual item details (ASIN, title, quantity, price)
+   - `Tracking` - Shipment tracking information
+   - `OrdersResponse` - API response wrapper with order list and count
+
+2. **Core Functions:**
+
+   a. `GetOrders(limit int, status string) (*OrdersResponse, error)`
+      - Retrieves a list of orders with optional filtering
+      - Supports limit parameter to restrict number of results
+      - Supports status filtering (pending, delivered, returned)
+      - Parses Amazon order history HTML
+      - Returns structured OrdersResponse with all orders
+
+   b. `GetOrder(orderID string) (*Order, error)`
+      - Fetches detailed information for a specific order
+      - Validates order ID parameter
+      - Parses complete order details including all items
+      - Automatically includes tracking information if available
+      - Returns comprehensive Order struct
+
+   c. `GetOrderTracking(orderID string) (*Tracking, error)`
+      - Retrieves tracking information for a specific order
+      - Extracts carrier, tracking number, status, and delivery date
+      - Returns nil if no tracking info available (not an error)
+      - Handles orders without tracking gracefully
+
+   d. `GetOrderHistory(year int) (*OrdersResponse, error)`
+      - Fetches all orders from a specific year
+      - Defaults to current year if year parameter is 0
+      - Validates year range (1995 to current year)
+      - Handles pagination for large order histories
+      - Returns OrdersResponse with all orders from the year
+
+3. **Helper Functions:**
+   - `parsePrice(priceStr string) float64` - Converts price strings to floats
+   - `parseQuantity(qtyStr string) int` - Extracts quantity from formatted strings
+   - Custom JSON marshaling/unmarshaling for Order struct
+
+4. **Client Integration:**
+   - Integrates with Client struct (to be defined in client.go)
+   - Uses rate-limited HTTP client for all requests
+   - Implements proper error handling and propagation
+   - Returns structured errors with context
+
+**Test Coverage:**
+
+The test suite (`orders_test.go`) includes:
+- Unit tests for all public functions
+- Tests for helper functions (parsePrice, parseQuantity)
+- JSON serialization/deserialization tests
+- Error handling tests (nil client, invalid inputs)
+- Edge case tests (empty results, invalid dates, etc.)
+- Mock HTTP server tests for integration testing
+- Total: 12 test functions with multiple sub-tests
+
+**Implementation Notes:**
+
+1. **HTML Parsing:** Uses goquery library for robust HTML parsing
+   - Handles various Amazon HTML structures
+   - Gracefully handles missing elements
+   - Future-proof with multiple selector strategies
+
+2. **Error Handling:**
+   - All functions validate inputs before processing
+   - Nil client checks prevent panics
+   - Structured error messages with context
+   - HTTP status code validation
+
+3. **Design Decisions:**
+   - Tracking is optional (pointer) since not all orders have it
+   - Helper functions are package-private
+   - JSON tags follow snake_case for API consistency
+   - Default quantity to 1 if parsing fails
+
+4. **Dependencies:**
+   - `github.com/PuerkitoBio/goquery` - HTML parsing
+   - Standard library packages (net/http, encoding/json, etc.)
+
+**Next Steps:**
+- Implement client.go with rate limiting
+- Create cmd/orders.go for CLI commands
+- Add integration with authentication system
+- Implement proper URL construction with base URL configuration
+
+**Testing Instructions:**
+```bash
+# Run tests
+go test ./internal/amazon/... -v
+
+# Run with coverage
+go test ./internal/amazon/... -cover
+
+# Run specific test
+go test ./internal/amazon/ -run TestGetOrders -v
+```
+
+**API Examples:**
+
+Example JSON output for GetOrders:
+```json
+{
+  "orders": [
+    {
+      "order_id": "111-1111111-1111111",
+      "date": "January 15, 2024",
+      "total": 29.99,
+      "status": "delivered",
+      "items": [
+        {
+          "asin": "B08N5WRWNW",
+          "title": "Test Product",
+          "quantity": 1,
+          "price": 29.99
+        }
+      ],
+      "tracking": {
+        "carrier": "UPS",
+        "tracking_number": "1Z999AA10123456784",
+        "status": "delivered",
+        "delivery_date": "January 17, 2024"
+      }
+    }
+  ],
+  "total_count": 1
+}
+```
+
+**Known Limitations:**
+1. HTML selectors may need adjustment based on actual Amazon HTML structure
+2. Pagination is simplified - full implementation needed for large result sets
+3. Client struct is placeholder - needs proper implementation in client.go
+4. No authentication integration yet - requires auth.go implementation
+
+**Compliance:**
+- Follows PRD specifications (Phase 3.1 and 3.2)
+- Implements all required data models
+- Provides foundation for CLI commands (Phase 3.3)
+- Ready for integration testing once client.go is complete
