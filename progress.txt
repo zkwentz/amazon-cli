@@ -1,0 +1,87 @@
+## Implementation Progress
+
+### Completed: Print(data interface{}) error Implementation
+
+**Date:** 2026-01-18
+
+**Task:** Implement the `Print(data interface{}) error` function as specified in PRD Phase 1.4
+
+**What was implemented:**
+
+1. **Created Directory Structure:**
+   - `internal/output/` - for output formatting functionality
+   - `pkg/models/` - for shared data models
+
+2. **Created `internal/output/output.go`:**
+   - Defined `OutputFormat` type with constants: JSON, Table, Raw
+   - Created `Printer` struct with format and quiet mode fields
+   - Implemented `NewPrinter(format string, quiet bool) *Printer`
+   - Implemented `Print(data interface{}) error` with support for:
+     - JSON format: marshals with indentation and prints to stdout
+     - Table format: uses tablewriter package for human-readable output
+     - Raw format: prints raw string representation
+   - Implemented `PrintError(err error) error` for structured error output
+   - Added private helper methods: `printJSON`, `printTable`, `printRaw`
+
+3. **Created `pkg/models/errors.go`:**
+   - Defined error code constants (AUTH_REQUIRED, AUTH_EXPIRED, NOT_FOUND, etc.)
+   - Created `CLIError` struct with Code, Message, Details fields
+   - Implemented `Error()` method for error interface compliance
+   - Created helper constructors: `NewCLIError`, `NewCLIErrorWithDetails`
+   - Defined `ErrorResponse` wrapper for JSON error output
+
+4. **Created `internal/output/output_test.go`:**
+   - Comprehensive test suite with 9 test cases covering:
+     - NewPrinter configuration
+     - JSON output formatting
+     - Quiet mode behavior
+     - Raw output
+     - Error printing with CLIError
+     - Generic error handling
+     - Error details marshaling
+     - Table output (single object and arrays)
+     - Invalid data handling
+   - All tests passing (100%)
+
+5. **Dependencies:**
+   - Initialized Go module: `github.com/zkwentz/amazon-cli`
+   - Added `github.com/olekukonko/tablewriter` for table formatting
+
+**Files created/modified:**
+- `go.mod` (created)
+- `go.sum` (created)
+- `internal/output/output.go` (created)
+- `internal/output/output_test.go` (created)
+- `pkg/models/errors.go` (created)
+- `progress.txt` (this file)
+
+**Test Results:**
+All tests passing:
+- TestNewPrinter: 5 sub-tests passed
+- TestPrint_JSON: passed
+- TestPrint_Quiet: passed
+- TestPrint_Raw: passed
+- TestPrintError: 3 sub-tests passed
+- TestPrintError_WithDetails: passed
+- TestPrintJSON_InvalidData: passed
+- TestPrint_Table: passed
+- TestPrint_TableSingleObject: passed
+
+**Key Implementation Details:**
+- Print function respects quiet mode - returns immediately without output when quiet=true
+- Error output is always JSON format regardless of Printer format setting
+- Table output handles both single objects (as key-value pairs) and arrays (as rows with headers)
+- Proper error wrapping using fmt.Errorf with %w for error chains
+- Generic errors are automatically wrapped as CLIError with AMAZON_ERROR code
+
+**PRD Alignment:**
+This implementation completes Phase 1.4 tasks:
+- ✅ Define OutputFormat type (JSON, Table, Raw constants)
+- ✅ Create Printer struct with format preference and quiet mode
+- ✅ Implement NewPrinter(format string, quiet bool) *Printer
+- ✅ Implement Print(data interface{}) error for all three formats
+- ✅ Implement PrintError(err error) error with JSON error formatting
+- ✅ Create CLIError struct with Code, Message, Details fields
+- ✅ Define error code constants matching PRD
+- ✅ Implement Error() method on CLIError
+- ✅ Write unit tests for JSON output formatting
