@@ -1,0 +1,38 @@
+## Completed Task: Create internal/config/config.go
+
+### What was implemented:
+
+1. **Created directory structure**: `internal/config/`
+
+2. **Implemented config.go with the following components**:
+   - `AuthConfig` struct: Holds access_token, refresh_token, and expires_at fields
+   - `DefaultsConfig` struct: Holds address_id, payment_id, and output_format fields
+   - `RateLimitConfig` struct: Holds min_delay_ms, max_delay_ms, and max_retries fields
+   - `Config` struct: Main configuration structure combining all sub-configs
+   - `DefaultConfig()` function: Returns sensible defaults (output_format: "json", rate limiting: 1000-5000ms, max retries: 3)
+   - `GetConfigPath(customPath string)` function: Returns custom path or default ~/.amazon-cli/config.json
+   - `LoadConfig(path string)` function: Loads config from JSON file, returns default config if file doesn't exist (first run scenario)
+   - `SaveConfig(config *Config, path string)` function: Saves config to JSON file with proper permissions (directory: 0700, file: 0600)
+
+3. **Created comprehensive unit tests** (config_test.go):
+   - TestDefaultConfig: Verifies default configuration values
+   - TestGetConfigPath: Tests custom path and default path logic
+   - TestLoadConfig_NonExistent: Ensures graceful handling of missing config file
+   - TestSaveAndLoadConfig: Tests full save/load roundtrip with verification of all fields and permissions
+   - TestLoadConfig_InvalidJSON: Tests error handling for malformed JSON
+   - TestJSONMarshaling: Verifies JSON serialization/deserialization
+
+4. **Test Results**: All tests pass successfully (7 tests, 1 skipped intentionally)
+
+### Files created:
+- internal/config/config.go (144 lines)
+- internal/config/config_test.go (266 lines)
+- go.mod (initialized with module github.com/zkwentz/amazon-cli)
+
+### Key Features:
+- Matches JSON schema defined in PRD (auth, defaults, rate_limiting sections)
+- Secure file permissions (0600 for config file, 0700 for directory)
+- Graceful handling of missing config file (returns defaults on first run)
+- Comprehensive error handling with wrapped errors for better debugging
+- JSON marshaling with indentation for human readability
+- Full test coverage including edge cases
