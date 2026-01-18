@@ -234,3 +234,35 @@ func (c *Client) submitCheckout(addressID, paymentID string, cart *models.Cart) 
 	// In production, this would be replaced with actual Amazon API calls
 	return fmt.Sprintf("111-%07d-2222222", int(cart.Total*100)%10000000), nil
 }
+
+// QuickBuy performs a quick purchase by adding an item to cart and immediately checking out
+// This is a convenience method that combines AddToCart and CompleteCheckout
+func (c *Client) QuickBuy(asin string, quantity int, addressID, paymentID string) (*models.OrderConfirmation, error) {
+	// Validate inputs
+	if asin == "" {
+		return nil, fmt.Errorf("ASIN cannot be empty")
+	}
+	if quantity <= 0 {
+		return nil, fmt.Errorf("quantity must be positive")
+	}
+	if addressID == "" {
+		return nil, fmt.Errorf("addressID cannot be empty")
+	}
+	if paymentID == "" {
+		return nil, fmt.Errorf("paymentID cannot be empty")
+	}
+
+	// Step 1: Add item to cart
+	_, err := c.AddToCart(asin, quantity)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add item to cart: %w", err)
+	}
+
+	// Step 2: Complete checkout
+	confirmation, err := c.CompleteCheckout(addressID, paymentID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to complete checkout: %w", err)
+	}
+
+	return confirmation, nil
+}

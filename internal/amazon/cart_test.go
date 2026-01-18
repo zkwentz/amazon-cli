@@ -400,6 +400,293 @@ func TestPreviewCheckout(t *testing.T) {
 	}
 }
 
+// TestQuickBuy tests the quick buy flow which combines add to cart and checkout
+func TestQuickBuy(t *testing.T) {
+	tests := []struct {
+		name        string
+		asin        string
+		quantity    int
+		addressID   string
+		paymentID   string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name:      "valid quick buy single item",
+			asin:      "B08N5WRWNW",
+			quantity:  1,
+			addressID: "addr123",
+			paymentID: "pay123",
+			wantErr:   false,
+		},
+		{
+			name:      "valid quick buy multiple quantity",
+			asin:      "B08N5WRWNW",
+			quantity:  3,
+			addressID: "addr456",
+			paymentID: "pay456",
+			wantErr:   false,
+		},
+		{
+			name:        "empty ASIN should fail",
+			asin:        "",
+			quantity:    1,
+			addressID:   "addr123",
+			paymentID:   "pay123",
+			wantErr:     true,
+			errContains: "ASIN cannot be empty",
+		},
+		{
+			name:        "zero quantity should fail",
+			asin:        "B08N5WRWNW",
+			quantity:    0,
+			addressID:   "addr123",
+			paymentID:   "pay123",
+			wantErr:     true,
+			errContains: "quantity must be positive",
+		},
+		{
+			name:        "negative quantity should fail",
+			asin:        "B08N5WRWNW",
+			quantity:    -1,
+			addressID:   "addr123",
+			paymentID:   "pay123",
+			wantErr:     true,
+			errContains: "quantity must be positive",
+		},
+		{
+			name:        "empty addressID should fail",
+			asin:        "B08N5WRWNW",
+			quantity:    1,
+			addressID:   "",
+			paymentID:   "pay123",
+			wantErr:     true,
+			errContains: "addressID cannot be empty",
+		},
+		{
+			name:        "empty paymentID should fail",
+			asin:        "B08N5WRWNW",
+			quantity:    1,
+			addressID:   "addr123",
+			paymentID:   "",
+			wantErr:     true,
+			errContains: "paymentID cannot be empty",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := NewClient()
+
+			// Execute QuickBuy
+			confirmation, err := client.QuickBuy(tt.asin, tt.quantity, tt.addressID, tt.paymentID)
+
+			// Check error expectations
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("QuickBuy() expected error but got none")
+				} else if tt.errContains != "" && !contains(err.Error(), tt.errContains) {
+					t.Errorf("QuickBuy() error = %v, want error containing %q", err, tt.errContains)
+				}
+				return
+			}
+
+			// Check success expectations
+			if err != nil {
+				t.Errorf("QuickBuy() unexpected error: %v", err)
+				return
+			}
+
+			if confirmation == nil {
+				t.Error("QuickBuy() returned nil confirmation")
+				return
+			}
+
+			// Verify confirmation fields
+			if confirmation.OrderID == "" {
+				t.Error("QuickBuy() OrderID is empty")
+			}
+
+			if confirmation.Total <= 0 {
+				t.Error("QuickBuy() Total should be greater than 0")
+			}
+
+			if confirmation.EstimatedDelivery == "" {
+				t.Error("QuickBuy() EstimatedDelivery is empty")
+			}
+		})
+	}
+}
+
+// TestQuickBuy_OrderConfirmation verifies the order confirmation structure
+func TestQuickBuy_OrderConfirmation(t *testing.T) {
+	client := NewClient()
+
+	// Execute quick buy
+	confirmation, err := client.QuickBuy("B08N5WRWNW", 2, "addr123", "pay123")
+	if err != nil {
+		t.Fatalf("QuickBuy() error = %v", err)
+	}
+
+	// Verify order confirmation structure
+	if confirmation.OrderID == "" {
+		t.Error("OrderID should not be empty")
+	}
+
+	// Check total is approximately correct (29.99 * 2 = 59.98 + 8% tax = 64.7784)
+	expectedTotal := 64.78
+	if confirmation.Total < expectedTotal-0.01 || confirmation.Total > expectedTotal+0.01 {
+		t.Errorf("Total = %v, want approximately %v", confirmation.Total, expectedTotal)
+	}
+
+	if confirmation.EstimatedDelivery == "" {
+		t.Error("EstimatedDelivery should not be empty")
+	}
+}
+
+// TestQuickBuy_CartState verifies cart state after quick buy
+func TestQuickBuy_CartState(t *testing.T) {
+	client := NewClient()
+
+	// Check initial cart is empty
+	initialCart, err := client.GetCart()
+	if err != nil {
+		t.Fatalf("GetCart() error = %v", err)
+	}
+	if initialCart.ItemCount != 0 {
+		t.Fatalf("Initial cart should be empty, got %d items", initialCart.ItemCount)
+	}
+
+	// Execute quick buy
+	_, err = client.QuickBuy("B08N5WRWNW", 1, "addr123", "pay123")
+	if err != nil {
+		t.Fatalf("QuickBuy() error = %v", err)
+	}
+
+	// Verify cart now has items (quick buy adds to cart)
+	finalCart, err := client.GetCart()
+	if err != nil {
+		t.Fatalf("GetCart() error = %v", err)
+	}
+	if finalCart.ItemCount == 0 {
+		t.Error("Cart should have items after quick buy")
+	}
+	if len(finalCart.Items) == 0 {
+		t.Error("Cart items should not be empty after quick buy")
+	}
+}
+
+// TestQuickBuy_MultipleItems tests quick buy with different ASINs
+func TestQuickBuy_MultipleItems(t *testing.T) {
+	testCases := []struct {
+		name     string
+		asin     string
+		quantity int
+	}{
+		{
+			name:     "single item",
+			asin:     "B08N5WRWNW",
+			quantity: 1,
+		},
+		{
+			name:     "multiple of same item",
+			asin:     "B08N5WRWNW",
+			quantity: 5,
+		},
+		{
+			name:     "different ASIN",
+			asin:     "B07XJ8C8F5",
+			quantity: 2,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := NewClient()
+
+			confirmation, err := client.QuickBuy(tc.asin, tc.quantity, "addr123", "pay123")
+			if err != nil {
+				t.Fatalf("QuickBuy() error = %v", err)
+			}
+
+			if confirmation == nil {
+				t.Fatal("QuickBuy() returned nil confirmation")
+			}
+
+			// Verify ASIN is in cart
+			cart, err := client.GetCart()
+			if err != nil {
+				t.Fatalf("GetCart() error = %v", err)
+			}
+
+			found := false
+			for _, item := range cart.Items {
+				if item.ASIN == tc.asin && item.Quantity == tc.quantity {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Errorf("Expected ASIN %s with quantity %d not found in cart", tc.asin, tc.quantity)
+			}
+		})
+	}
+}
+
+// TestQuickBuy_Integration tests the complete quick buy flow
+func TestQuickBuy_Integration(t *testing.T) {
+	client := NewClient()
+
+	// Test data
+	asin := "B08N5WRWNW"
+	quantity := 1
+	addressID := "addr123"
+	paymentID := "pay123"
+
+	// Execute quick buy
+	confirmation, err := client.QuickBuy(asin, quantity, addressID, paymentID)
+	if err != nil {
+		t.Fatalf("QuickBuy() error = %v", err)
+	}
+
+	// Verify all confirmation fields are populated
+	if confirmation.OrderID == "" {
+		t.Error("OrderID should be populated")
+	}
+
+	if confirmation.Total <= 0 {
+		t.Error("Total should be greater than 0")
+	}
+
+	if confirmation.EstimatedDelivery == "" {
+		t.Error("EstimatedDelivery should be populated")
+	}
+
+	// Verify cart reflects the purchase
+	cart, err := client.GetCart()
+	if err != nil {
+		t.Fatalf("GetCart() error = %v", err)
+	}
+
+	if len(cart.Items) == 0 {
+		t.Error("Cart should contain items after quick buy")
+	}
+
+	// Verify the correct item is in cart
+	foundItem := false
+	for _, item := range cart.Items {
+		if item.ASIN == asin {
+			foundItem = true
+			if item.Quantity != quantity {
+				t.Errorf("Item quantity = %d, want %d", item.Quantity, quantity)
+			}
+		}
+	}
+	if !foundItem {
+		t.Errorf("ASIN %s not found in cart after quick buy", asin)
+	}
+}
+
 // Helper function to check if a string contains a substring
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
