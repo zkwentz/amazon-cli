@@ -1,0 +1,58 @@
+# Progress Log
+
+## 2026-01-18: Implemented GetOrder function
+
+### What was implemented:
+1. **Project Structure Setup**
+   - Initialized Go module: `github.com/zkwentz/amazon-cli`
+   - Created directory structure: `pkg/models`, `internal/amazon`, `cmd`
+
+2. **Order Models** (`pkg/models/order.go`)
+   - Created `Order` struct with fields: OrderID, Date, Total, Status, Items, Tracking
+   - Created `OrderItem` struct for individual items in an order
+   - Created `Tracking` struct for shipment tracking information
+   - Created `OrdersResponse` struct for listing orders
+
+3. **Amazon Client** (`internal/amazon/client.go`)
+   - Created `Client` struct with HTTP client and user agent rotation
+   - Implemented `NewClient()` constructor with 30-second timeout and cookie jar
+
+4. **GetOrder Implementation** (`internal/amazon/orders.go`)
+   - Implemented `GetOrder(orderID string) (*Order, error)` function
+   - Validates order ID is not empty
+   - Constructs Amazon order details URL
+   - Sets appropriate HTTP headers (User-Agent, Accept, Accept-Language)
+   - Handles HTTP errors: 404 (not found), 401 (unauthorized), and other status codes
+   - Parses HTML response to extract order details
+   - Implemented `parseOrderDetails()` helper function with:
+     - Detection of authentication requirements
+     - Detection of order not found errors
+     - Placeholder for HTML parsing (ready for goquery integration)
+
+5. **Comprehensive Test Suite** (`internal/amazon/orders_test.go`)
+   - Test for empty order ID validation
+   - Test for 404 not found responses
+   - Test for authentication required detection
+   - Test for valid order ID processing
+   - Test for unexpected status codes (500 error)
+   - Test for parsing order not found messages
+   - Test for parsing authentication required messages
+   - Test for parsing valid HTML content
+   - All 8 tests pass successfully
+
+### Implementation Notes:
+- The `GetOrder` function is fully implemented with error handling
+- HTML parsing is currently a placeholder that returns a basic Order structure
+- In production, the `parseOrderDetails` function should use a library like `goquery` to extract actual order data from Amazon's HTML
+- The function properly detects authentication issues and order not found scenarios
+- All error paths are tested and return appropriate error messages
+
+### Next Steps (for future work):
+- Integrate `goquery` or similar HTML parsing library
+- Implement actual HTML parsing logic to extract:
+  - Order date
+  - Total amount
+  - Order status
+  - Item details (ASIN, title, quantity, price)
+  - Tracking information
+- Add integration tests with real Amazon HTML samples
