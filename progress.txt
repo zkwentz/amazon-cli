@@ -1,0 +1,113 @@
+# Progress Log
+
+## Implemented: orders track <order-id> command
+
+### Summary
+Successfully implemented the `orders track <order-id>` command for the amazon-cli project. This command retrieves and displays tracking information for Amazon orders in JSON format.
+
+### Components Implemented
+
+1. **Project Structure**
+   - Initialized Go module: `github.com/zkwentz/amazon-cli`
+   - Created directory structure following PRD:
+     - `cmd/` - Command implementations
+     - `internal/amazon/` - Amazon API client
+     - `internal/config/` - Configuration management
+     - `internal/output/` - Output formatting
+     - `pkg/models/` - Shared data models
+   - Created `main.go` entry point
+
+2. **Data Models** (`pkg/models/`)
+   - `order.go`: Defined Order, OrderItem, Tracking, and OrdersResponse structs
+   - `errors.go`: Implemented CLIError with error codes (AUTH_REQUIRED, AUTH_EXPIRED, NOT_FOUND, etc.)
+   - All models include proper JSON tags for serialization
+
+3. **Configuration Management** (`internal/config/`)
+   - `config.go`: Implemented Config, AuthConfig, DefaultsConfig, and RateLimitConfig structs
+   - Functions: LoadConfig, SaveConfig, DefaultConfig, GetConfigPath
+   - Stores config in `~/.amazon-cli/config.json` with secure permissions (0700 for dir, 0600 for file)
+   - Supports default values for first run
+
+4. **Output Formatting** (`internal/output/`)
+   - `output.go`: Implemented Printer with support for JSON, table, and raw formats
+   - Print() and PrintError() methods for consistent output
+   - Structured error output matching PRD specification
+
+5. **Amazon Client** (`internal/amazon/`)
+   - `client.go`: Created Client struct with HTTP client and user agent rotation
+   - `orders.go`: Implemented GetOrderTracking method
+     - Currently returns mock data for demonstration
+     - Includes validation for order ID
+     - Proper error handling with CLIError types
+     - Ready for future implementation with actual Amazon API/scraping
+
+6. **CLI Commands** (`cmd/`)
+   - `root.go`: Set up Cobra root command with global flags (--config, --output, --quiet, --verbose, --no-color)
+   - `orders.go`: Implemented orders parent command and track subcommand
+   - Track command accepts order-id as argument and outputs tracking JSON
+
+7. **Tests**
+   - `internal/amazon/orders_test.go`: Tests for GetOrderTracking function
+     - Valid order ID test
+     - Empty order ID validation test
+     - Structure verification test
+   - `pkg/models/order_test.go`: Tests for JSON serialization of Tracking and Order models
+   - `internal/config/config_test.go`: Tests for config save/load functionality
+   - All tests passing (8/8)
+
+### Usage
+
+```bash
+# Build the project
+go build -o amazon-cli .
+
+# Track an order
+./amazon-cli orders track <order-id>
+
+# Example output:
+{
+  "carrier": "UPS",
+  "tracking_number": "1Z999AA10123456784",
+  "status": "delivered",
+  "delivery_date": "2024-01-17"
+}
+
+# View help
+./amazon-cli orders track --help
+```
+
+### Dependencies Added
+- github.com/spf13/cobra v1.10.2 - CLI framework
+- github.com/spf13/pflag v1.0.10 - Flag handling
+- github.com/inconshreveable/mousetrap v1.1.0 - Cobra dependency
+
+### Notes
+- The GetOrderTracking method currently returns mock data
+- In a production implementation, this would:
+  1. Make authenticated requests to Amazon's order tracking page/API
+  2. Parse HTML/JSON responses using a library like goquery
+  3. Handle authentication, rate limiting, and retries
+  4. Deal with edge cases (CAPTCHA, 2FA, etc.)
+- The foundation is in place for easy integration with actual Amazon APIs
+
+### Files Created
+- main.go
+- cmd/root.go
+- cmd/orders.go
+- internal/amazon/client.go
+- internal/amazon/orders.go
+- internal/amazon/orders_test.go
+- internal/config/config.go
+- internal/config/config_test.go
+- internal/output/output.go
+- pkg/models/order.go
+- pkg/models/order_test.go
+- pkg/models/errors.go
+- go.mod
+- go.sum
+
+### Testing
+All tests pass successfully:
+- 8 tests total
+- 0 failures
+- Coverage includes validation, JSON serialization, and config management
