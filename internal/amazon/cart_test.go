@@ -297,11 +297,102 @@ func TestRemoveFromCart(t *testing.T) {
 }
 
 func TestClearCart(t *testing.T) {
-	client := NewClient()
-	err := client.ClearCart()
+	tests := []struct {
+		name      string
+		setupCart func(*Client) error
+		wantErr   bool
+	}{
+		{
+			name: "clear empty cart",
+			setupCart: func(c *Client) error {
+				// Cart is already empty by default
+				return nil
+			},
+			wantErr: false,
+		},
+		{
+			name: "clear cart with one item",
+			setupCart: func(c *Client) error {
+				_, err := c.AddToCart("B08N5WRWNW", 1)
+				return err
+			},
+			wantErr: false,
+		},
+		{
+			name: "clear cart with multiple items",
+			setupCart: func(c *Client) error {
+				_, err := c.AddToCart("B08N5WRWNW", 2)
+				if err != nil {
+					return err
+				}
+				_, err = c.AddToCart("B07XJ8C8F5", 3)
+				return err
+			},
+			wantErr: false,
+		},
+	}
 
-	if err != nil {
-		t.Errorf("ClearCart() unexpected error: %v", err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := NewClient()
+
+			// Setup cart
+			if tt.setupCart != nil {
+				if err := tt.setupCart(client); err != nil {
+					t.Fatalf("failed to setup cart: %v", err)
+				}
+			}
+
+			// Get cart before clearing to verify it has items (for non-empty tests)
+			cartBefore, err := client.GetCart()
+			if err != nil {
+				t.Fatalf("failed to get cart before clearing: %v", err)
+			}
+
+			// Clear the cart
+			err = client.ClearCart()
+			if tt.wantErr {
+				if err == nil {
+					t.Error("ClearCart() expected error but got none")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("ClearCart() unexpected error: %v", err)
+				return
+			}
+
+			// Verify cart is now empty
+			cartAfter, err := client.GetCart()
+			if err != nil {
+				t.Fatalf("failed to get cart after clearing: %v", err)
+			}
+
+			if cartAfter.ItemCount != 0 {
+				t.Errorf("ClearCart() ItemCount after clear = %v, want 0", cartAfter.ItemCount)
+			}
+
+			if len(cartAfter.Items) != 0 {
+				t.Errorf("ClearCart() Items length after clear = %v, want 0", len(cartAfter.Items))
+			}
+
+			if cartAfter.Subtotal != 0 {
+				t.Errorf("ClearCart() Subtotal after clear = %v, want 0", cartAfter.Subtotal)
+			}
+
+			if cartAfter.EstimatedTax != 0 {
+				t.Errorf("ClearCart() EstimatedTax after clear = %v, want 0", cartAfter.EstimatedTax)
+			}
+
+			if cartAfter.Total != 0 {
+				t.Errorf("ClearCart() Total after clear = %v, want 0", cartAfter.Total)
+			}
+
+			// Log the before/after state for debugging
+			t.Logf("Cart before clear: %d items, total: %.2f", cartBefore.ItemCount, cartBefore.Total)
+			t.Logf("Cart after clear: %d items, total: %.2f", cartAfter.ItemCount, cartAfter.Total)
+		})
 	}
 }
 

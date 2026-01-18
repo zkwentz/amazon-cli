@@ -92,6 +92,14 @@ func (c *Client) RemoveFromCart(asin string) (*models.Cart, error) {
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) ClearCart() error {
 	// TODO: Implement actual Amazon cart clear API call
+	// For now, clear the in-memory cart
+	c.cart = &models.Cart{
+		Items:        []models.CartItem{},
+		Subtotal:     0,
+		EstimatedTax: 0,
+		Total:        0,
+		ItemCount:    0,
+	}
 	return nil
 }
 
