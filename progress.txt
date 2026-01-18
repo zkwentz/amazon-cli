@@ -1,0 +1,102 @@
+# Amazon CLI - Development Progress
+
+## Completed Tasks
+
+### 1. Implemented `orders list` command
+- Created Go module and project structure
+- Set up Cobra CLI framework with root command
+- Created data models for orders (Order, OrderItem, Tracking, OrdersResponse)
+- Created error models (CLIError, ErrorResponse) with error codes
+- Implemented output system for JSON formatting
+- Implemented Amazon client with orders functionality
+- Created `orders list` command with the following features:
+  - `--limit` flag to limit number of orders (default: 10)
+  - `--status` flag to filter by status (pending, delivered, returned)
+  - JSON output matching the PRD schema
+  - Help documentation with usage examples
+- Wrote comprehensive tests:
+  - Orders API tests (filtering, limiting, structure validation)
+  - Model JSON serialization tests
+  - All tests passing
+
+### Technical Details
+- Files created:
+  - `main.go` - entry point
+  - `cmd/root.go` - root CLI command with global flags
+  - `cmd/orders.go` - orders command group and list subcommand
+  - `pkg/models/order.go` - order data models
+  - `pkg/models/errors.go` - error handling models
+  - `internal/output/output.go` - output formatting system
+  - `internal/amazon/client.go` - Amazon HTTP client
+  - `internal/amazon/orders.go` - orders API implementation (mock data)
+  - `internal/amazon/orders_test.go` - orders API tests
+  - `pkg/models/order_test.go` - model tests
+  - `.gitignore` - ignore patterns for build artifacts
+  - `go.mod` - Go module dependencies
+
+### Command Usage
+```bash
+# List all orders
+amazon-cli orders list
+
+# List with limit
+amazon-cli orders list --limit 5
+
+# Filter by status
+amazon-cli orders list --status delivered
+
+# Combine filters
+amazon-cli orders list --limit 10 --status pending
+```
+
+### 2. Implemented `orders get <order-id>` command
+- Extended `cmd/orders.go` with orders get subcommand
+- Implemented `GetOrder` method in `internal/amazon/orders.go` with mock data
+- Returns detailed order information for a specific order ID
+- Returns NOT_FOUND error for non-existent orders
+- Updated tests in `internal/amazon/orders_test.go`:
+  - Added `TestGetOrder` with multiple test cases (existing orders, non-existent orders)
+  - Added `TestGetOrderStructure` to validate order data structure
+  - All tests passing
+- Command validates that exactly one argument (order-id) is provided
+- JSON output matches the PRD schema
+
+### Command Usage
+```bash
+# Get specific order details
+amazon-cli orders get 123-4567890-1234567
+
+# Get order details (returns NOT_FOUND for non-existent orders)
+amazon-cli orders get 999-9999999-9999999
+```
+
+### Example Output
+```json
+{
+  "order_id": "123-4567890-1234567",
+  "date": "2024-01-15",
+  "total": 29.99,
+  "status": "delivered",
+  "items": [
+    {
+      "asin": "B08N5WRWNW",
+      "title": "Sample Product Name",
+      "quantity": 1,
+      "price": 29.99
+    }
+  ],
+  "tracking": {
+    "carrier": "UPS",
+    "tracking_number": "1Z999AA10123456784",
+    "status": "delivered",
+    "delivery_date": "2024-01-17"
+  }
+}
+```
+
+### Next Steps
+The `orders list` and `orders get` commands are fully functional with mock implementations. The next phase would be to:
+1. Implement actual Amazon API/scraping logic in `internal/amazon/orders.go`
+2. Add authentication system
+3. Implement other order commands (track, history)
+4. Continue with other features from the PRD
