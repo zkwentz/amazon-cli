@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/michaelshimeles/amazon-cli/pkg/models"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -72,7 +73,7 @@ func initConfig() {
 		home, err := os.UserHomeDir()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
+			os.Exit(models.ExitGeneralError)
 		}
 
 		// Search config in home directory with name ".amazon-cli/config" (without extension).

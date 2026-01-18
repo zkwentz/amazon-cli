@@ -1,0 +1,63 @@
+## Task: Ensure all commands use consistent exit codes
+
+### Changes Made:
+
+1. **Created error classification system** (pkg/models/errors.go):
+   - Defined error code constants matching PRD (AUTH_REQUIRED, AUTH_EXPIRED, NOT_FOUND, RATE_LIMITED, INVALID_INPUT, PURCHASE_FAILED, NETWORK_ERROR, AMAZON_ERROR, GENERAL_ERROR)
+   - Defined exit code constants matching PRD section "Exit Codes" (0-6)
+   - Implemented CLIError struct with code, message, and optional details
+   - Implemented GetExitCode() method to map error codes to exit codes
+   - Implemented GetExitCodeFromError() helper function for consistent exit code handling
+
+2. **Updated main.go**:
+   - Modified main() function to use models.GetExitCodeFromError() instead of hardcoded exit code 1
+   - Now properly maps different error types to appropriate exit codes
+
+3. **Updated cmd/root.go**:
+   - Changed hardcoded os.Exit(1) to use models.ExitGeneralError constant
+   - Added import for pkg/models package
+   - Ensures consistent exit code usage in config initialization
+
+4. **Created comprehensive tests** (pkg/models/errors_test.go):
+   - Tests for CLIError creation and error message formatting
+   - Tests for WithDetails() chaining functionality
+   - Tests for exit code mapping (all 10 error codes including unknown)
+   - Tests for GetExitCodeFromError() with various error types
+   - Tests to verify constants match PRD specification
+   - All tests pass successfully
+
+5. **Updated main_test.go**:
+   - Added integration tests for exit code behavior
+   - Tests help command, version command, and invalid flag handling
+   - Added documentation test to verify exit code mapping matches PRD
+
+### Exit Code Mapping (per PRD):
+- 0: Success
+- 1: General error (GENERAL_ERROR, AMAZON_ERROR, PURCHASE_FAILED)
+- 2: Invalid arguments (INVALID_INPUT)
+- 3: Authentication error (AUTH_REQUIRED, AUTH_EXPIRED)
+- 4: Network error (NETWORK_ERROR)
+- 5: Rate limited (RATE_LIMITED)
+- 6: Not found (NOT_FOUND)
+
+### Test Results:
+- All unit tests pass (pkg/models/errors_test.go)
+- All integration tests pass (main_test.go)
+- All existing cart tests continue to pass
+- Build succeeds with no errors
+
+### Files Created:
+- pkg/models/errors.go
+- pkg/models/errors_test.go
+
+### Files Modified:
+- main.go
+- cmd/root.go
+- main_test.go
+
+### Benefits:
+- Future commands can now use CLIError to return appropriate exit codes
+- AI agents and scripts can reliably detect different error types via exit codes
+- Error handling is consistent across the entire CLI
+- Well-tested with comprehensive unit and integration tests
+- Matches PRD specification exactly
