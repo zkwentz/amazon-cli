@@ -234,3 +234,58 @@ func (c *Client) submitCheckout(addressID, paymentID string, cart *models.Cart) 
 	// In production, this would be replaced with actual Amazon API calls
 	return fmt.Sprintf("111-%07d-2222222", int(cart.Total*100)%10000000), nil
 }
+
+// GetProduct retrieves product details by ASIN
+// This is a placeholder implementation that will be expanded with actual Amazon API calls
+func (c *Client) GetProduct(asin string) (*models.Product, error) {
+	if asin == "" {
+		return nil, fmt.Errorf("ASIN cannot be empty")
+	}
+
+	// TODO: Implement actual Amazon product details API call
+	// For now, return a mock product
+	return &models.Product{
+		ASIN:             asin,
+		Title:            "Mock Product - " + asin,
+		Price:            29.99,
+		Rating:           4.5,
+		ReviewCount:      1234,
+		Prime:            true,
+		InStock:          true,
+		DeliveryEstimate: "Tomorrow",
+		Description:      "This is a mock product for testing purposes.",
+		Features:         []string{"Feature 1", "Feature 2", "Feature 3"},
+	}, nil
+}
+
+// QuickBuy performs a quick purchase by adding to cart and completing checkout
+// This is a convenience method that combines AddToCart and CompleteCheckout
+func (c *Client) QuickBuy(asin string, quantity int, addressID, paymentID string) (*models.OrderConfirmation, error) {
+	// Validate inputs
+	if asin == "" {
+		return nil, fmt.Errorf("ASIN cannot be empty")
+	}
+	if quantity <= 0 {
+		return nil, fmt.Errorf("quantity must be positive")
+	}
+	if addressID == "" {
+		return nil, fmt.Errorf("addressID cannot be empty")
+	}
+	if paymentID == "" {
+		return nil, fmt.Errorf("paymentID cannot be empty")
+	}
+
+	// Step 1: Add item to cart
+	_, err := c.AddToCart(asin, quantity)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add to cart: %w", err)
+	}
+
+	// Step 2: Complete checkout
+	confirmation, err := c.CompleteCheckout(addressID, paymentID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to complete checkout: %w", err)
+	}
+
+	return confirmation, nil
+}

@@ -400,6 +400,192 @@ func TestPreviewCheckout(t *testing.T) {
 	}
 }
 
+func TestGetProduct(t *testing.T) {
+	tests := []struct {
+		name      string
+		asin      string
+		wantErr   bool
+		errString string
+	}{
+		{
+			name:      "valid ASIN",
+			asin:      "B08N5WRWNW",
+			wantErr:   false,
+			errString: "",
+		},
+		{
+			name:      "empty ASIN should fail",
+			asin:      "",
+			wantErr:   true,
+			errString: "ASIN cannot be empty",
+		},
+		{
+			name:      "another valid ASIN",
+			asin:      "B07XJ8C8F5",
+			wantErr:   false,
+			errString: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := NewClient()
+			product, err := client.GetProduct(tt.asin)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Error("GetProduct() expected error but got none")
+				} else if err.Error() != tt.errString {
+					t.Errorf("GetProduct() error = %v, want %v", err.Error(), tt.errString)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("GetProduct() unexpected error: %v", err)
+				return
+			}
+
+			if product == nil {
+				t.Error("GetProduct() returned nil product")
+				return
+			}
+
+			// Verify product fields
+			if product.ASIN != tt.asin {
+				t.Errorf("GetProduct() ASIN = %v, want %v", product.ASIN, tt.asin)
+			}
+
+			if product.Title == "" {
+				t.Error("GetProduct() Title is empty")
+			}
+
+			if product.Price <= 0 {
+				t.Error("GetProduct() Price should be greater than 0")
+			}
+
+			if !product.InStock {
+				t.Error("GetProduct() should return InStock=true for mock products")
+			}
+		})
+	}
+}
+
+func TestQuickBuy(t *testing.T) {
+	tests := []struct {
+		name        string
+		asin        string
+		quantity    int
+		addressID   string
+		paymentID   string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name:        "valid quick buy",
+			asin:        "B08N5WRWNW",
+			quantity:    1,
+			addressID:   "addr123",
+			paymentID:   "pay123",
+			wantErr:     false,
+			errContains: "",
+		},
+		{
+			name:        "empty ASIN should fail",
+			asin:        "",
+			quantity:    1,
+			addressID:   "addr123",
+			paymentID:   "pay123",
+			wantErr:     true,
+			errContains: "ASIN cannot be empty",
+		},
+		{
+			name:        "zero quantity should fail",
+			asin:        "B08N5WRWNW",
+			quantity:    0,
+			addressID:   "addr123",
+			paymentID:   "pay123",
+			wantErr:     true,
+			errContains: "quantity must be positive",
+		},
+		{
+			name:        "negative quantity should fail",
+			asin:        "B08N5WRWNW",
+			quantity:    -1,
+			addressID:   "addr123",
+			paymentID:   "pay123",
+			wantErr:     true,
+			errContains: "quantity must be positive",
+		},
+		{
+			name:        "empty addressID should fail",
+			asin:        "B08N5WRWNW",
+			quantity:    1,
+			addressID:   "",
+			paymentID:   "pay123",
+			wantErr:     true,
+			errContains: "addressID cannot be empty",
+		},
+		{
+			name:        "empty paymentID should fail",
+			asin:        "B08N5WRWNW",
+			quantity:    1,
+			addressID:   "addr123",
+			paymentID:   "",
+			wantErr:     true,
+			errContains: "paymentID cannot be empty",
+		},
+		{
+			name:        "multiple quantity",
+			asin:        "B08N5WRWNW",
+			quantity:    5,
+			addressID:   "addr123",
+			paymentID:   "pay123",
+			wantErr:     false,
+			errContains: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := NewClient()
+			confirmation, err := client.QuickBuy(tt.asin, tt.quantity, tt.addressID, tt.paymentID)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Error("QuickBuy() expected error but got none")
+				} else if tt.errContains != "" && !contains(err.Error(), tt.errContains) {
+					t.Errorf("QuickBuy() error = %v, want error containing %q", err, tt.errContains)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("QuickBuy() unexpected error: %v", err)
+				return
+			}
+
+			if confirmation == nil {
+				t.Error("QuickBuy() returned nil confirmation")
+				return
+			}
+
+			// Verify confirmation fields
+			if confirmation.OrderID == "" {
+				t.Error("QuickBuy() OrderID is empty")
+			}
+
+			if confirmation.Total <= 0 {
+				t.Error("QuickBuy() Total should be greater than 0")
+			}
+
+			if confirmation.EstimatedDelivery == "" {
+				t.Error("QuickBuy() EstimatedDelivery is empty")
+			}
+		})
+	}
+}
+
 // Helper function to check if a string contains a substring
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
