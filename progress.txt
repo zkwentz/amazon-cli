@@ -1,0 +1,40 @@
+# Progress Log
+
+## 2026-01-18 - Implemented cart add command
+
+### What was done:
+1. Created `cmd/cart.go` with the following functionality:
+   - Implemented `cart` parent command
+   - Implemented `cart add <asin>` subcommand
+   - Added `--quantity` flag (default: 1) with short flag `-n`
+   - Implemented ASIN format validation (must be 10 alphanumeric uppercase characters)
+   - Implemented quantity validation (must be positive integer)
+   - Added proper error handling with descriptive messages
+   - Output cart as JSON after adding item
+
+2. Created `cmd/cart_test.go` with comprehensive tests:
+   - `TestIsValidASIN`: Tests ASIN validation logic with valid and invalid cases
+   - `TestCartAddCommand`: Tests command structure, flags, and defaults
+
+3. Fixed existing test file `main_test.go` that had a compilation error
+
+### Testing:
+- All tests pass (`go test ./...`)
+- Manual testing confirmed:
+  - Valid ASIN and quantity works correctly
+  - Invalid ASIN formats are rejected with clear error messages
+  - Invalid quantities (0, negative) are rejected with clear error messages
+  - Default quantity of 1 works when flag is omitted
+  - JSON output format is correct
+
+### Files modified:
+- Created: `cmd/cart.go`
+- Created: `cmd/cart_test.go`
+- Modified: `main_test.go` (fixed compilation error)
+- Created: `progress.txt` (this file)
+
+### Integration:
+- Command is properly integrated with the root command
+- Uses existing Amazon client from `internal/amazon/cart.go`
+- Follows existing code patterns and conventions
+- Consistent with PRD specification in Phase 6, Section 6.4
