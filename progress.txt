@@ -2509,3 +2509,27 @@ amazon-cli subscriptions cancel SUB123 --confirm
 ### Files Modified:
 - internal/amazon/client.go (line 83: standardized network error wrapping format)
 - internal/amazon/client_test.go (added 2 comprehensive test functions)
+
+
+## Task: Create file internal/output/output_test.go with tests: TestJSON_OutputsValidJSON, TestError_OutputsErrorSchema, TestError_IncludesAllFields
+- Added three new test functions to existing internal/output/output_test.go:
+  1. TestJSON_OutputsValidJSON: 
+     - Tests that JSON() function outputs valid, parseable JSON to stdout
+     - Verifies the JSON can be unmarshaled successfully
+     - Validates that data values match the original input
+  2. TestError_OutputsErrorSchema:
+     - Tests that Error() outputs the correct error schema structure
+     - Verifies top-level "error" key exists
+     - Confirms error object contains exactly 3 keys: code, message, details
+     - Validates correct types for each field (string, string, object)
+  3. TestError_IncludesAllFields:
+     - Tests that Error() includes all required fields in various scenarios
+     - Tests with populated details, nil details, and empty details
+     - Verifies code, message, and details fields are present and correct
+     - Ensures nil/empty details are converted to empty object {}
+- All tests verify JSON is parseable using json.Unmarshal
+- All new tests pass successfully
+- All existing tests continue to pass
+
+### Files Modified:
+- internal/output/output_test.go (added 3 new test functions with comprehensive assertions)
