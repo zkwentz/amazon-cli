@@ -1723,3 +1723,56 @@ The CompleteCheckout function now has comprehensive documentation that includes:
 - Function still returns mock order confirmations for testing
 - No changes to validation logic, error handling, or return values
 - The mock implementation continues to work exactly as before, only with clearer documentation
+
+## Task: Add Test to Verify CompleteCheckout Doesn't Make Real HTTP Calls
+
+Date: 2026-01-19
+
+### Changes Made:
+
+- Added new test in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart_test.go`:
+  - Created `TestCompleteCheckout_NeverMakesRealHTTPPost` function at line 273
+  - Added `fmt` and `net/http` imports to support the test implementation
+  - Implemented custom `failingRoundTripper` type to detect HTTP calls
+
+### Test Implementation:
+
+The new test verifies that the mock implementation doesn't make external HTTP calls:
+
+1. **Test Setup**:
+   - Creates a new client using `NewClient()`
+   - Adds an item to cart to satisfy checkout preconditions
+   - Replaces the client's `httpClient` with a custom HTTP client that will fail if any requests are attempted
+
+2. **failingRoundTripper Implementation**:
+   - Custom `http.RoundTripper` that implements the `RoundTrip` method
+   - Returns an error if any HTTP request is attempted
+   - Error message includes the HTTP method and URL that was attempted
+   - This ensures no network calls are made during the mock implementation
+
+3. **Test Assertions**:
+   - Verifies `CompleteCheckout` succeeds without making HTTP calls
+   - Confirms a valid `OrderConfirmation` is returned
+   - Validates the `OrderID` is not empty
+   - Checks that `Total` is greater than 0
+
+### Purpose:
+
+- Ensures the mock implementation truly operates without external HTTP calls
+- Provides confidence that development/testing won't accidentally make real Amazon API requests
+- Validates the mock behavior is self-contained and doesn't require network access
+- Prevents accidental network traffic during test execution
+
+### Test Results:
+
+- Test passes successfully: `TestCompleteCheckout_NeverMakesRealHTTPPost` (0.00s)
+- All tests in internal/amazon package continue to pass (112 tests total)
+- No HTTP requests are made during checkout operation in mock mode
+- Test confirms the implementation is safe for offline development and testing
+
+### Technical Details:
+
+- Uses Go's `http.RoundTripper` interface to intercept any HTTP requests
+- If `submitCheckout` or any other method attempts to make HTTP calls, the test will fail
+- The failing round tripper provides clear error messages showing what request was attempted
+- This pattern can be reused for testing other functions that should avoid HTTP calls in mock mode

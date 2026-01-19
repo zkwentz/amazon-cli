@@ -1,6 +1,8 @@
 package amazon
 
 import (
+	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/zkwentz/amazon-cli/pkg/models"
@@ -268,6 +270,48 @@ func TestCompleteCheckout_OrderConfirmation(t *testing.T) {
 	if confirmation.EstimatedDelivery == "" {
 		t.Error("EstimatedDelivery should not be empty")
 	}
+}
+
+func TestCompleteCheckout_NeverMakesRealHTTPPost(t *testing.T) {
+	client := NewClient()
+
+	// Setup cart with an item
+	_, err := client.AddToCart("B08N5WRWNW", 1)
+	if err != nil {
+		t.Fatalf("failed to add to cart: %v", err)
+	}
+
+	// Replace the HTTP client with one that will fail if any requests are made
+	// This ensures the mock implementation doesn't make external HTTP calls
+	client.httpClient = &http.Client{
+		Transport: &failingRoundTripper{},
+	}
+
+	// Complete checkout - should succeed without making HTTP calls
+	confirmation, err := client.CompleteCheckout("addr123", "pay123")
+	if err != nil {
+		t.Fatalf("CompleteCheckout() error = %v, want no error (no HTTP calls should be made)", err)
+	}
+
+	// Verify we got a valid confirmation without making HTTP requests
+	if confirmation == nil {
+		t.Fatal("CompleteCheckout() returned nil confirmation")
+	}
+
+	if confirmation.OrderID == "" {
+		t.Error("OrderID should not be empty even in mock implementation")
+	}
+
+	if confirmation.Total <= 0 {
+		t.Error("Total should be greater than 0")
+	}
+}
+
+// failingRoundTripper is an http.RoundTripper that fails if any HTTP request is attempted
+type failingRoundTripper struct{}
+
+func (f *failingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	return nil, fmt.Errorf("HTTP request attempted but mock implementation should not make external calls: %s %s", req.Method, req.URL)
 }
 
 func TestAddToCart(t *testing.T) {
@@ -698,6 +742,88 @@ func TestPreviewCheckout(t *testing.T) {
 				t.Error("PreviewCheckout() PaymentMethod is nil")
 			}
 		})
+	}
+}
+
+func TestPreviewCheckout_RealisticData(t *testing.T) {
+	client := NewClient()
+
+	// Add items to cart to test with realistic data
+	_, err := client.AddToCart("B08N5WRWNW", 2)
+	if err != nil {
+		t.Fatalf("failed to add to cart: %v", err)
+	}
+
+	preview, err := client.PreviewCheckout("addr123", "pay123")
+	if err != nil {
+		t.Fatalf("PreviewCheckout() error = %v", err)
+	}
+
+	// Verify cart is returned with current contents
+	if preview.Cart == nil {
+		t.Fatal("Cart should not be nil")
+	}
+	if preview.Cart.ItemCount != 2 {
+		t.Errorf("Cart.ItemCount = %d, want 2", preview.Cart.ItemCount)
+	}
+	if len(preview.Cart.Items) != 1 {
+		t.Errorf("Cart.Items length = %d, want 1", len(preview.Cart.Items))
+	}
+
+	// Verify address has all fields populated
+	if preview.Address == nil {
+		t.Fatal("Address should not be nil")
+	}
+	if preview.Address.ID != "addr123" {
+		t.Errorf("Address.ID = %q, want %q", preview.Address.ID, "addr123")
+	}
+	if preview.Address.Name == "" {
+		t.Error("Address.Name should not be empty")
+	}
+	if preview.Address.Street == "" {
+		t.Error("Address.Street should not be empty")
+	}
+	if preview.Address.City == "" {
+		t.Error("Address.City should not be empty")
+	}
+	if preview.Address.State == "" {
+		t.Error("Address.State should not be empty")
+	}
+	if preview.Address.Zip == "" {
+		t.Error("Address.Zip should not be empty")
+	}
+	if preview.Address.Country == "" {
+		t.Error("Address.Country should not be empty")
+	}
+
+	// Verify payment method has all fields populated
+	if preview.PaymentMethod == nil {
+		t.Fatal("PaymentMethod should not be nil")
+	}
+	if preview.PaymentMethod.ID != "pay123" {
+		t.Errorf("PaymentMethod.ID = %q, want %q", preview.PaymentMethod.ID, "pay123")
+	}
+	if preview.PaymentMethod.Type == "" {
+		t.Error("PaymentMethod.Type should not be empty")
+	}
+	if preview.PaymentMethod.Last4 == "" {
+		t.Error("PaymentMethod.Last4 should not be empty")
+	}
+	if len(preview.PaymentMethod.Last4) != 4 {
+		t.Errorf("PaymentMethod.Last4 length = %d, want 4", len(preview.PaymentMethod.Last4))
+	}
+
+	// Verify delivery options array has multiple options
+	if len(preview.DeliveryOptions) == 0 {
+		t.Error("DeliveryOptions should not be empty")
+	}
+	if len(preview.DeliveryOptions) < 2 {
+		t.Errorf("DeliveryOptions length = %d, want at least 2 options", len(preview.DeliveryOptions))
+	}
+	for i, option := range preview.DeliveryOptions {
+		if option == "" {
+			t.Errorf("DeliveryOptions[%d] should not be empty", i)
+		}
 	}
 }
 

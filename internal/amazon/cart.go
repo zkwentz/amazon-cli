@@ -203,21 +203,21 @@ func (c *Client) PreviewCheckout(addressID, paymentID string) (*models.CheckoutP
 		Cart: cart,
 		Address: &models.Address{
 			ID:      addressID,
-			Name:    "Preview Address",
-			Street:  "123 Main St",
-			City:    "San Francisco",
-			State:   "CA",
-			Zip:     "94102",
+			Name:    "John Doe",
+			Street:  "1234 Amazon Way, Apt 567",
+			City:    "Seattle",
+			State:   "WA",
+			Zip:     "98109",
 			Country: "US",
 			Default: true,
 		},
 		PaymentMethod: &models.PaymentMethod{
 			ID:      paymentID,
 			Type:    "Visa",
-			Last4:   "1234",
+			Last4:   "4242",
 			Default: true,
 		},
-		DeliveryOptions: []string{"Standard", "Express"},
+		DeliveryOptions: []string{"Standard (5-7 business days)", "Two-Day Shipping", "One-Day Shipping", "Same-Day Delivery"},
 	}, nil
 }
 
