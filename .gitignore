@@ -43,3 +43,5 @@ amazon-cli
 progress.txt
 PRD.md
 ralphy.sh
+.ralphy/progress.txt
+.ralphy/*
