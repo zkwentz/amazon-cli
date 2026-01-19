@@ -76,3 +76,29 @@
   - Tests for concurrent access safety (race condition prevention)
   - Tests for edge cases (zero attempt, exceeded retries)
   - All tests passing successfully (70.9s total test time)
+
+## Task: User-Agent Management
+
+- Created `/Users/zacharywentz/Development/amazon-cli/internal/amazon/client.go`
+- Implemented `userAgents` slice containing 10 common browser User-Agent strings:
+  - Chrome on Windows (desktop)
+  - Chrome on macOS (desktop)
+  - Chrome on Android (mobile)
+  - Firefox on Windows (desktop)
+  - Firefox on macOS (desktop)
+  - Firefox on Android (mobile)
+  - Safari on macOS (desktop)
+  - Safari on iPhone (mobile)
+  - Safari on iPad (tablet)
+  - Edge on Windows (desktop)
+- Implemented `getRandomUserAgent() string` function:
+  - Returns a random User-Agent string from the userAgents slice
+  - Uses math/rand with time-based seed for randomness
+  - Initialized in init() function for package-level random number generator
+- Created comprehensive test suite in `internal/amazon/client_test.go`:
+  - `TestGetRandomUserAgent` - Verifies function returns non-empty string
+  - `TestGetRandomUserAgentReturnsValidUserAgent` - Ensures returned value is from the userAgents slice
+  - `TestGetRandomUserAgentDistribution` - Tests randomness by checking distribution over 100 calls
+  - `TestUserAgentsSliceHasCorrectLength` - Verifies exactly 10 user agents are defined
+  - `TestUserAgentsSliceContainsValidStrings` - Validates each user agent is properly formatted (>50 chars, contains "Mozilla")
+  - All 5 tests passing successfully
