@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/zkwentz/amazon-cli/internal/amazon"
 	"github.com/zkwentz/amazon-cli/internal/output"
 	"github.com/zkwentz/amazon-cli/pkg/models"
 )
@@ -26,6 +27,12 @@ Without --confirm, shows a preview of what would be purchased.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		asin := args[0]
 		c := getClient()
+
+		// Validate ASIN format
+		if err := amazon.ValidateASIN(asin); err != nil {
+			output.Error(models.ErrInvalidInput, "Invalid ASIN: "+err.Error(), nil)
+			os.Exit(models.ExitInvalidArgs)
+		}
 
 		// Get product details
 		product, err := c.GetProduct(asin)

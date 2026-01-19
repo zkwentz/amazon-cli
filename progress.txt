@@ -2047,3 +2047,60 @@ All 12 tests pass successfully:
 - Address and payment logic is duplicated in both branches to maintain clarity
 - Both branches properly handle default address/payment selection
 - Error handling remains consistent across both code paths
+
+## 2026-01-19: Enhanced buy command with ASIN validation and complete checkout flow
+
+### Changes Made:
+
+#### Implementation (`cmd/buy.go`):
+1. **Added ASIN validation** before fetching product details
+   - Imported `internal/amazon` package for ValidateASIN function
+   - Validates ASIN format (10 alphanumeric characters) using amazon.ValidateASIN
+   - Returns ErrInvalidInput with ExitInvalidArgs exit code on validation failure
+   - Validation happens immediately after parsing the ASIN argument
+
+2. **Product preview functionality** (already implemented):
+   - Without --confirm flag, displays product preview with:
+     - Product ASIN, title, and price
+     - Quantity requested
+     - Subtotal (price × quantity)
+     - Estimated tax (8% of subtotal)
+     - Total amount
+     - Message indicating "--confirm" is needed to complete purchase
+   - Returns early after preview display (dry_run mode)
+
+3. **Purchase execution with --confirm flag** (already implemented):
+   - Gets default address and payment method if not specified
+   - Calls AddToCart with ASIN and quantity
+   - Calls CompleteCheckout with address and payment IDs
+   - Outputs order confirmation JSON
+
+#### Tests (`cmd/buy_test.go`):
+Created comprehensive test suite with 7 test cases:
+- TestBuyCmd_Configuration: Verifies command structure, usage, and documentation
+- TestBuyCmd_Flags: Validates all flags (quantity, confirm, address-id, payment-id)
+- TestBuyCmd_ConfirmFlagDefaultIsFalse: Ensures safe default (preview mode)
+- TestBuyCmd_PreviewModeIsDefault: Confirms documentation mentions preview behavior
+- TestBuyCmd_HasQuantityFlag: Validates quantity flag with default value of 1
+- TestBuyCmd_HasOptionalAddressAndPaymentFlags: Ensures optional flags exist
+- TestBuyCmd_RequiresExactlyOneArgument: Validates ASIN argument requirement
+
+All 7 tests pass successfully.
+
+### Purpose:
+
+- Implements quick purchase workflow: validate ASIN → preview → confirm → checkout
+- Provides ASIN format validation before making any API calls
+- Shows product preview with price and quantity before purchase (safe default)
+- Requires explicit --confirm flag to execute purchase (prevents accidental orders)
+- Automatically adds item to cart and completes checkout in one command
+- Supports optional address-id and payment-id flags, defaults to user's default/first available
+
+### Technical Notes:
+
+- ASIN validation uses existing ValidateASIN function from internal/amazon package
+- Preview mode (no --confirm) displays comprehensive purchase details and exits early
+- Confirm mode adds to cart first, then completes checkout (maintains cart consistency)
+- Error handling uses proper error codes (ErrInvalidInput, ErrNotFound, ErrPurchaseFailed)
+- Exit codes follow PRD specification (ExitInvalidArgs, ExitNotFound, ExitGeneralError)
+- Test coverage follows established patterns from other cmd tests (cart_test.go)
