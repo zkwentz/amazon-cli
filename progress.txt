@@ -2868,3 +2868,49 @@ The Returns section was already completely documented in skills.md with all requ
 
 ### Summary:
 The Error Codes section was updated from basic one-phrase descriptions to comprehensive, actionable descriptions that help users understand the cause of each error and what steps to take to resolve them. All 8 required error codes are documented with detailed descriptions.
+
+
+## [2026-01-19 01:16:30] Added Examples section with common AI agent tasks
+
+### Task: Add Examples section with 5 common AI agent tasks: "Check recent orders" (orders list --limit 5), "Track a package" (orders track <id>), "Search products" (search "query" --prime-only), "Add to cart" (cart add <asin>), "Preview checkout" (cart checkout without --confirm)
+
+### Changes Made:
+1. Replaced the existing Examples section with a new "Common AI Agent Tasks" section
+2. Added 5 specific examples tailored for AI agents with clear descriptions and command syntax
+
+### Examples Added:
+
+1. **Check recent orders** (lines 956-960):
+   - Description: View the last 5 orders to quickly check recent purchase history
+   - Command: `amazon-cli orders list --limit 5`
+   - Clear and concise for AI agents to understand the purpose
+
+2. **Track a package** (lines 962-970):
+   - Description: Get real-time tracking information for a specific order
+   - Command template: `amazon-cli orders track <order_id>`
+   - Includes concrete example: `amazon-cli orders track 123-4567890-1234567`
+   - Shows placeholder syntax and actual usage
+
+3. **Search products** (lines 972-980):
+   - Description: Search for products with Prime shipping only
+   - Command template: `amazon-cli search "query" --prime-only`
+   - Includes concrete example: `amazon-cli search "wireless headphones" --prime-only`
+   - Demonstrates the --prime-only flag usage
+
+4. **Add to cart** (lines 982-990):
+   - Description: Add a product to your shopping cart using its ASIN
+   - Command template: `amazon-cli cart add <asin>`
+   - Includes concrete example: `amazon-cli cart add B08N5WRWNW`
+   - Shows how to use product ASINs
+
+5. **Preview checkout** (lines 992-997):
+   - Description: Preview checkout details without completing the purchase (no --confirm flag)
+   - Command: `amazon-cli cart checkout`
+   - Important note: Explains that this shows cart contents, estimated tax, total, shipping address, and payment method WITHOUT completing purchase
+   - Clarifies that adding `--confirm` will complete the purchase
+
+### Files Modified:
+- /Users/zacharywentz/Development/amazon-cli/skills.md (Examples section at lines 952-997)
+
+### Summary:
+Successfully replaced the Examples section with a focused "Common AI Agent Tasks" section containing exactly 5 examples as specified. Each example includes a clear description, command template with placeholders where appropriate, and concrete examples. The section is designed to help AI agents understand the most common use cases and command patterns.
