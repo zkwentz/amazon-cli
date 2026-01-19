@@ -2,9 +2,7 @@ package main
 
 import "testing"
 
-func TestRun(t *testing.T) {
-	err := run()
-	if err != nil {
-		t.Errorf("run() returned an error: %v", err)
-	}
+func TestMain(t *testing.T) {
+	// Placeholder test - main package delegates to cmd.Execute()
+	// Actual tests are in internal/amazon and cmd packages
 }
