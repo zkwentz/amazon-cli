@@ -70,9 +70,9 @@ Each task is independent and self-contained. Execute in order for best results.
 
 - [x] Create file `internal/amazon/returns.go` with: `CreateReturn(orderID, itemID, reason string) (*models.Return, error)` that validates reason against allowed list (defective, wrong_item, not_as_described, no_longer_needed, better_price, other), returns mock Return with generated returnID.
 
-- [ ] Create file `internal/amazon/returns.go` with: `GetReturnLabel(returnID string) (*models.ReturnLabel, error)` returning mock label data, `GetReturnStatus(returnID string) (*models.Return, error)` returning mock status.
+- [x] Create file `internal/amazon/returns.go` with: `GetReturnLabel(returnID string) (*models.ReturnLabel, error)` returning mock label data, `GetReturnStatus(returnID string) (*models.Return, error)` returning mock status.
 
-- [ ] Create file `cmd/returns.go` with `returns` parent command and subcommands: `returns list` (calls GetReturnableItems, outputs JSON), `returns options <order-id> <item-id>` (calls GetReturnOptions, outputs JSON).
+- [x] Create file `cmd/returns.go` with `returns` parent command and subcommands: `returns list` (calls GetReturnableItems, outputs JSON), `returns options <order-id> <item-id>` (calls GetReturnOptions, outputs JSON).
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/cmd/returns.go`, implement `returns create <order-id> <item-id>` command with --reason flag (required) and --confirm flag. Without --confirm output dry_run preview. With --confirm call CreateReturn and output result.
 

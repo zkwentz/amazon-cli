@@ -83,23 +83,36 @@ func TestReturnsCmd_Configuration(t *testing.T) {
 }
 
 func TestReturnsCmd_Subcommands(t *testing.T) {
-	// Test that the create subcommand is registered
+	// Test that all subcommands are registered
 	commands := returnsCmd.Commands()
 
-	if len(commands) != 1 {
-		t.Errorf("Expected 1 subcommand, got %d", len(commands))
+	if len(commands) != 3 {
+		t.Errorf("Expected 3 subcommands, got %d", len(commands))
 	}
 
 	// Check that create subcommand exists
-	found := false
+	foundCreate := false
+	foundLabel := false
+	foundStatus := false
 	for _, cmd := range commands {
 		if cmd.Use == "create <order-id> <item-id>" {
-			found = true
-			break
+			foundCreate = true
+		}
+		if cmd.Use == "label <return-id>" {
+			foundLabel = true
+		}
+		if cmd.Use == "status <return-id>" {
+			foundStatus = true
 		}
 	}
-	if !found {
+	if !foundCreate {
 		t.Error("Expected 'create' subcommand not found")
+	}
+	if !foundLabel {
+		t.Error("Expected 'label' subcommand not found")
+	}
+	if !foundStatus {
+		t.Error("Expected 'status' subcommand not found")
 	}
 }
 
@@ -335,5 +348,210 @@ func TestReturnsCreateCmd_SetsCreatedAt(t *testing.T) {
 
 	if ret.CreatedAt == "" {
 		t.Error("Expected CreatedAt to be set")
+	}
+}
+
+// Tests for returns label command
+
+func TestReturnsLabelCmd_Success(t *testing.T) {
+	// Test that the label command exists and has correct configuration
+	if returnsLabelCmd.Use != "label <return-id>" {
+		t.Errorf("Expected Use='label <return-id>', got '%s'", returnsLabelCmd.Use)
+	}
+
+	if returnsLabelCmd.Short != "Get return label" {
+		t.Errorf("Expected Short='Get return label', got '%s'", returnsLabelCmd.Short)
+	}
+
+	if returnsLabelCmd.Run == nil {
+		t.Error("Expected Run function to be defined")
+	}
+
+	// Test that it requires exactly 1 argument
+	if returnsLabelCmd.Args == nil {
+		t.Error("Expected Args validator to be defined")
+	}
+}
+
+func TestReturnsLabelCmd_ClientMethod(t *testing.T) {
+	// Test that the client method returns the correct data
+	testClient := amazon.NewClient()
+
+	label, err := testClient.GetReturnLabel("RET-123e4567-e89b-12d3-a456-426614174000")
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if label == nil {
+		t.Fatal("Expected non-nil label")
+	}
+
+	// Verify label fields
+	if label.URL == "" {
+		t.Error("Expected URL to be set")
+	}
+	if label.Carrier == "" {
+		t.Error("Expected Carrier to be set")
+	}
+	if label.Instructions == "" {
+		t.Error("Expected Instructions to be set")
+	}
+}
+
+func TestReturnsLabelCmd_EmptyReturnID(t *testing.T) {
+	// Test that GetReturnLabel validates empty return ID
+	testClient := amazon.NewClient()
+
+	_, err := testClient.GetReturnLabel("")
+	if err == nil {
+		t.Error("Expected error for empty return ID, got nil")
+	}
+}
+
+func TestReturnsLabelCmd_ResponseParsing(t *testing.T) {
+	// This test verifies that the models.ReturnLabel structure
+	// can be properly marshaled to JSON (as used by output.JSON)
+
+	label := &models.ReturnLabel{
+		URL:          "https://amazon.com/returns/label/RET-123.pdf",
+		Carrier:      "UPS",
+		Instructions: "Print this label and attach it to your package.",
+	}
+
+	// Marshal to JSON
+	jsonBytes, err := json.Marshal(label)
+	if err != nil {
+		t.Fatalf("Failed to marshal ReturnLabel to JSON: %v", err)
+	}
+
+	// Verify it's valid JSON
+	var parsed map[string]interface{}
+	err = json.Unmarshal(jsonBytes, &parsed)
+	if err != nil {
+		t.Fatalf("Failed to parse marshaled JSON: %v", err)
+	}
+
+	// Verify expected fields exist
+	if _, ok := parsed["url"]; !ok {
+		t.Error("Expected 'url' field in JSON output")
+	}
+	if _, ok := parsed["carrier"]; !ok {
+		t.Error("Expected 'carrier' field in JSON output")
+	}
+	if _, ok := parsed["instructions"]; !ok {
+		t.Error("Expected 'instructions' field in JSON output")
+	}
+}
+
+// Tests for returns status command
+
+func TestReturnsStatusCmd_Success(t *testing.T) {
+	// Test that the status command exists and has correct configuration
+	if returnsStatusCmd.Use != "status <return-id>" {
+		t.Errorf("Expected Use='status <return-id>', got '%s'", returnsStatusCmd.Use)
+	}
+
+	if returnsStatusCmd.Short != "Get return status" {
+		t.Errorf("Expected Short='Get return status', got '%s'", returnsStatusCmd.Short)
+	}
+
+	if returnsStatusCmd.Run == nil {
+		t.Error("Expected Run function to be defined")
+	}
+
+	// Test that it requires exactly 1 argument
+	if returnsStatusCmd.Args == nil {
+		t.Error("Expected Args validator to be defined")
+	}
+}
+
+func TestReturnsStatusCmd_ClientMethod(t *testing.T) {
+	// Test that the client method returns the correct data
+	testClient := amazon.NewClient()
+
+	ret, err := testClient.GetReturnStatus("RET-123e4567-e89b-12d3-a456-426614174000")
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if ret == nil {
+		t.Fatal("Expected non-nil return")
+	}
+
+	// Verify return fields
+	if ret.ReturnID == "" {
+		t.Error("Expected ReturnID to be set")
+	}
+	if ret.OrderID == "" {
+		t.Error("Expected OrderID to be set")
+	}
+	if ret.ItemID == "" {
+		t.Error("Expected ItemID to be set")
+	}
+	if ret.Status == "" {
+		t.Error("Expected Status to be set")
+	}
+	if ret.Reason == "" {
+		t.Error("Expected Reason to be set")
+	}
+	if ret.CreatedAt == "" {
+		t.Error("Expected CreatedAt to be set")
+	}
+}
+
+func TestReturnsStatusCmd_EmptyReturnID(t *testing.T) {
+	// Test that GetReturnStatus validates empty return ID
+	testClient := amazon.NewClient()
+
+	_, err := testClient.GetReturnStatus("")
+	if err == nil {
+		t.Error("Expected error for empty return ID, got nil")
+	}
+}
+
+func TestReturnsStatusCmd_ResponseParsing(t *testing.T) {
+	// This test verifies that the models.Return structure
+	// can be properly marshaled to JSON (as used by output.JSON)
+
+	ret := &models.Return{
+		ReturnID:  "RET-123e4567-e89b-12d3-a456-426614174000",
+		OrderID:   "123-4567890-1234567",
+		ItemID:    "item-12345",
+		Status:    "approved",
+		Reason:    "defective",
+		CreatedAt: "2026-01-18T12:00:00Z",
+	}
+
+	// Marshal to JSON
+	jsonBytes, err := json.Marshal(ret)
+	if err != nil {
+		t.Fatalf("Failed to marshal Return to JSON: %v", err)
+	}
+
+	// Verify it's valid JSON
+	var parsed map[string]interface{}
+	err = json.Unmarshal(jsonBytes, &parsed)
+	if err != nil {
+		t.Fatalf("Failed to parse marshaled JSON: %v", err)
+	}
+
+	// Verify expected fields exist
+	if _, ok := parsed["return_id"]; !ok {
+		t.Error("Expected 'return_id' field in JSON output")
+	}
+	if _, ok := parsed["order_id"]; !ok {
+		t.Error("Expected 'order_id' field in JSON output")
+	}
+	if _, ok := parsed["item_id"]; !ok {
+		t.Error("Expected 'item_id' field in JSON output")
+	}
+	if _, ok := parsed["status"]; !ok {
+		t.Error("Expected 'status' field in JSON output")
+	}
+	if _, ok := parsed["reason"]; !ok {
+		t.Error("Expected 'reason' field in JSON output")
+	}
+	if _, ok := parsed["created_at"]; !ok {
+		t.Error("Expected 'created_at' field in JSON output")
 	}
 }

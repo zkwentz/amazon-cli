@@ -75,11 +75,69 @@ Without --confirm, shows a preview of the return. With --confirm, submits the re
 	},
 }
 
+// returnsLabelCmd represents the returns label command
+var returnsLabelCmd = &cobra.Command{
+	Use:   "label <return-id>",
+	Short: "Get return label",
+	Long:  `Retrieve the shipping label for a return.`,
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		returnID := args[0]
+
+		// Validate returnID is not empty
+		if returnID == "" {
+			output.Error(models.ErrInvalidInput, "return ID cannot be empty", nil)
+			os.Exit(models.ExitInvalidArgs)
+		}
+
+		c := getClient()
+
+		// Get return label
+		label, err := c.GetReturnLabel(returnID)
+		if err != nil {
+			output.Error(models.ErrInvalidInput, err.Error(), nil)
+			os.Exit(models.ExitInvalidArgs)
+		}
+
+		output.JSON(label)
+	},
+}
+
+// returnsStatusCmd represents the returns status command
+var returnsStatusCmd = &cobra.Command{
+	Use:   "status <return-id>",
+	Short: "Get return status",
+	Long:  `Retrieve the current status of a return.`,
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		returnID := args[0]
+
+		// Validate returnID is not empty
+		if returnID == "" {
+			output.Error(models.ErrInvalidInput, "return ID cannot be empty", nil)
+			os.Exit(models.ExitInvalidArgs)
+		}
+
+		c := getClient()
+
+		// Get return status
+		ret, err := c.GetReturnStatus(returnID)
+		if err != nil {
+			output.Error(models.ErrInvalidInput, err.Error(), nil)
+			os.Exit(models.ExitInvalidArgs)
+		}
+
+		output.JSON(ret)
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(returnsCmd)
 
 	// Add subcommands
 	returnsCmd.AddCommand(returnsCreateCmd)
+	returnsCmd.AddCommand(returnsLabelCmd)
+	returnsCmd.AddCommand(returnsStatusCmd)
 
 	// Flags for returns create
 	returnsCreateCmd.Flags().StringVar(&returnsReason, "reason", "", "Return reason (required): defective, wrong_item, not_as_described, no_longer_needed, better_price, other")

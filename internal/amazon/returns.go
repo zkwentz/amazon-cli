@@ -55,3 +55,40 @@ func (c *Client) CreateReturn(orderID, itemID, reason string) (*models.Return, e
 
 	return ret, nil
 }
+
+// GetReturnLabel retrieves the shipping label for a return
+func (c *Client) GetReturnLabel(returnID string) (*models.ReturnLabel, error) {
+	// Validate returnID is not empty
+	if returnID == "" {
+		return nil, fmt.Errorf("return ID cannot be empty")
+	}
+
+	// Create mock return label data
+	label := &models.ReturnLabel{
+		URL:          fmt.Sprintf("https://amazon.com/returns/label/%s.pdf", returnID),
+		Carrier:      "UPS",
+		Instructions: "Print this label and attach it to your package. Drop off at any UPS location.",
+	}
+
+	return label, nil
+}
+
+// GetReturnStatus retrieves the current status of a return
+func (c *Client) GetReturnStatus(returnID string) (*models.Return, error) {
+	// Validate returnID is not empty
+	if returnID == "" {
+		return nil, fmt.Errorf("return ID cannot be empty")
+	}
+
+	// Create mock return status data
+	ret := &models.Return{
+		ReturnID:  returnID,
+		OrderID:   "123-4567890-1234567",
+		ItemID:    "item-12345",
+		Reason:    "defective",
+		Status:    "approved",
+		CreatedAt: time.Now().Add(-24 * time.Hour).Format(time.RFC3339),
+	}
+
+	return ret, nil
+}

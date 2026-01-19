@@ -891,3 +891,88 @@
   - CreatedAt uses RFC3339 format for consistency with other timestamps
   - Uses getClient() helper for consistent client creation
   - Integrated with existing error handling patterns (models.ErrInvalidInput, output.Error)
+
+## Task: Returns Label and Status Commands Implementation
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/internal/amazon/returns.go`:
+  - Implemented `GetReturnLabel(returnID string) (*models.ReturnLabel, error)`:
+    - Validates returnID is not empty (returns error if empty)
+    - Creates mock ReturnLabel struct with:
+      - URL: "https://amazon.com/returns/label/{returnID}.pdf"
+      - Carrier: "UPS"
+      - Instructions: "Print this label and attach it to your package. Drop off at any UPS location."
+    - Returns populated ReturnLabel struct
+  - Implemented `GetReturnStatus(returnID string) (*models.Return, error)`:
+    - Validates returnID is not empty (returns error if empty)
+    - Creates mock Return struct with:
+      - ReturnID: provided returnID
+      - OrderID: "123-4567890-1234567" (sample)
+      - ItemID: "item-12345" (sample)
+      - Reason: "defective" (sample)
+      - Status: "approved" (sample)
+      - CreatedAt: 24 hours ago in RFC3339 format
+    - Returns populated Return struct representing current status
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/cmd/returns.go`:
+  - Implemented `returnsLabelCmd` subcommand:
+    - Use: "label <return-id>"
+    - Short: "Get return label"
+    - Long: "Retrieve the shipping label for a return."
+    - Args: cobra.ExactArgs(1) - requires exactly 1 argument
+    - Validates returnID is not empty
+    - Calls `c.GetReturnLabel(returnID)` to retrieve label
+    - Outputs ReturnLabel struct as JSON on success
+    - Error handling:
+      - Uses `models.ErrInvalidInput` for validation errors
+      - Uses `models.ExitInvalidArgs` exit code (2) for invalid arguments
+      - Calls `output.Error()` for formatted error output
+  - Implemented `returnsStatusCmd` subcommand:
+    - Use: "status <return-id>"
+    - Short: "Get return status"
+    - Long: "Retrieve the current status of a return."
+    - Args: cobra.ExactArgs(1) - requires exactly 1 argument
+    - Validates returnID is not empty
+    - Calls `c.GetReturnStatus(returnID)` to retrieve status
+    - Outputs Return struct as JSON on success
+    - Error handling: Same as label command
+  - Registered both subcommands in init() function:
+    - Added `returnsCmd.AddCommand(returnsLabelCmd)`
+    - Added `returnsCmd.AddCommand(returnsStatusCmd)`
+
+- Enhanced `/Users/zacharywentz/Development/amazon-cli/cmd/returns_test.go`:
+  - Updated `TestReturnsCmd_Subcommands` test:
+    - Changed expected subcommand count from 1 to 3
+    - Added checks for label and status subcommands
+    - Verifies all three subcommands are registered: create, label, status
+  - Added 8 comprehensive test functions for new commands:
+    - `TestReturnsLabelCmd_Success` - Validates label command configuration (Use, Short, Run, Args)
+    - `TestReturnsLabelCmd_ClientMethod` - Tests GetReturnLabel method:
+      - Verifies non-nil label returned
+      - Validates URL, Carrier, and Instructions fields are set
+    - `TestReturnsLabelCmd_EmptyReturnID` - Tests empty returnID validation
+    - `TestReturnsLabelCmd_ResponseParsing` - Tests JSON marshaling of ReturnLabel struct:
+      - Validates "url", "carrier", "instructions" fields in JSON output
+    - `TestReturnsStatusCmd_Success` - Validates status command configuration (Use, Short, Run, Args)
+    - `TestReturnsStatusCmd_ClientMethod` - Tests GetReturnStatus method:
+      - Verifies non-nil return struct
+      - Validates all fields are set (ReturnID, OrderID, ItemID, Status, Reason, CreatedAt)
+    - `TestReturnsStatusCmd_EmptyReturnID` - Tests empty returnID validation
+    - `TestReturnsStatusCmd_ResponseParsing` - Tests JSON marshaling of Return struct:
+      - Validates all expected fields in JSON output
+  - All 23 tests in returns_test.go passing successfully (0.338s total test time)
+  - Tests cover command configuration, client methods, validation, and JSON output structure
+
+- Implementation Summary:
+  - Both commands follow same pattern as other returns commands
+  - Simple argument structure: single return-id parameter
+  - Comprehensive validation at multiple layers:
+    - Cobra Args validator for argument count
+    - Command-level validation for empty strings
+    - Client method validation for empty returnID
+  - JSON output format:
+    - Label command returns ReturnLabel with URL, carrier, and instructions
+    - Status command returns Return with all status details
+  - Uses getClient() helper for consistent client creation
+  - Integrated with existing error handling patterns (models.ErrInvalidInput, output.Error)
+  - Commands registered with parent returns command in init() function
+  - Mock implementations return realistic sample data for testing
