@@ -3336,3 +3336,46 @@ Successfully removed the obsolete IMPLEMENTATION_AND_TEST_PLAN.md file (41,002 b
     - Nested selectors for complex data extraction
   - Suitable for testing product detail HTML parser implementation
   - Contains all fields required by PRD: ASIN, title, price, original_price, rating, review_count, prime badge, stock status, description, feature bullets, image URLs
+
+## Task: Validation Functions Implementation
+
+- Created `/Users/zacharywentz/Development/amazon-cli/internal/validation/validators.go`:
+  - Implemented `ValidateASIN(asin string) error` function:
+    - Validates ASIN is exactly 10 characters long
+    - Returns error with character count if length is invalid
+    - Validates each character is alphanumeric (letters or digits)
+    - Returns error if any special characters or spaces found
+    - Uses unicode package for proper character validation
+  - Implemented `ValidateOrderID(id string) error` function:
+    - Validates order ID follows format XXX-XXXXXXX-XXXXXXX
+    - Pattern: 3 digits, dash, 7 digits, dash, 7 digits
+    - Uses regex pattern `^\d{3}-\d{7}-\d{7}$` for validation
+    - Returns error if format doesn't match
+    - Returns error with clear message indicating expected format
+  - Implemented `ValidateQuantity(qty int) error` function:
+    - Validates quantity is between 1 and 999 inclusive
+    - Returns error with actual value if less than 1
+    - Returns error with actual value if greater than 999
+  - Implemented `ValidatePriceRange(min, max float64) error` function:
+    - Validates minimum price is non-negative (>= 0)
+    - Returns error with actual value if min < 0
+    - Validates maximum price is greater than minimum
+    - Returns error with both values if max <= min
+    - Uses %.2f format for clear price display in error messages
+
+- Created comprehensive test suite in `/Users/zacharywentz/Development/amazon-cli/internal/validation/validators_test.go`:
+  - `TestValidateASIN` - 10 test cases for ASIN validation:
+    - Valid: "B08N5WRWN1" (mixed), "ABCDEFGHIJ" (all letters), "1234567890" (all digits), "AbCd123456" (mixed case)
+    - Invalid: too short (9 chars), too long (11 chars), empty string, special characters, spaces, underscores
+  - `TestValidateOrderID` - 14 test cases for order ID validation:
+    - Valid: "123-4567890-1234567", "000-0000000-0000000", "999-9999999-9999999"
+    - Invalid: wrong digit counts in each segment, missing dashes, letters, empty string, spaces, wrong delimiter
+  - `TestValidateQuantity` - 9 test cases for quantity validation:
+    - Valid: 1 (minimum), 999 (maximum), 50, 100
+    - Invalid: 0, negative values (-1, -100), 1000 (too large), 10000 (way too large)
+  - `TestValidatePriceRange` - 11 test cases for price range validation:
+    - Valid: (0.0, 100.0), (9.99, 99.99), (0.0, 0.01), (100.0, 1000.0), (10.0, 10.01)
+    - Invalid: negative min, max equals min, max less than min, both zero, negative max, both negative
+  - All 44 test cases passing successfully (0.403s total test time)
+  - Tests cover valid inputs, boundary conditions, and various invalid scenarios
+  - Clear test names describe expected behavior
