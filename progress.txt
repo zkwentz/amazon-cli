@@ -2379,3 +2379,47 @@ amazon-cli subscriptions cancel SUB123 --confirm
 - Leverages existing output and models packages
 - Consistent with existing CLI architecture and patterns
 - Shares subscriptionConfirm flag variable with frequency command (both are boolean flags)
+
+---
+
+## Error Codes Update - January 19, 2026
+
+### Task: Add Missing Error Code Constants
+
+**Objective**: Ensure all required error codes exist as constants in pkg/models/errors.go
+
+### Changes Made:
+
+1. **Added Missing Error Code**:
+   - Added `ErrCaptchaRequired = "CAPTCHA_REQUIRED"` constant to pkg/models/errors.go:15
+   - This was the only missing error code from the required list
+
+2. **Verified Existing Error Codes**:
+   - AUTH_REQUIRED (ErrAuthRequired)
+   - AUTH_EXPIRED (ErrAuthExpired)
+   - NOT_FOUND (ErrNotFound)
+   - RATE_LIMITED (ErrRateLimited)
+   - INVALID_INPUT (ErrInvalidInput)
+   - PURCHASE_FAILED (ErrPurchaseFailed)
+   - NETWORK_ERROR (ErrNetworkError)
+   - AMAZON_ERROR (ErrAmazonError)
+   - CAPTCHA_REQUIRED (ErrCaptchaRequired) ← newly added
+
+3. **Created Comprehensive Test Suite**:
+   - Created pkg/models/errors_test.go with 4 test functions:
+     - `TestErrorCodesExist`: Verifies all 9 error codes exist with correct values
+     - `TestCLIErrorCreation`: Tests creating CLIError instances with the new CAPTCHA_REQUIRED code
+     - `TestCLIErrorWithDetails`: Tests adding details to CLI errors
+     - `TestExitCodeForError`: Tests exit code mapping for all error codes including CAPTCHA_REQUIRED
+   - All tests pass successfully (verified with go test)
+
+### Technical Notes:
+
+- The CAPTCHA_REQUIRED error code follows the same naming convention as other error codes
+- Exit code mapping for CAPTCHA_REQUIRED returns ExitGeneralError (1) by default
+- Tests confirm JSON-formatted error output (as implemented by the Error() method)
+- All 9 required error codes are now properly defined and tested
+
+### Files Modified:
+- pkg/models/errors.go (added ErrCaptchaRequired constant)
+- pkg/models/errors_test.go (created new test file)

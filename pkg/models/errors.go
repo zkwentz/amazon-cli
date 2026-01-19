@@ -1,6 +1,9 @@
 package models
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 // Error codes as defined in PRD
 const (
@@ -12,6 +15,7 @@ const (
 	ErrPurchaseFailed = "PURCHASE_FAILED"
 	ErrNetworkError   = "NETWORK_ERROR"
 	ErrAmazonError    = "AMAZON_ERROR"
+	ErrCaptchaRequired = "CAPTCHA_REQUIRED"
 )
 
 // Exit codes as defined in PRD
@@ -32,9 +36,14 @@ type CLIError struct {
 	Details map[string]interface{} `json:"details,omitempty"`
 }
 
-// Error implements the error interface
+// Error implements the error interface and returns JSON formatted error string
 func (e *CLIError) Error() string {
-	return fmt.Sprintf("%s: %s", e.Code, e.Message)
+	jsonBytes, err := json.Marshal(e)
+	if err != nil {
+		// Fallback to simple format if JSON marshaling fails
+		return fmt.Sprintf("%s: %s", e.Code, e.Message)
+	}
+	return string(jsonBytes)
 }
 
 // NewCLIError creates a new CLIError
