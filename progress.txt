@@ -3379,3 +3379,53 @@ Successfully removed the obsolete IMPLEMENTATION_AND_TEST_PLAN.md file (41,002 b
   - All 44 test cases passing successfully (0.403s total test time)
   - Tests cover valid inputs, boundary conditions, and various invalid scenarios
   - Clear test names describe expected behavior
+
+## 2026-01-19 00:58:16 - Added GetSubscriptions method and comprehensive subscription tests
+
+### Changes Made:
+
+1. **Added GetSubscriptions method to internal/amazon/subscriptions.go**:
+   - Returns a SubscriptionList with mock subscription data
+   - Includes two sample subscriptions with complete fields
+   - Method signature: `func (c *Client) GetSubscriptions() (*models.SubscriptionList, error)`
+
+2. **Added four new test functions to internal/amazon/subscriptions_test.go**:
+
+   a. **TestGetSubscriptions_ReturnsList**:
+      - Verifies GetSubscriptions returns a non-nil subscription list
+      - Checks that list is not empty
+      - Validates TotalCount matches actual subscription count
+      - Ensures each subscription has required fields (ID, ASIN, Title, Status)
+
+   b. **TestSkipDelivery_AdvancesDate**:
+      - Tests that SkipDelivery advances the NextDelivery date
+      - Verifies date is at least 28 days in the future (14 day initial + 4 weeks frequency)
+      - Includes sanity check that date is not unreasonably far (within 60 days)
+
+   c. **TestUpdateFrequency_InvalidWeeks_ReturnsError**:
+      - Tests invalid interval values (0, -1, 27 weeks)
+      - Verifies error message matches expected: "interval must be between 1 and 26 weeks"
+      - Includes positive test case for valid interval (4 weeks)
+      - Uses table-driven test approach for multiple scenarios
+
+   d. **TestCancelSubscription_SetsStatusCancelled**:
+      - Verifies CancelSubscription sets Status to "cancelled"
+      - Checks subscription ID matches input
+      - Ensures method returns non-nil subscription
+
+### Test Results:
+
+All four tests pass successfully:
+- TestGetSubscriptions_ReturnsList: PASS
+- TestSkipDelivery_AdvancesDate: PASS
+- TestUpdateFrequency_InvalidWeeks_ReturnsError: PASS (including 4 subtests)
+- TestCancelSubscription_SetsStatusCancelled: PASS
+
+### Technical Notes:
+
+- Tests follow existing patterns from the codebase
+- Use table-driven approach where multiple scenarios are tested
+- Include both positive and negative test cases
+- Verify error messages match implementation
+- Tests are independent and can run in any order
+- GetSubscriptions implementation uses mock data consistent with other methods

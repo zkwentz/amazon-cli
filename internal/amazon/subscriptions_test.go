@@ -185,3 +185,157 @@ func TestCancelSubscription_SetsStatusToCancelled(t *testing.T) {
 		t.Error("CancelSubscription() Title should not be empty")
 	}
 }
+
+func TestGetSubscriptions_ReturnsList(t *testing.T) {
+	client := NewClient()
+
+	subscriptionList, err := client.GetSubscriptions()
+	if err != nil {
+		t.Fatalf("GetSubscriptions() unexpected error: %v", err)
+	}
+
+	if subscriptionList == nil {
+		t.Fatal("GetSubscriptions() returned nil list")
+	}
+
+	// Verify we have subscriptions in the list
+	if len(subscriptionList.Subscriptions) == 0 {
+		t.Error("GetSubscriptions() returned empty subscriptions list")
+	}
+
+	// Verify TotalCount matches the number of subscriptions
+	if subscriptionList.TotalCount != len(subscriptionList.Subscriptions) {
+		t.Errorf("GetSubscriptions() TotalCount = %v, want %v", subscriptionList.TotalCount, len(subscriptionList.Subscriptions))
+	}
+
+	// Verify each subscription has required fields
+	for i, sub := range subscriptionList.Subscriptions {
+		if sub.ID == "" {
+			t.Errorf("GetSubscriptions() subscription[%d] has empty ID", i)
+		}
+		if sub.ASIN == "" {
+			t.Errorf("GetSubscriptions() subscription[%d] has empty ASIN", i)
+		}
+		if sub.Title == "" {
+			t.Errorf("GetSubscriptions() subscription[%d] has empty Title", i)
+		}
+		if sub.Status == "" {
+			t.Errorf("GetSubscriptions() subscription[%d] has empty Status", i)
+		}
+	}
+}
+
+func TestSkipDelivery_AdvancesDate(t *testing.T) {
+	client := NewClient()
+
+	subscription, err := client.SkipDelivery("sub123")
+	if err != nil {
+		t.Fatalf("SkipDelivery() unexpected error: %v", err)
+	}
+
+	// Verify NextDelivery is advanced into the future
+	// The mock implementation sets initial NextDelivery to 14 days from now,
+	// then advances it by FrequencyWeeks (4 weeks = 28 days)
+	// So the result should be at least 28 days from now
+	minExpectedDate := time.Now().AddDate(0, 0, 28)
+	if subscription.NextDelivery.Before(minExpectedDate) {
+		t.Errorf("SkipDelivery() NextDelivery = %v, expected at least %v", subscription.NextDelivery, minExpectedDate)
+	}
+
+	// Verify it's not too far in the future (sanity check: within 60 days)
+	maxExpectedDate := time.Now().AddDate(0, 0, 60)
+	if subscription.NextDelivery.After(maxExpectedDate) {
+		t.Errorf("SkipDelivery() NextDelivery = %v, expected at most %v", subscription.NextDelivery, maxExpectedDate)
+	}
+}
+
+func TestUpdateFrequency_InvalidWeeks_ReturnsError(t *testing.T) {
+	client := NewClient()
+
+	tests := []struct {
+		name          string
+		intervalWeeks int
+		wantErr       bool
+		errContains   string
+	}{
+		{
+			name:          "zero weeks should fail",
+			intervalWeeks: 0,
+			wantErr:       true,
+			errContains:   "interval must be between 1 and 26 weeks",
+		},
+		{
+			name:          "negative weeks should fail",
+			intervalWeeks: -1,
+			wantErr:       true,
+			errContains:   "interval must be between 1 and 26 weeks",
+		},
+		{
+			name:          "too many weeks should fail",
+			intervalWeeks: 27,
+			wantErr:       true,
+			errContains:   "interval must be between 1 and 26 weeks",
+		},
+		{
+			name:          "valid weeks should succeed",
+			intervalWeeks: 4,
+			wantErr:       false,
+			errContains:   "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			subscription, err := client.UpdateFrequency("sub123", tt.intervalWeeks)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Error("UpdateFrequency() expected error but got none")
+					return
+				}
+				if err.Error() != tt.errContains {
+					t.Errorf("UpdateFrequency() error = %v, want %v", err.Error(), tt.errContains)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("UpdateFrequency() unexpected error: %v", err)
+				return
+			}
+
+			if subscription == nil {
+				t.Error("UpdateFrequency() returned nil subscription")
+				return
+			}
+
+			// Verify frequency was updated
+			if subscription.FrequencyWeeks != tt.intervalWeeks {
+				t.Errorf("UpdateFrequency() FrequencyWeeks = %v, want %v", subscription.FrequencyWeeks, tt.intervalWeeks)
+			}
+		})
+	}
+}
+
+func TestCancelSubscription_SetsStatusCancelled(t *testing.T) {
+	client := NewClient()
+
+	subscription, err := client.CancelSubscription("sub789")
+	if err != nil {
+		t.Fatalf("CancelSubscription() unexpected error: %v", err)
+	}
+
+	if subscription == nil {
+		t.Fatal("CancelSubscription() returned nil subscription")
+	}
+
+	// Verify status is set to "cancelled"
+	if subscription.Status != "cancelled" {
+		t.Errorf("CancelSubscription() Status = %v, want cancelled", subscription.Status)
+	}
+
+	// Verify subscription ID matches
+	if subscription.ID != "sub789" {
+		t.Errorf("CancelSubscription() ID = %v, want sub789", subscription.ID)
+	}
+}
