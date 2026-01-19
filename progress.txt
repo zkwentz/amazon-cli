@@ -2914,3 +2914,26 @@ The Error Codes section was updated from basic one-phrase descriptions to compre
 
 ### Summary:
 Successfully replaced the Examples section with a focused "Common AI Agent Tasks" section containing exactly 5 examples as specified. Each example includes a clear description, command template with placeholders where appropriate, and concrete examples. The section is designed to help AI agents understand the most common use cases and command patterns.
+
+
+## [2026-01-19] Test Coverage Analysis
+
+### Task: Run Go tests with coverage profile and document results
+
+### Commands Executed:
+1. `go test -v -coverprofile=coverage.out ./...`
+2. `go tool cover -func=coverage.out | grep total`
+
+### Test Results:
+- **All tests passed successfully** ✓
+- **Total test coverage: 85.1%**
+
+### Coverage Breakdown by Package:
+- `github.com/zkwentz/amazon-cli`: 0.0% (main package, no test coverage)
+- `github.com/zkwentz/amazon-cli/pkg/models`: 92.9% (excellent coverage)
+
+### Summary:
+The test suite is comprehensive with 85.1% overall code coverage. All tests pass without errors. The core models package has excellent test coverage at 92.9%, while the main package currently has no test coverage (which is typical for CLI entry points).
+
+### Files Generated:
+- coverage.out (coverage profile file in project root)
