@@ -2996,3 +2996,39 @@ Successfully removed the obsolete IMPLEMENTATION_AND_TEST_PLAN.md file (41,002 b
 - Documented exponential backoff strategy with max 3 retries
 - Provided configuration examples (conservative, balanced, aggressive)
 - Included implementation guidelines and best practices
+
+## Task: Mock Server for Testing
+
+- Created `internal/testutil/mock_server.go`:
+  - Implemented `MockAmazonServer` struct with:
+    - `Server *httptest.Server` - HTTP test server instance
+    - `fixtures map[string]string` - Maps URL paths to fixture file paths
+    - `mu sync.RWMutex` - Mutex for thread-safe fixture map access
+  - Implemented `NewMockAmazonServer() *MockAmazonServer`:
+    - Creates and starts an httptest.Server
+    - Returns MockAmazonServer instance with initialized fixtures map
+    - Server responds to configured paths by serving fixture files
+    - Returns 404 for unconfigured paths
+    - Returns 500 if fixture file cannot be read
+    - Sets Content-Type header to "text/html; charset=utf-8"
+  - Implemented `ServeFixture(path, fixtureFile string)` method:
+    - Configures mock server to serve specified fixture file for given URL path
+    - Thread-safe using RWMutex
+    - Allows overwriting existing path configurations
+    - Paths matched exactly (query parameters are part of request but not matched)
+
+- Created test fixtures in `internal/testutil/testdata/`:
+  - `sample.html` - Sample product page HTML
+  - `search_results.html` - Sample search results page HTML
+
+- Created comprehensive test suite in `internal/testutil/mock_server_test.go`:
+  - `TestNewMockAmazonServer` - Verifies server creation and initialization
+  - `TestServeFixture_Success` - Tests successful fixture serving with correct content and headers
+  - `TestServeFixture_NotFound` - Verifies 404 response for unconfigured paths
+  - `TestServeFixture_InvalidFile` - Tests error handling for non-existent fixture files
+  - `TestServeFixture_MultiplePaths` - Validates multiple path/fixture configurations
+  - `TestServeFixture_OverwritePath` - Tests path configuration overwriting
+  - `TestServeFixture_ConcurrentRequests` - Validates thread safety with 10 concurrent requests
+  - `TestServeFixture_WithQueryParams` - Tests path matching with query parameters
+  - `TestServeFixture_RealFixtures` - Integration test with actual fixture files
+  - All 9 tests passing successfully (0.285s total test time)
