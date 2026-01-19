@@ -128,3 +128,82 @@ func TestFrequencyCmd_IntervalValidation_UpperBound(t *testing.T) {
 		t.Error("Expected Run function to contain interval validation")
 	}
 }
+
+func TestSubscriptionsCancelCmd_Configuration(t *testing.T) {
+	// Test that the cancel command exists and has correct configuration
+	if subscriptionsCancelCmd.Use != "cancel <id>" {
+		t.Errorf("Expected Use='cancel <id>', got '%s'", subscriptionsCancelCmd.Use)
+	}
+
+	if subscriptionsCancelCmd.Short != "Cancel a subscription" {
+		t.Errorf("Expected Short='Cancel a subscription', got '%s'", subscriptionsCancelCmd.Short)
+	}
+
+	if subscriptionsCancelCmd.Run == nil {
+		t.Error("Expected Run function to be defined")
+	}
+
+	// Test that it requires exactly 1 argument
+	if subscriptionsCancelCmd.Args == nil {
+		t.Error("Expected Args validator to be defined")
+	}
+}
+
+func TestSubscriptionsCancelCmd_Flags(t *testing.T) {
+	// Test that the cancel command has a confirm flag
+	confirmFlag := subscriptionsCancelCmd.Flags().Lookup("confirm")
+	if confirmFlag == nil {
+		t.Error("Expected --confirm flag to be defined")
+	} else {
+		if confirmFlag.DefValue != "false" {
+			t.Errorf("Expected --confirm default value to be 'false', got '%s'", confirmFlag.DefValue)
+		}
+	}
+}
+
+func TestSubscriptionsCancelCmd_ConfirmFlagDefaultIsFalse(t *testing.T) {
+	// Test that the confirm flag defaults to false (preview mode)
+	confirmFlag := subscriptionsCancelCmd.Flags().Lookup("confirm")
+	if confirmFlag == nil {
+		t.Fatal("Expected --confirm flag to be defined")
+	}
+
+	if confirmFlag.DefValue != "false" {
+		t.Errorf("Expected --confirm flag to default to false (preview mode), got '%s'", confirmFlag.DefValue)
+	}
+}
+
+func TestSubscriptionsCancelCmd_PreviewModeIsDefault(t *testing.T) {
+	// Verify that the command documentation mentions preview as default
+	expectedLong := `Cancel an Amazon Subscribe & Save subscription by ID.
+Requires --confirm flag to execute the cancellation.
+Without --confirm, shows a preview of the cancellation.`
+
+	if subscriptionsCancelCmd.Long != expectedLong {
+		t.Errorf("Expected Long description to mention preview mode as default")
+	}
+}
+
+func TestSubscriptionsCmd_Subcommands(t *testing.T) {
+	// Test that both frequency and cancel subcommands are registered
+	expectedSubcommands := []string{"frequency", "cancel"}
+	commands := subscriptionsCmd.Commands()
+
+	if len(commands) != len(expectedSubcommands) {
+		t.Errorf("Expected %d subcommands, got %d", len(expectedSubcommands), len(commands))
+	}
+
+	// Check that each expected subcommand exists
+	for _, expected := range expectedSubcommands {
+		found := false
+		for _, cmd := range commands {
+			if cmd.Use == expected+" <id>" {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("Expected subcommand '%s' not found", expected)
+		}
+	}
+}

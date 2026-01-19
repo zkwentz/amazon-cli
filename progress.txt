@@ -2296,3 +2296,86 @@ amazon-cli subscriptions frequency SUB123 -i 4 --confirm
 - Uses existing amazon.Client UpdateFrequency method
 - Leverages existing output and models packages
 - Consistent with existing CLI architecture and patterns
+
+## 2026-01-19: Implemented subscriptions cancel command
+
+### Overview:
+Added `cancel <id>` subcommand to the subscriptions command with --confirm flag support. Without --confirm, the command shows a cancellation preview. With --confirm, it executes the cancellation by calling CancelSubscription.
+
+### Changes Made:
+
+1. **cmd/subscriptions.go**:
+   - Added `subscriptionsCancelCmd` variable defining the cancel command
+   - Command accepts exactly one argument (subscription ID)
+   - Implements preview/confirm pattern:
+     - Without --confirm: Shows preview with dry_run=true and current subscription details
+     - With --confirm: Calls CancelSubscription and returns the cancelled subscription
+   - Added confirm flag to cancel command
+   - Registered cancel command as subcommand of subscriptions
+
+2. **cmd/subscriptions_test.go**:
+   - Added 5 comprehensive test functions for cancel command:
+     - TestSubscriptionsCancelCmd_Configuration
+     - TestSubscriptionsCancelCmd_Flags
+     - TestSubscriptionsCancelCmd_ConfirmFlagDefaultIsFalse
+     - TestSubscriptionsCancelCmd_PreviewModeIsDefault
+     - TestSubscriptionsCmd_Subcommands (updated to include cancel)
+
+### Test Coverage:
+
+1. **TestSubscriptionsCancelCmd_Configuration**:
+   - Tests command exists with correct Use, Short, and Run properties
+   - Verifies Args validator is defined for exactly one argument
+
+2. **TestSubscriptionsCancelCmd_Flags**:
+   - Tests --confirm flag is defined
+   - Verifies default value is 'false'
+
+3. **TestSubscriptionsCancelCmd_ConfirmFlagDefaultIsFalse**:
+   - Confirms preview mode is default behavior
+   - Tests --confirm flag defaults to false
+
+4. **TestSubscriptionsCancelCmd_PreviewModeIsDefault**:
+   - Verifies Long description mentions preview and confirm requirement
+   - Ensures documentation matches implementation
+
+5. **TestSubscriptionsCmd_Subcommands**:
+   - Tests both frequency and cancel subcommands are registered
+   - Verifies correct command count and names
+
+All tests pass successfully.
+
+### Usage Examples:
+
+Preview mode (default):
+```bash
+amazon-cli subscriptions cancel SUB123
+# Output: JSON with dry_run=true, subscription details with Status="active", and message
+```
+
+Execute cancellation:
+```bash
+amazon-cli subscriptions cancel SUB123 --confirm
+# Output: Subscription JSON with Status="cancelled"
+```
+
+### Technical Notes:
+
+- Follows established patterns from other commands (cart clear, cart checkout, etc.)
+- Uses getClient() helper from cart.go for consistent client management
+- Implements preview/confirm pattern consistent with other destructive operations
+- In preview mode, resets status to "active" to show current state before cancellation
+- Returns appropriate exit codes for different error conditions:
+  - ErrInvalidInput (ExitInvalidArgs) for preview errors
+  - ErrAmazonError (ExitGeneralError) for cancellation failures
+- Uses JSON output for easy parsing by AI agents and scripts
+- Command structure: `subscriptions cancel <id>` for clear command hierarchy
+- Confirm flag prevents accidental subscription cancellations
+
+### Integration:
+
+- Command automatically registered with root command in init()
+- Uses existing amazon.Client CancelSubscription method
+- Leverages existing output and models packages
+- Consistent with existing CLI architecture and patterns
+- Shares subscriptionConfirm flag variable with frequency command (both are boolean flags)
