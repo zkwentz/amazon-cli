@@ -2423,3 +2423,60 @@ amazon-cli subscriptions cancel SUB123 --confirm
 ### Files Modified:
 - pkg/models/errors.go (added ErrCaptchaRequired constant)
 - pkg/models/errors_test.go (created new test file)
+
+---
+
+## CLIError JSON Formatting Update - January 19, 2026
+
+### Task: Update CLIError.Error() Method to Return JSON
+
+**Objective**: Ensure CLIError struct implements Error() method that returns JSON formatted error string instead of simple formatted string.
+
+### Changes Made:
+
+1. **Updated Error() Method in pkg/models/errors.go**:
+   - Modified the Error() method (lines 39-47) to return JSON formatted string
+   - Imports encoding/json package
+   - Uses json.Marshal() to convert CLIError struct to JSON
+   - Includes fallback to simple format if JSON marshaling fails
+   - Method signature: `func (e *CLIError) Error() string`
+
+2. **Verified CLIError Struct Fields**:
+   - ✅ Code field (string) - line 34
+   - ✅ Message field (string) - line 35
+   - ✅ Details field (map[string]interface{}) - line 36
+   - All three required fields already existed with proper JSON tags
+
+3. **Added Comprehensive Tests in pkg/models/errors_test.go**:
+   - `TestCLIErrorCreation`: Enhanced to verify JSON validity
+   - `TestCLIError_ErrorReturnsJSON`: Tests JSON formatting with 4 scenarios:
+     - Simple error without details
+     - Error with string details
+     - Error with mixed type details
+     - Auth error
+   - `TestCLIError_StructFieldsComplete`: Verifies all three fields exist and work correctly
+   - `TestCLIError_ImplementsErrorInterface`: Confirms error interface implementation with JSON output
+   - `TestCLIError_JSONMarshaling`: Tests direct JSON marshal/unmarshal roundtrip
+
+### Test Results:
+- All tests pass successfully ✅
+- 8 test functions executed
+- JSON validity confirmed for all error scenarios
+- Proper field marshaling/unmarshaling verified
+- Error interface implementation confirmed
+
+### Example JSON Output:
+```json
+{"code":"NOT_FOUND","message":"Item not found","details":{}}
+{"code":"INVALID_INPUT","message":"Invalid ASIN provided","details":{"asin":"INVALID123","field":"product_id"}}
+```
+
+### Technical Notes:
+- The Error() method now returns valid JSON for all CLIError instances
+- JSON tags on struct fields control serialization (omitempty for Details)
+- Fallback ensures Error() always returns a string even if JSON marshaling fails
+- Compatible with existing CLIError usage throughout the codebase
+
+### Files Modified:
+- pkg/models/errors.go (updated Error() method and imports)
+- pkg/models/errors_test.go (added 4 comprehensive test functions)
