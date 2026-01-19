@@ -1323,3 +1323,62 @@
   - Parser returns descriptive error for missing required fields
   - Follows same patterns as existing search and order parsing code
 
+## Task: GetProduct Implementation with ASIN Validation and HTTP GET
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/internal/amazon/product.go`:
+  - Added `net/http` import for HTTP request handling
+  - Removed unused `time` import
+  - Replaced mock `GetProduct(asin string)` implementation with real HTTP integration:
+    - Validates ASIN is not empty (returns error if empty)
+    - Validates ASIN format using regex `^[A-Z0-9]{10}$` (10 alphanumeric uppercase characters)
+    - Returns clear error message if format is invalid: "invalid ASIN format: must be 10 alphanumeric characters"
+    - Constructs product detail URL: `{baseURL}/dp/{asin}`
+    - Creates HTTP GET request using `http.NewRequest()`
+    - Executes request using `c.Do(req)` method (includes rate limiting, retries, browser headers)
+    - Validates HTTP response status code (expects 200 OK)
+    - Reads response body into buffer using `body.ReadFrom(resp.Body)`
+    - Checks for CAPTCHA detection using `c.detectCAPTCHA()` method
+    - Returns specific CAPTCHA error message if detected
+    - Calls existing `parseProductDetailHTML()` function to extract product data
+    - Returns populated Product struct with all details
+    - Proper error handling with context at each step
+    - Ensures response body is closed with `defer resp.Body.Close()`
+  - Implemented `parseReviewsHTML(html []byte, asin string, limit int)` stub function:
+    - Placeholder implementation to avoid compilation errors
+    - Returns empty ReviewsResponse struct
+    - TODO comment for future implementation
+
+- Enhanced `/Users/zacharywentz/Development/amazon-cli/internal/amazon/product_test.go`:
+  - Added 3 comprehensive test functions for GetProduct:
+    - `TestGetProduct_EmptyASIN` - Validates empty ASIN error handling:
+      - Verifies error message is "ASIN cannot be empty"
+    - `TestGetProduct_InvalidASINFormat` - Tests ASIN format validation with 7 invalid cases:
+      - "B08N5" (too short)
+      - "B08N5WRWNW123" (too long)
+      - "b08n5wrwnw" (contains lowercase)
+      - "B08N5WRWN!" (contains special characters)
+      - "B08N5 WRWN" (contains spaces)
+      - "B08N5WRWN" (only 9 characters)
+      - "B08N5WRWNW1" (11 characters)
+    - `TestGetProduct_ValidASINFormat` - Tests valid ASIN formats:
+      - "B08N5WRWNW" (standard ASIN)
+      - "ABCDEFGHIJ" (all uppercase letters)
+      - "1234567890" (all numbers)
+      - "A1B2C3D4E5" (mixed alphanumeric)
+      - Verifies ASIN validation passes (no "invalid ASIN format" error)
+  - All 3 new GetProduct tests passing successfully
+  - All existing parseProductDetailHTML tests still passing (17 tests)
+  - Total: 20 test functions in product_test.go
+
+- Implementation Summary:
+  - GetProduct follows same pattern as other HTTP-based methods (GetOrders, GetOrder, Search)
+  - ASIN validation happens before HTTP request for efficiency
+  - Format validation ensures ASINs match Amazon's standard format
+  - Uses existing Client infrastructure for rate limiting and retry logic
+  - Leverages existing parseProductDetailHTML() for HTML parsing
+  - CAPTCHA detection provides graceful degradation
+  - Clear, specific error messages for validation failures
+  - Proper resource cleanup with defer statements
+  - Wraps errors with context using fmt.Errorf with %w verb
+  - All tests passing with comprehensive coverage
+

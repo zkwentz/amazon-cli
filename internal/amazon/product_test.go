@@ -753,3 +753,71 @@ func stringContains(s, substr string) bool {
 	}
 	return false
 }
+
+func TestGetProduct_EmptyASIN(t *testing.T) {
+	client := NewClient()
+	_, err := client.GetProduct("")
+	if err == nil {
+		t.Error("Expected error for empty ASIN, got nil")
+	}
+	expectedMsg := "ASIN cannot be empty"
+	if err.Error() != expectedMsg {
+		t.Errorf("Expected error message %q, got %q", expectedMsg, err.Error())
+	}
+}
+
+func TestGetProduct_InvalidASINFormat(t *testing.T) {
+	client := NewClient()
+
+	tests := []struct {
+		name string
+		asin string
+	}{
+		{"Too short", "B08N5"},
+		{"Too long", "B08N5WRWNW123"},
+		{"Contains lowercase", "b08n5wrwnw"},
+		{"Contains special chars", "B08N5WRWN!"},
+		{"Contains spaces", "B08N5 WRWN"},
+		{"Only 9 chars", "B08N5WRWN"},
+		{"Only 11 chars", "B08N5WRWNW1"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := client.GetProduct(tt.asin)
+			if err == nil {
+				t.Errorf("Expected error for invalid ASIN %q, got nil", tt.asin)
+			}
+			expectedSubstring := "invalid ASIN format"
+			if !stringContains(err.Error(), expectedSubstring) {
+				t.Errorf("Expected error to contain %q, got %q", expectedSubstring, err.Error())
+			}
+		})
+	}
+}
+
+func TestGetProduct_ValidASINFormat(t *testing.T) {
+	tests := []struct {
+		name string
+		asin string
+	}{
+		{"Standard ASIN", "B08N5WRWNW"},
+		{"All uppercase letters", "ABCDEFGHIJ"},
+		{"All numbers", "1234567890"},
+		{"Mixed alphanumeric", "A1B2C3D4E5"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// We can't test the full flow without mocking HTTP, but we can verify
+			// the ASIN validation passes and we get a network/parsing error
+			client := NewClient()
+			_, err := client.GetProduct(tt.asin)
+
+			// Should not be an ASIN format error
+			if err != nil && stringContains(err.Error(), "invalid ASIN format") {
+				t.Errorf("ASIN %q should be valid format, got error: %v", tt.asin, err)
+			}
+		})
+	}
+}

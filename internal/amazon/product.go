@@ -3,9 +3,9 @@ package amazon
 import (
 	"bytes"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/zkwentz/amazon-cli/pkg/models"
@@ -13,39 +13,57 @@ import (
 
 // GetProduct retrieves detailed product information
 func (c *Client) GetProduct(asin string) (*models.Product, error) {
+	// Validate ASIN is not empty
 	if asin == "" {
 		return nil, fmt.Errorf("ASIN cannot be empty")
 	}
 
-	// TODO: Implement actual Amazon API call
-	// For now, return mock data
+	// Validate ASIN format - ASINs are typically 10 characters (alphanumeric)
+	asinRegex := regexp.MustCompile(`^[A-Z0-9]{10}$`)
+	if !asinRegex.MatchString(asin) {
+		return nil, fmt.Errorf("invalid ASIN format: must be 10 alphanumeric characters")
+	}
 
-	originalPrice := 349.99
+	// Construct product detail URL
+	productURL := fmt.Sprintf("%s/dp/%s", c.baseURL, asin)
 
-	return &models.Product{
-		ASIN:             asin,
-		Title:            "Sony WH-1000XM4 Wireless Premium Noise Canceling Overhead Headphones",
-		Price:            278.00,
-		OriginalPrice:    &originalPrice,
-		Rating:           4.7,
-		ReviewCount:      52431,
-		Prime:            true,
-		InStock:          true,
-		DeliveryEstimate: "Tomorrow",
-		Description:      "Industry-leading noise canceling with Dual Noise Sensor technology. Next-level music with Edge-AI, co-developed with Sony Music Studios Tokyo. Up to 30-hour battery life with quick charging (10 min charge for 5 hours of playback).",
-		Features: []string{
-			"Industry-leading noise cancellation",
-			"30-hour battery life",
-			"Touch sensor controls",
-			"Speak-to-chat technology",
-			"Wearing detection",
-			"Multipoint connection",
-		},
-		Images: []string{
-			"https://images-na.ssl-images-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg",
-			"https://images-na.ssl-images-amazon.com/images/I/81WpXBD4uWL._AC_SL1500_.jpg",
-		},
-	}, nil
+	// Create HTTP GET request
+	req, err := http.NewRequest("GET", productURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Execute the request with rate limiting and retries
+	resp, err := c.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch product details: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check for successful response
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	// Read the response body
+	body := &bytes.Buffer{}
+	_, err = body.ReadFrom(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	// Check for CAPTCHA
+	if c.detectCAPTCHA(body.Bytes()) {
+		return nil, fmt.Errorf("CAPTCHA detected - please try again later or use a different method")
+	}
+
+	// Parse the HTML response
+	product, err := parseProductDetailHTML(body.Bytes())
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse product details: %w", err)
+	}
+
+	return product, nil
 }
 
 // GetProductReviews retrieves reviews for a product
@@ -58,45 +76,57 @@ func (c *Client) GetProductReviews(asin string, limit int) (*models.ReviewsRespo
 		limit = 10
 	}
 
-	// TODO: Implement actual Amazon API call
-	// For now, return mock data
+	// Build reviews URL
+	reviewsURL := fmt.Sprintf("%s/product-reviews/%s", c.baseURL, asin)
 
-	reviews := []models.Review{
-		{
-			Rating:   5,
-			Title:    "Best headphones I've ever owned",
-			Body:     "The noise canceling is incredible. I use these daily for work calls and music. Battery life is exactly as advertised.",
-			Author:   "John D.",
-			Date:     time.Now().AddDate(0, 0, -10).Format("2006-01-02"),
-			Verified: true,
-		},
-		{
-			Rating:   4,
-			Title:    "Great but pricey",
-			Body:     "Sound quality is excellent and the ANC is top-notch. Only complaint is the price, but you get what you pay for.",
-			Author:   "Sarah M.",
-			Date:     time.Now().AddDate(0, 0, -25).Format("2006-01-02"),
-			Verified: true,
-		},
-		{
-			Rating:   5,
-			Title:    "Perfect for travel",
-			Body:     "Used these on a 12-hour flight and they were amazing. The noise canceling blocked out all the engine noise.",
-			Author:   "Mike R.",
-			Date:     time.Now().AddDate(0, -1, -5).Format("2006-01-02"),
-			Verified: true,
-		},
+	// Create HTTP GET request
+	req, err := http.NewRequest("GET", reviewsURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	if len(reviews) > limit {
-		reviews = reviews[:limit]
+	// Execute the request with rate limiting and retries
+	resp, err := c.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch reviews: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check for successful response
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
+	// Read the response body
+	body := &bytes.Buffer{}
+	_, err = body.ReadFrom(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	// Check for CAPTCHA
+	if c.detectCAPTCHA(body.Bytes()) {
+		return nil, fmt.Errorf("CAPTCHA detected - please try again later or use a different method")
+	}
+
+	// Parse the HTML response
+	reviewsResponse, err := parseReviewsHTML(body.Bytes(), asin, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse reviews: %w", err)
+	}
+
+	return reviewsResponse, nil
+}
+
+// parseReviewsHTML parses Amazon reviews page HTML and extracts review information
+func parseReviewsHTML(html []byte, asin string, limit int) (*models.ReviewsResponse, error) {
+	// TODO: Implement actual HTML parsing for reviews
+	// For now, return empty response to avoid compilation errors
 	return &models.ReviewsResponse{
 		ASIN:          asin,
-		AverageRating: 4.7,
-		TotalReviews:  52431,
-		Reviews:       reviews,
+		AverageRating: 0,
+		TotalReviews:  0,
+		Reviews:       []models.Review{},
 	}, nil
 }
 
@@ -371,4 +401,137 @@ func parseProductDetailHTML(html []byte) (*models.Product, error) {
 	}
 
 	return product, nil
+}
+
+// parseReviewsHTML parses Amazon product reviews page HTML and extracts review information
+func parseReviewsHTML(html []byte, asin string, limit int) (*models.ReviewsResponse, error) {
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(html))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse HTML: %w", err)
+	}
+
+	response := &models.ReviewsResponse{
+		ASIN:    asin,
+		Reviews: []models.Review{},
+	}
+
+	// Extract average rating from the page header
+	avgRatingSelectors := []string{
+		"div[data-hook='rating-out-of-text']",
+		"span[data-hook='rating-out-of-text']",
+		"i[data-hook='average-star-rating'] span.a-icon-alt",
+	}
+	for _, selector := range avgRatingSelectors {
+		ratingEl := doc.Find(selector)
+		if ratingEl.Length() > 0 {
+			ratingText := strings.TrimSpace(ratingEl.First().Text())
+			rating := parseRating(ratingText)
+			if rating > 0 {
+				response.AverageRating = rating
+				break
+			}
+		}
+	}
+
+	// Extract total review count
+	totalReviewSelectors := []string{
+		"div[data-hook='total-review-count']",
+		"span[data-hook='total-review-count']",
+		"div[data-hook='cr-filter-info-review-rating-count']",
+	}
+	for _, selector := range totalReviewSelectors {
+		countEl := doc.Find(selector)
+		if countEl.Length() > 0 {
+			countText := strings.TrimSpace(countEl.First().Text())
+			count := parseReviewCount(countText)
+			if count > 0 {
+				response.TotalReviews = count
+				break
+			}
+		}
+	}
+
+	// Parse individual reviews
+	reviewCount := 0
+	doc.Find("div[data-hook='review']").Each(func(i int, s *goquery.Selection) {
+		if reviewCount >= limit {
+			return
+		}
+
+		review := models.Review{}
+
+		// Extract rating - look for star rating
+		ratingEl := s.Find("i[data-hook='review-star-rating'] span.a-icon-alt, i[data-hook='cmps-review-star-rating'] span.a-icon-alt")
+		if ratingEl.Length() > 0 {
+			ratingText := strings.TrimSpace(ratingEl.First().Text())
+			ratingFloat := parseRating(ratingText)
+			review.Rating = int(ratingFloat)
+		}
+
+		// Extract title
+		titleEl := s.Find("a[data-hook='review-title'] span, span[data-hook='review-title']")
+		if titleEl.Length() > 0 {
+			review.Title = strings.TrimSpace(titleEl.First().Text())
+		}
+
+		// Extract body
+		bodyEl := s.Find("span[data-hook='review-body'] span")
+		if bodyEl.Length() > 0 {
+			review.Body = strings.TrimSpace(bodyEl.First().Text())
+		}
+
+		// Extract author
+		authorEl := s.Find("span.a-profile-name")
+		if authorEl.Length() > 0 {
+			review.Author = strings.TrimSpace(authorEl.First().Text())
+		}
+
+		// Extract date
+		dateEl := s.Find("span[data-hook='review-date']")
+		if dateEl.Length() > 0 {
+			dateText := strings.TrimSpace(dateEl.First().Text())
+			review.Date = parseDateFromReview(dateText)
+		}
+
+		// Check if verified purchase
+		verifiedEl := s.Find("span[data-hook='avp-badge']")
+		review.Verified = verifiedEl.Length() > 0
+
+		// Only add review if it has at least title or body
+		if review.Title != "" || review.Body != "" {
+			response.Reviews = append(response.Reviews, review)
+			reviewCount++
+		}
+	})
+
+	return response, nil
+}
+
+// parseDateFromReview extracts and formats date from review date text
+// Amazon review dates are typically in format "Reviewed in [Country] on [Date]"
+func parseDateFromReview(dateText string) string {
+	// Remove "Reviewed in [Country] on " prefix
+	dateText = strings.TrimSpace(dateText)
+
+	// Try to extract date after "on "
+	if idx := strings.LastIndex(dateText, " on "); idx != -1 {
+		dateText = dateText[idx+4:]
+	}
+
+	// Try to parse common date formats
+	dateFormats := []string{
+		"January 2, 2006",
+		"Jan 2, 2006",
+		"2 January 2006",
+		"2006-01-02",
+	}
+
+	for _, format := range dateFormats {
+		if t, err := time.Parse(format, dateText); err == nil {
+			return t.Format("2006-01-02")
+		}
+	}
+
+	// If parsing fails, return the original text
+	return dateText
 }
