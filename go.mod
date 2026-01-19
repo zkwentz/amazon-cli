@@ -1,4 +1,4 @@
-module github.com/michaelshimeles/amazon-cli
+module github.com/zkwentz/amazon-cli
 
 go 1.25.5
 
