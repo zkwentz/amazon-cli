@@ -1,6 +1,7 @@
 package amazon
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -84,4 +85,36 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	}
 
 	return resp, nil
+}
+
+// detectCAPTCHA checks if the response body contains CAPTCHA indicators
+// It looks for common CAPTCHA-related strings and Amazon-specific CAPTCHA patterns
+func (c *Client) detectCAPTCHA(body []byte) bool {
+	// Convert body to lowercase for case-insensitive matching
+	lowerBody := bytes.ToLower(body)
+
+	// Common CAPTCHA indicators
+	captchaIndicators := [][]byte{
+		[]byte("captcha"),
+		[]byte("robot check"),
+		[]byte("automated access"),
+		[]byte("enter the characters you see"),
+		[]byte("type the characters"),
+		[]byte("sorry, we just need to make sure you're not a robot"),
+		[]byte("to continue shopping, please type the characters"),
+		[]byte("api.captcha.com"),
+		[]byte("api-secure.recaptcha.net"),
+		[]byte("g-recaptcha"),
+		[]byte("data-sitekey"),
+		[]byte("amazoncaptcha"),
+	}
+
+	// Check for any of the CAPTCHA indicators in the response body
+	for _, indicator := range captchaIndicators {
+		if bytes.Contains(lowerBody, indicator) {
+			return true
+		}
+	}
+
+	return false
 }

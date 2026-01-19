@@ -145,3 +145,36 @@
   - All 10 Do method tests passing successfully (32.9s total test time)
   - Uses httptest.Server for realistic HTTP request testing
   - Tests verify timing constraints for rate limiting and backoff behavior
+
+## Task: CAPTCHA Detection Implementation
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/internal/amazon/client.go`:
+  - Added `bytes` package import for byte slice manipulation
+  - Implemented `detectCAPTCHA(body []byte) bool` method:
+    - Checks response body for CAPTCHA indicators
+    - Performs case-insensitive matching using `bytes.ToLower()`
+    - Detects 12 different CAPTCHA indicators:
+      - Generic: "captcha"
+      - Amazon-specific: "robot check", "automated access"
+      - Instructions: "enter the characters you see", "type the characters"
+      - Amazon messages: "sorry, we just need to make sure you're not a robot"
+      - Shopping flow: "to continue shopping, please type the characters"
+      - CAPTCHA APIs: "api.captcha.com", "api-secure.recaptcha.net"
+      - reCAPTCHA elements: "g-recaptcha", "data-sitekey"
+      - Amazon CAPTCHA: "amazoncaptcha"
+    - Returns true if any indicator is found, false otherwise
+    - Handles empty and nil body gracefully
+
+- Created comprehensive test suite in `internal/amazon/client_test.go`:
+  - `TestDetectCAPTCHA_DetectsGenericCAPTCHA` - Tests detection of "captcha" in various cases
+  - `TestDetectCAPTCHA_DetectsRobotCheck` - Tests "robot check" detection
+  - `TestDetectCAPTCHA_DetectsAutomatedAccessMessages` - Tests "automated access" detection
+  - `TestDetectCAPTCHA_DetectsAmazonSpecificPatterns` - Tests 4 Amazon-specific CAPTCHA messages
+  - `TestDetectCAPTCHA_DetectsReCAPTCHAElements` - Tests reCAPTCHA HTML element detection
+  - `TestDetectCAPTCHA_DetectsAmazonCAPTCHA` - Tests Amazon-specific CAPTCHA patterns
+  - `TestDetectCAPTCHA_ReturnsFalseForNormalContent` - Verifies no false positives on normal pages
+  - `TestDetectCAPTCHA_HandlesEmptyBody` - Tests edge cases (empty and nil body)
+  - `TestDetectCAPTCHA_IsCaseInsensitive` - Verifies case-insensitive matching
+  - `TestDetectCAPTCHA_DetectsMultipleIndicators` - Tests detection with multiple indicators present
+  - All 10 CAPTCHA detection tests passing successfully
+  - All package tests passing (32.9s total test time)

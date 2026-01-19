@@ -437,3 +437,196 @@ func TestDo_EnforcesRateLimiting(t *testing.T) {
 		t.Errorf("Expected rate limiting delay, but requests completed too quickly: %v", elapsed)
 	}
 }
+
+func TestDetectCAPTCHA_DetectsGenericCAPTCHA(t *testing.T) {
+	client := NewClient()
+
+	testCases := []struct {
+		name string
+		body string
+	}{
+		{"lowercase captcha", "Please solve this captcha to continue"},
+		{"uppercase CAPTCHA", "Please solve this CAPTCHA to continue"},
+		{"mixed case CaPtChA", "Please solve this CaPtChA to continue"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if !client.detectCAPTCHA([]byte(tc.body)) {
+				t.Errorf("Expected detectCAPTCHA to return true for body containing '%s'", tc.name)
+			}
+		})
+	}
+}
+
+func TestDetectCAPTCHA_DetectsRobotCheck(t *testing.T) {
+	client := NewClient()
+
+	bodies := []string{
+		"Robot Check - Amazon.com",
+		"ROBOT CHECK",
+		"robot check required",
+	}
+
+	for _, body := range bodies {
+		if !client.detectCAPTCHA([]byte(body)) {
+			t.Errorf("Expected detectCAPTCHA to return true for body: %s", body)
+		}
+	}
+}
+
+func TestDetectCAPTCHA_DetectsAutomatedAccessMessages(t *testing.T) {
+	client := NewClient()
+
+	body := "We've detected automated access from your IP address."
+	if !client.detectCAPTCHA([]byte(body)) {
+		t.Error("Expected detectCAPTCHA to return true for automated access message")
+	}
+}
+
+func TestDetectCAPTCHA_DetectsAmazonSpecificPatterns(t *testing.T) {
+	client := NewClient()
+
+	testCases := []struct {
+		name string
+		body string
+	}{
+		{
+			"Enter characters message",
+			"Enter the characters you see below",
+		},
+		{
+			"Type characters message",
+			"Type the characters you see in this image",
+		},
+		{
+			"Amazon robot message",
+			"Sorry, we just need to make sure you're not a robot. For best results, please make sure your browser is accepting cookies.",
+		},
+		{
+			"Continue shopping message",
+			"To continue shopping, please type the characters you see in the image below.",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if !client.detectCAPTCHA([]byte(tc.body)) {
+				t.Errorf("Expected detectCAPTCHA to return true for: %s", tc.name)
+			}
+		})
+	}
+}
+
+func TestDetectCAPTCHA_DetectsReCAPTCHAElements(t *testing.T) {
+	client := NewClient()
+
+	testCases := []struct {
+		name string
+		body string
+	}{
+		{
+			"reCAPTCHA API",
+			`<script src="https://api-secure.recaptcha.net/recaptcha/api.js"></script>`,
+		},
+		{
+			"g-recaptcha div",
+			`<div class="g-recaptcha" data-sitekey="6LfExample"></div>`,
+		},
+		{
+			"data-sitekey attribute",
+			`<div data-sitekey="6LfExample" data-callback="onSubmit"></div>`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if !client.detectCAPTCHA([]byte(tc.body)) {
+				t.Errorf("Expected detectCAPTCHA to return true for: %s", tc.name)
+			}
+		})
+	}
+}
+
+func TestDetectCAPTCHA_DetectsAmazonCAPTCHA(t *testing.T) {
+	client := NewClient()
+
+	bodies := []string{
+		"<form action='/amazoncaptcha/verify'>",
+		"https://images-na.ssl-images-amazon.com/amazoncaptcha/",
+		"AmazonCaptcha challenge",
+	}
+
+	for _, body := range bodies {
+		if !client.detectCAPTCHA([]byte(body)) {
+			t.Errorf("Expected detectCAPTCHA to return true for Amazon CAPTCHA pattern: %s", body)
+		}
+	}
+}
+
+func TestDetectCAPTCHA_ReturnsFalseForNormalContent(t *testing.T) {
+	client := NewClient()
+
+	normalBodies := []string{
+		"<html><body><h1>Welcome to Amazon</h1></body></html>",
+		"Your order has been placed successfully",
+		"Product details and description",
+		"Shopping cart contains 3 items",
+		"Customer reviews for this product",
+	}
+
+	for _, body := range normalBodies {
+		if client.detectCAPTCHA([]byte(body)) {
+			t.Errorf("Expected detectCAPTCHA to return false for normal content: %s", body)
+		}
+	}
+}
+
+func TestDetectCAPTCHA_HandlesEmptyBody(t *testing.T) {
+	client := NewClient()
+
+	if client.detectCAPTCHA([]byte("")) {
+		t.Error("Expected detectCAPTCHA to return false for empty body")
+	}
+
+	if client.detectCAPTCHA(nil) {
+		t.Error("Expected detectCAPTCHA to return false for nil body")
+	}
+}
+
+func TestDetectCAPTCHA_IsCaseInsensitive(t *testing.T) {
+	client := NewClient()
+
+	variations := []string{
+		"CAPTCHA REQUIRED",
+		"captcha required",
+		"CaPtChA ReQuIrEd",
+		"Captcha Required",
+	}
+
+	for _, variation := range variations {
+		if !client.detectCAPTCHA([]byte(variation)) {
+			t.Errorf("Expected detectCAPTCHA to be case-insensitive for: %s", variation)
+		}
+	}
+}
+
+func TestDetectCAPTCHA_DetectsMultipleIndicators(t *testing.T) {
+	client := NewClient()
+
+	// Body with multiple CAPTCHA indicators
+	body := `
+	<html>
+	<head><title>Robot Check</title></head>
+	<body>
+		<h1>Enter the characters you see below</h1>
+		<div class="g-recaptcha" data-sitekey="test"></div>
+		<p>Sorry, we just need to make sure you're not a robot.</p>
+	</body>
+	</html>
+	`
+
+	if !client.detectCAPTCHA([]byte(body)) {
+		t.Error("Expected detectCAPTCHA to return true for body with multiple indicators")
+	}
+}
