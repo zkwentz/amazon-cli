@@ -1,3 +1,19 @@
+## Task: Add Safety Section to skills.md
+
+- Added comprehensive Safety section to `/Users/zacharywentz/Development/amazon-cli/skills.md` before the Safety Guidelines section
+- Added bold warning highlighting that `--confirm` flag is required for all purchase operations
+- Documented preview-first pattern: commands without `--confirm` show preview only
+- Explicitly stated that cart checkout without `--confirm` shows preview only (no purchase made)
+- Listed all operations requiring `--confirm` flag:
+  - `cart checkout` - Complete purchase
+  - `buy` - Execute purchase
+  - `returns create` - Initiate return
+  - `cart clear` - Clear cart
+  - `subscriptions skip` - Skip delivery
+  - `subscriptions frequency` - Change frequency
+  - `subscriptions cancel` - Cancel subscription
+- Safety section positioned at line 923 for prominent visibility
+
 ## Task: Initialize Go module
 
 - Initialized Go module with path: github.com/zkwentz/amazon-cli
