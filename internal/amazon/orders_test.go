@@ -598,3 +598,263 @@ func TestGetOrder_ParseError(t *testing.T) {
 		t.Fatal("Expected error for missing order ID, got nil")
 	}
 }
+
+func TestParseTrackingHTML_ValidHTML(t *testing.T) {
+	// Load the fixture file
+	fixtureData, err := os.ReadFile(filepath.Join("..", "..", "testdata", "orders", "tracking_sample.html"))
+	if err != nil {
+		t.Fatalf("Failed to read fixture file: %v", err)
+	}
+
+	// Parse the HTML
+	tracking, err := parseTrackingHTML(fixtureData)
+	if err != nil {
+		t.Fatalf("parseTrackingHTML failed: %v", err)
+	}
+
+	// Verify carrier
+	expectedCarrier := "UPS"
+	if tracking.Carrier != expectedCarrier {
+		t.Errorf("Expected Carrier %q, got %q", expectedCarrier, tracking.Carrier)
+	}
+
+	// Verify tracking number
+	expectedTrackingNumber := "1Z999AA10123456784"
+	if tracking.TrackingNumber != expectedTrackingNumber {
+		t.Errorf("Expected TrackingNumber %q, got %q", expectedTrackingNumber, tracking.TrackingNumber)
+	}
+
+	// Verify status
+	expectedStatus := "in transit"
+	if tracking.Status != expectedStatus {
+		t.Errorf("Expected Status %q, got %q", expectedStatus, tracking.Status)
+	}
+
+	// Verify delivery date
+	expectedDeliveryDate := "2026-01-20"
+	if tracking.DeliveryDate != expectedDeliveryDate {
+		t.Errorf("Expected DeliveryDate %q, got %q", expectedDeliveryDate, tracking.DeliveryDate)
+	}
+
+	// Verify events
+	if len(tracking.Events) != 3 {
+		t.Errorf("Expected 3 tracking events, got %d", len(tracking.Events))
+	}
+
+	// Verify first event
+	if len(tracking.Events) > 0 {
+		firstEvent := tracking.Events[0]
+		if firstEvent.Status != "Out for delivery" {
+			t.Errorf("Expected first event status %q, got %q", "Out for delivery", firstEvent.Status)
+		}
+		if firstEvent.Location != "Local Distribution Center - Seattle, WA" {
+			t.Errorf("Expected first event location %q, got %q", "Local Distribution Center - Seattle, WA", firstEvent.Location)
+		}
+		if firstEvent.Timestamp == "" {
+			t.Error("Expected first event timestamp to be non-empty")
+		}
+	}
+}
+
+func TestParseTrackingHTML_MinimalData(t *testing.T) {
+	html := []byte(`
+		<html>
+		<body>
+			<div class="tracking-section">
+				<div class="tracking-carrier">
+					<span class="value">USPS</span>
+				</div>
+				<div class="tracking-number">
+					<span class="value">9400111899561543123456</span>
+				</div>
+			</div>
+		</body>
+		</html>
+	`)
+
+	tracking, err := parseTrackingHTML(html)
+	if err != nil {
+		t.Fatalf("parseTrackingHTML failed: %v", err)
+	}
+
+	if tracking.Carrier != "USPS" {
+		t.Errorf("Expected Carrier USPS, got %q", tracking.Carrier)
+	}
+
+	if tracking.TrackingNumber != "9400111899561543123456" {
+		t.Errorf("Expected TrackingNumber 9400111899561543123456, got %q", tracking.TrackingNumber)
+	}
+
+	if tracking.Status != "" {
+		t.Errorf("Expected empty Status, got %q", tracking.Status)
+	}
+
+	if tracking.DeliveryDate != "" {
+		t.Errorf("Expected empty DeliveryDate, got %q", tracking.DeliveryDate)
+	}
+}
+
+func TestParseTrackingHTML_NoTrackingInfo(t *testing.T) {
+	html := []byte(`
+		<html>
+		<body>
+			<div class="order-details">
+				<h1>Order Details</h1>
+			</div>
+		</body>
+		</html>
+	`)
+
+	_, err := parseTrackingHTML(html)
+	if err == nil {
+		t.Error("Expected error for HTML without tracking info, got nil")
+	}
+}
+
+func TestParseTrackingHTML_WithEvents(t *testing.T) {
+	html := []byte(`
+		<html>
+		<body>
+			<div class="tracking-section">
+				<div class="tracking-carrier">
+					<span class="value">FedEx</span>
+				</div>
+				<div class="tracking-number">
+					<span class="value">123456789012</span>
+				</div>
+				<div class="tracking-status">
+					<span class="value">Delivered</span>
+				</div>
+			</div>
+			<div class="tracking-events">
+				<div class="event">
+					<div class="event-timestamp">January 18, 2026 3:45 PM</div>
+					<div class="event-location">Seattle, WA</div>
+					<div class="event-status">Delivered</div>
+				</div>
+				<div class="event">
+					<div class="event-timestamp">January 18, 2026 8:00 AM</div>
+					<div class="event-location">Portland, OR</div>
+					<div class="event-status">In transit</div>
+				</div>
+			</div>
+		</body>
+		</html>
+	`)
+
+	tracking, err := parseTrackingHTML(html)
+	if err != nil {
+		t.Fatalf("parseTrackingHTML failed: %v", err)
+	}
+
+	if len(tracking.Events) != 2 {
+		t.Fatalf("Expected 2 events, got %d", len(tracking.Events))
+	}
+
+	// Check first event
+	if tracking.Events[0].Status != "Delivered" {
+		t.Errorf("Expected first event status Delivered, got %q", tracking.Events[0].Status)
+	}
+	if tracking.Events[0].Location != "Seattle, WA" {
+		t.Errorf("Expected first event location Seattle, WA, got %q", tracking.Events[0].Location)
+	}
+
+	// Check second event
+	if tracking.Events[1].Status != "In transit" {
+		t.Errorf("Expected second event status In transit, got %q", tracking.Events[1].Status)
+	}
+}
+
+func TestParseTrackingHTML_DateParsing(t *testing.T) {
+	html := []byte(`
+		<html>
+		<body>
+			<div class="tracking-section">
+				<div class="tracking-carrier">
+					<span class="value">Amazon Logistics</span>
+				</div>
+				<div class="tracking-number">
+					<span class="value">TBA123456789</span>
+				</div>
+				<div class="delivery-date">
+					<span class="value">January 25, 2026</span>
+				</div>
+			</div>
+		</body>
+		</html>
+	`)
+
+	tracking, err := parseTrackingHTML(html)
+	if err != nil {
+		t.Fatalf("parseTrackingHTML failed: %v", err)
+	}
+
+	expectedDate := "2026-01-25"
+	if tracking.DeliveryDate != expectedDate {
+		t.Errorf("Expected DeliveryDate %q, got %q", expectedDate, tracking.DeliveryDate)
+	}
+}
+
+func TestParseTrackingHTML_StatusNormalization(t *testing.T) {
+	html := []byte(`
+		<html>
+		<body>
+			<div class="tracking-section">
+				<div class="tracking-carrier">
+					<span class="value">DHL</span>
+				</div>
+				<div class="tracking-number">
+					<span class="value">1234567890</span>
+				</div>
+				<div class="tracking-status">
+					<span class="value">  OUT FOR DELIVERY  </span>
+				</div>
+			</div>
+		</body>
+		</html>
+	`)
+
+	tracking, err := parseTrackingHTML(html)
+	if err != nil {
+		t.Fatalf("parseTrackingHTML failed: %v", err)
+	}
+
+	expectedStatus := "out for delivery"
+	if tracking.Status != expectedStatus {
+		t.Errorf("Expected Status %q (normalized), got %q", expectedStatus, tracking.Status)
+	}
+}
+
+func TestParseTrackingHTML_EmptyEvents(t *testing.T) {
+	html := []byte(`
+		<html>
+		<body>
+			<div class="tracking-section">
+				<div class="tracking-carrier">
+					<span class="value">UPS</span>
+				</div>
+				<div class="tracking-number">
+					<span class="value">1Z999AA10123456784</span>
+				</div>
+			</div>
+			<div class="tracking-events">
+				<div class="event">
+					<div class="event-timestamp"></div>
+					<div class="event-location"></div>
+					<div class="event-status"></div>
+				</div>
+			</div>
+		</body>
+		</html>
+	`)
+
+	tracking, err := parseTrackingHTML(html)
+	if err != nil {
+		t.Fatalf("parseTrackingHTML failed: %v", err)
+	}
+
+	// Empty event should not be added
+	if len(tracking.Events) != 0 {
+		t.Errorf("Expected 0 events (empty events should be filtered), got %d", len(tracking.Events))
+	}
+}

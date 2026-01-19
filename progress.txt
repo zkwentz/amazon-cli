@@ -500,3 +500,73 @@
   - All 6 new GetOrder tests passing successfully
   - All existing tests still passing (27 total tests in orders_test.go)
   - Full test suite passes in 0.426s
+
+## Task: GetOrderTracking Implementation
+
+- Created `/Users/zacharywentz/Development/amazon-cli/testdata/orders/tracking_sample.html`:
+  - Sample HTML fixture mimicking Amazon tracking page structure
+  - Contains complete tracking details:
+    - Order reference: 123-4567890-1234567
+    - Carrier: UPS
+    - Tracking number: 1Z999AA10123456784
+    - Status: "In Transit"
+    - Expected delivery: January 20, 2026
+  - Includes 3 tracking events with timestamps, locations, and status updates:
+    - Event 1: January 18, 2026 2:30 PM - Out for delivery (Local Distribution Center - Seattle, WA)
+    - Event 2: January 18, 2026 6:45 AM - In transit (Regional Facility - Portland, OR)
+    - Event 3: January 17, 2026 10:00 PM - Shipped (Origin Facility - San Francisco, CA)
+  - Uses CSS classes: .tracking-section, .tracking-carrier, .tracking-number, .tracking-status, .delivery-date, .tracking-events, .event
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/internal/amazon/orders.go`:
+  - Replaced mock implementation of `GetOrderTracking(orderID string) (*models.Tracking, error)`:
+    - Validates orderID parameter (returns error if empty)
+    - Builds tracking URL using pattern: `{baseURL}/progress-tracker/package/ref=ppx_yo_dt_b_track_package?_encoding=UTF8&orderId={orderID}`
+    - Creates HTTP GET request
+    - Executes request via `c.Do()` method for rate limiting and retry logic
+    - Validates HTTP 200 status code (returns error otherwise)
+    - Reads response body into buffer
+    - Checks for CAPTCHA using `c.detectCAPTCHA()` method
+    - Parses HTML response using `parseTrackingHTML()` helper
+    - Returns tracking struct with all extracted data
+  - Implemented `parseTrackingHTML(html []byte) (*models.Tracking, error)` function:
+    - Parses HTML using goquery document parser
+    - Creates Tracking struct with empty Events slice
+    - Extracts carrier from `.tracking-carrier .value` selector and trims whitespace
+    - Extracts tracking number from `.tracking-number .value` selector
+    - Extracts status from `.tracking-status .value` selector (normalized to lowercase)
+    - Extracts delivery date from `.delivery-date .value` selector:
+      - Parses "January 2, 2006" format using time.Parse
+      - Converts to YYYY-MM-DD format (2006-01-02)
+      - Falls back to raw trimmed string if parsing fails
+    - Iterates through `.tracking-events .event` elements to extract event array:
+      - Timestamp from `.event-timestamp` (parsed to RFC3339 format)
+      - Location from `.event-location`
+      - Status from `.event-status`
+      - Only adds events with non-empty status field
+    - Validates at least tracking number OR carrier was extracted (returns error if both missing)
+    - Returns populated Tracking struct with events array
+
+- Created comprehensive test suite in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/orders_test.go`:
+  - `TestParseTrackingHTML_ValidHTML` - Tests parsing of complete tracking fixture:
+    - Verifies carrier: "UPS"
+    - Verifies tracking number: "1Z999AA10123456784"
+    - Verifies status: "in transit" (normalized)
+    - Verifies delivery date: "2026-01-20"
+    - Verifies 3 events extracted
+    - Verifies first event details (status, location, timestamp)
+  - `TestParseTrackingHTML_MinimalData` - Tests minimal valid HTML (only carrier and tracking number):
+    - Verifies carrier and tracking number extracted
+    - Verifies optional fields (status, delivery date) are empty strings
+  - `TestParseTrackingHTML_NoTrackingInfo` - Tests error handling for HTML without tracking section:
+    - Expects error when no tracking number or carrier found
+  - `TestParseTrackingHTML_WithEvents` - Tests event extraction:
+    - Verifies 2 events extracted with complete details
+    - Validates event status and location fields
+  - `TestParseTrackingHTML_DateParsing` - Tests delivery date parsing:
+    - Verifies "January 25, 2026" converts to "2026-01-25"
+  - `TestParseTrackingHTML_StatusNormalization` - Tests status trimming and lowercasing:
+    - Verifies "  OUT FOR DELIVERY  " normalizes to "out for delivery"
+  - `TestParseTrackingHTML_EmptyEvents` - Tests event filtering:
+    - Verifies empty events (no status) are not added to Events slice
+  - All 7 parseTrackingHTML tests passing successfully
+  - All amazon package tests passing (31.974s total test time)
