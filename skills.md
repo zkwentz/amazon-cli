@@ -12,13 +12,58 @@ A command-line interface for Amazon shopping that outputs structured JSON, desig
 
 ## Installation
 
+### Homebrew (macOS/Linux)
+
 ```bash
-# Homebrew (macOS/Linux)
+# Add the tap
 brew tap zkwentz/tap
+
+# Install amazon-cli
 brew install amazon-cli
 
-# Or download binary from GitHub Releases
-# Or build from source
+# Verify installation
+amazon-cli --version
+```
+
+### Binary Download
+
+Download the latest pre-built binary for your platform from [GitHub Releases](https://github.com/zkwentz/amazon-cli/releases):
+
+**macOS:**
+```bash
+# Download for macOS (Intel)
+curl -L https://github.com/zkwentz/amazon-cli/releases/latest/download/amazon-cli-darwin-amd64 -o amazon-cli
+chmod +x amazon-cli
+sudo mv amazon-cli /usr/local/bin/
+
+# Download for macOS (Apple Silicon)
+curl -L https://github.com/zkwentz/amazon-cli/releases/latest/download/amazon-cli-darwin-arm64 -o amazon-cli
+chmod +x amazon-cli
+sudo mv amazon-cli /usr/local/bin/
+```
+
+**Linux:**
+```bash
+# Download for Linux (amd64)
+curl -L https://github.com/zkwentz/amazon-cli/releases/latest/download/amazon-cli-linux-amd64 -o amazon-cli
+chmod +x amazon-cli
+sudo mv amazon-cli /usr/local/bin/
+
+# Download for Linux (arm64)
+curl -L https://github.com/zkwentz/amazon-cli/releases/latest/download/amazon-cli-linux-arm64 -o amazon-cli
+chmod +x amazon-cli
+sudo mv amazon-cli /usr/local/bin/
+```
+
+**Windows:**
+```powershell
+# Download the .exe from GitHub Releases and add to PATH
+# https://github.com/zkwentz/amazon-cli/releases/latest/download/amazon-cli-windows-amd64.exe
+```
+
+### Build from Source
+
+```bash
 go install github.com/zkwentz/amazon-cli@latest
 ```
 
@@ -872,6 +917,26 @@ All errors return JSON with consistent schema:
 | `PURCHASE_FAILED` | Purchase could not be completed |
 | `NETWORK_ERROR` | Network connectivity issue |
 | `AMAZON_ERROR` | Amazon returned an error |
+
+---
+
+## Safety
+
+**⚠️ CRITICAL: The `--confirm` flag is required for all purchase operations. Always preview before confirming.**
+
+**All purchase operations follow a preview-first pattern:**
+- Running a purchase command **without** `--confirm` shows a preview of what will happen
+- You **must** add the `--confirm` flag to execute the actual purchase
+- **Cart checkout without `--confirm` shows preview only** - no purchase will be made
+
+**This safety mechanism applies to:**
+- `cart checkout` - Must use `--confirm` to complete purchase
+- `buy` - Must use `--confirm` to execute purchase
+- `returns create` - Must use `--confirm` to initiate return
+- `cart clear` - Must use `--confirm` to clear cart
+- `subscriptions skip` - Must use `--confirm` to skip delivery
+- `subscriptions frequency` - Must use `--confirm` to change frequency
+- `subscriptions cancel` - Must use `--confirm` to cancel subscription
 
 ---
 
