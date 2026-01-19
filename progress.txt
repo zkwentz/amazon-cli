@@ -2532,3 +2532,41 @@ amazon-cli subscriptions cancel SUB123 --confirm
 
 ### Files Modified:
 - .github/workflows/ci.yml (lines 26 and 31: updated coverage file from coverage.out to coverage.txt)
+
+## Task: Add badges to README.md
+- Added three badges at the top of README.md file using shields.io format:
+  - CI status badge: Links to GitHub Actions CI workflow (ci.yml), shows build status for main branch
+  - Go version badge: Displays Go 1.25.5 (from go.mod), links to go.dev
+  - License badge: Shows MIT license, links to LICENSE file in repository
+- Badges are placed between the title and description sections
+- All badges use clickable links to relevant resources
+- Badges provide at-a-glance status and project information for visitors
+
+### Files Modified:
+- README.md (lines 3-5: added three badges using shields.io format)
+
+## Task: Update file README.md to ensure all command examples in Quick Start section work
+- Verified all command examples in the Quick Start section (lines 42-64) against the current CLI implementation
+- Built the amazon-cli binary and tested each command from the Quick Start section
+- All 8 command examples tested successfully:
+  1. amazon-cli auth login - works correctly
+  2. amazon-cli auth status - works correctly
+  3. amazon-cli orders list --limit 5 - works correctly (--limit flag validated)
+  4. amazon-cli search "wireless headphones" --prime-only - works correctly (--prime-only flag validated)
+  5. amazon-cli cart add B08N5WRWNW --quantity 1 - works correctly (--quantity flag validated)
+  6. amazon-cli cart list - works correctly
+  7. amazon-cli cart checkout - works correctly (preview mode)
+  8. amazon-cli cart checkout --confirm - works correctly (--confirm flag validated)
+- Verified implementation by reading source files:
+  - cmd/auth.go: Confirmed auth login and auth status commands exist
+  - cmd/orders.go: Confirmed --limit flag exists (line 144)
+  - cmd/search.go: Confirmed --prime-only flag exists (line 53)
+  - cmd/cart.go: Confirmed --quantity flag exists (line 242), --confirm flag exists (lines 245, 248)
+- No updates needed to README.md - all Quick Start examples are accurate and work with current implementation
+
+### Files Checked:
+- README.md (lines 42-64: Quick Start section verified)
+- cmd/auth.go (auth commands implementation)
+- cmd/orders.go (orders commands and flags)
+- cmd/search.go (search command and flags)
+- cmd/cart.go (cart commands and flags)
