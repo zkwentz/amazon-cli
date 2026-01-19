@@ -386,3 +386,117 @@
     - Zero amount: "$0.00" → 0.0
   - All 15 tests (7 parseOrderDetailHTML + 8 parsePrice) passing successfully (0.344s)
   - Tests achieve comprehensive coverage of parsing logic and edge cases
+
+## Task: GetOrders Implementation
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/internal/amazon/orders.go`:
+  - Added `net/http` import for HTTP request handling
+  - Replaced mock `GetOrders(limit int, status string)` implementation with real HTTP integration:
+    - Sets default limit to 10 if zero or negative value provided
+    - Constructs order history URL: `{baseURL}/gp/your-account/order-history`
+    - Creates HTTP GET request using `http.NewRequest()`
+    - Executes request using `c.Do(req)` method (includes rate limiting, retries, browser headers)
+    - Returns error if HTTP status code is not 200 OK
+    - Reads response body into buffer using `body.ReadFrom(resp.Body)`
+    - Parses HTML response using existing `parseOrdersHTML()` function
+    - Filters orders by status if status parameter is provided:
+      - Iterates through parsed orders
+      - Only includes orders where `order.Status == status`
+    - Applies limit to results:
+      - Slices orders array to `orders[:limit]` if length exceeds limit
+    - Returns `OrdersResponse` struct with orders and total count
+    - Proper error handling with context at each step
+    - Ensures response body is closed with `defer resp.Body.Close()`
+
+- Enhanced `/Users/zacharywentz/Development/amazon-cli/internal/amazon/orders_test.go`:
+  - Added imports: `net/http`, `net/http/httptest` for HTTP testing
+  - Implemented 6 comprehensive test functions for GetOrders:
+    - `TestGetOrders_Success` - Tests successful order retrieval:
+      - Sets up httptest server returning fixture HTML
+      - Verifies request path is `/gp/your-account/order-history`
+      - Creates client with custom baseURL pointing to test server
+      - Validates response contains 3 orders with correct TotalCount
+    - `TestGetOrders_WithLimit` - Tests limit parameter:
+      - Calls `GetOrders(2, "")` with limit of 2
+      - Verifies only 2 orders returned even though fixture has 3
+      - Validates TotalCount reflects limited results
+    - `TestGetOrders_WithStatusFilter` - Tests status filtering:
+      - Calls `GetOrders(10, "delivered")` to filter by status
+      - Verifies only 1 order returned (only delivered order in fixture)
+      - Validates all returned orders have status "delivered"
+    - `TestGetOrders_DefaultLimit` - Tests default limit behavior:
+      - Calls `GetOrders(0, "")` with zero limit
+      - Verifies limit defaults to 10 and all 3 orders returned
+    - `TestGetOrders_HTTPError` - Tests HTTP error handling:
+      - Mock server returns 500 Internal Server Error
+      - Verifies GetOrders returns error for non-200 status
+    - `TestGetOrders_InvalidHTML` - Tests parsing of invalid HTML:
+      - Mock server returns HTML without order elements
+      - Verifies empty orders list returned without error
+  - All tests use httptest.Server for realistic HTTP mocking
+  - All tests properly defer server.Close() to prevent resource leaks
+  - All tests modify client.baseURL to point to test server
+  - All 6 new GetOrders tests passing successfully
+  - All existing tests still passing (21 total tests in orders_test.go)
+  - Full test suite passes in 31.9s (includes retry/backoff tests)
+
+## Task: GetOrder Implementation
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/internal/amazon/orders.go`:
+  - Replaced mock `GetOrder(orderID string)` implementation with real HTTP integration:
+    - Validates orderID is not empty
+    - Validates orderID format using regex `^\d{3}-\d{7}-\d{7}$` (XXX-XXXXXXX-XXXXXXX pattern)
+    - Returns error with clear message if format is invalid
+    - Constructs order detail URL: `{baseURL}/gp/your-account/order-details?orderID={orderID}`
+    - Creates HTTP GET request using `http.NewRequest()`
+    - Executes request using `c.Do(req)` method (includes rate limiting, retries, browser headers)
+    - Returns error if HTTP status code is not 200 OK
+    - Reads response body into buffer using `body.ReadFrom(resp.Body)`
+    - Checks for CAPTCHA detection using `c.detectCAPTCHA(body.Bytes())`
+    - Returns specific CAPTCHA error message if detected
+    - Parses HTML response using existing `parseOrderDetailHTML()` function
+    - Returns populated Order struct with all details (items, tracking, etc.)
+    - Proper error handling with context at each step
+    - Ensures response body is closed with `defer resp.Body.Close()`
+
+- Enhanced `/Users/zacharywentz/Development/amazon-cli/internal/amazon/orders_test.go`:
+  - Added 6 comprehensive test functions for GetOrder:
+    - `TestGetOrder_EmptyOrderID` - Tests validation of empty order ID:
+      - Verifies error message is "order ID cannot be empty"
+    - `TestGetOrder_InvalidOrderIDFormat` - Tests format validation with 8 invalid cases:
+      - "123" (too short)
+      - "123-456-789" (wrong segment lengths)
+      - "abc-1234567-1234567" (letters in first segment)
+      - "123-abcdefg-1234567" (letters in second segment)
+      - "123-1234567-abcdefg" (letters in third segment)
+      - "1234-1234567-1234567" (first segment too long)
+      - "123-12345678-1234567" (second segment too long)
+      - "123-1234567-12345678" (third segment too long)
+    - `TestGetOrder_Success` - Tests successful order retrieval:
+      - Sets up httptest server returning order detail fixture HTML
+      - Verifies request path is `/gp/your-account/order-details`
+      - Verifies orderID query parameter is "123-4567890-1234567"
+      - Creates client with custom baseURL pointing to test server
+      - Validates all order fields from fixture:
+        - OrderID: "123-4567890-1234567"
+        - Date: "2026-01-15"
+        - Total: $84.98
+        - Status: "delivered"
+        - Items: 2 items present
+        - Tracking: carrier "UPS", tracking number "1Z999AA10123456784"
+    - `TestGetOrder_HTTPError` - Tests HTTP error handling:
+      - Mock server returns 500 Internal Server Error
+      - Verifies GetOrder returns error for non-200 status
+    - `TestGetOrder_CAPTCHADetection` - Tests CAPTCHA detection:
+      - Mock server returns HTML containing CAPTCHA message
+      - Verifies GetOrder returns specific CAPTCHA error message
+      - Error message: "CAPTCHA detected - Amazon is blocking automated access"
+    - `TestGetOrder_ParseError` - Tests parsing failure:
+      - Mock server returns HTML without order ID
+      - Verifies GetOrder returns parse error
+  - All tests use httptest.Server for realistic HTTP mocking
+  - All tests properly defer server.Close() to prevent resource leaks
+  - All tests modify client.baseURL to point to test server
+  - All 6 new GetOrder tests passing successfully
+  - All existing tests still passing (27 total tests in orders_test.go)
+  - Full test suite passes in 0.426s
