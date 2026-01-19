@@ -1,5 +1,9 @@
 # amazon-cli
 
+[![CI](https://img.shields.io/github/actions/workflow/status/zkwentz/amazon-cli/ci.yml?branch=main&label=CI&logo=github)](https://github.com/zkwentz/amazon-cli/actions/workflows/ci.yml)
+[![Go Version](https://img.shields.io/badge/Go-1.25.5-00ADD8?logo=go&logoColor=white)](https://go.dev/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/zkwentz/amazon-cli/blob/main/LICENSE)
+
 A command-line interface for Amazon shopping, designed for AI agent integration and programmatic access to Amazon.com.
 
 ## Overview

@@ -2532,3 +2532,15 @@ amazon-cli subscriptions cancel SUB123 --confirm
 
 ### Files Modified:
 - .github/workflows/ci.yml (lines 26 and 31: updated coverage file from coverage.out to coverage.txt)
+
+## Task: Add badges to README.md
+- Added three badges at the top of README.md file using shields.io format:
+  - CI status badge: Links to GitHub Actions CI workflow (ci.yml), shows build status for main branch
+  - Go version badge: Displays Go 1.25.5 (from go.mod), links to go.dev
+  - License badge: Shows MIT license, links to LICENSE file in repository
+- Badges are placed between the title and description sections
+- All badges use clickable links to relevant resources
+- Badges provide at-a-glance status and project information for visitors
+
+### Files Modified:
+- README.md (lines 3-5: added three badges using shields.io format)
