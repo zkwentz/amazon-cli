@@ -1776,3 +1776,73 @@ The new test verifies that the mock implementation doesn't make external HTTP ca
 - If `submitCheckout` or any other method attempts to make HTTP calls, the test will fail
 - The failing round tripper provides clear error messages showing what request was attempted
 - This pattern can be reused for testing other functions that should avoid HTTP calls in mock mode
+
+## Task: Update PreviewCheckout to return more realistic preview data
+
+Date: 2026-01-19
+
+### Changes Made:
+
+1. **Updated `PreviewCheckout` function in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart.go` (lines 186-222)**:
+   - Enhanced mock address data with more realistic values:
+     - Name: "John Doe" (instead of "Preview Address")
+     - Street: "1234 Amazon Way, Apt 567" (includes apartment number)
+     - City: "Seattle" (Amazon's headquarters city)
+     - State: "WA" (Washington state code)
+     - Zip: "98109" (Seattle zip code)
+     - All other address fields remain populated (Country: "US", Default: true)
+   
+   - Enhanced mock payment method data:
+     - Last4: "4242" (changed from "1234" - more realistic test card number)
+     - Type and Default fields remain populated
+   
+   - Enhanced delivery options array with more realistic options:
+     - "Standard (5-7 business days)" - includes delivery timeframe
+     - "Two-Day Shipping" - common Amazon option
+     - "One-Day Shipping" - common Amazon option  
+     - "Same-Day Delivery" - premium delivery option
+     - Previously only had "Standard" and "Express"
+
+2. **Added comprehensive test in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart_test.go` (lines 748-828)**:
+   - Created `TestPreviewCheckout_RealisticData` function
+   - Tests that preview contains current cart contents with items
+   - Verifies all address fields are populated and non-empty:
+     - ID, Name, Street, City, State, Zip, Country
+   - Verifies all payment method fields are populated:
+     - ID, Type, Last4 (with length validation)
+   - Verifies delivery options array:
+     - Has at least 2 options
+     - All options are non-empty strings
+   - Sets up cart with 2 items to ensure realistic test scenario
+
+### Implementation Details:
+
+The updated `PreviewCheckout` function now returns:
+- **Current cart contents**: Returns actual cart state from `c.GetCart()`
+- **Mock address with all fields**: Name, street with apartment, city, state, ZIP, country, default flag
+- **Mock payment method with all fields**: ID, type (Visa), last 4 digits (4242), default flag
+- **Delivery options array**: Four realistic shipping options with delivery timeframes
+
+### Test Results:
+
+- All existing tests continue to pass: `TestPreviewCheckout` (3 subtests)
+- New test passes successfully: `TestPreviewCheckout_RealisticData` (0.00s)
+- All 112 tests in internal/amazon package pass
+- Total test time: 54.798s
+
+### Purpose:
+
+- Provides more realistic mock data for development and testing
+- Ensures all fields in Address model are populated
+- Ensures all fields in PaymentMethod model are populated
+- Includes multiple delivery options to simulate real Amazon checkout experience
+- Returns actual cart contents so preview reflects current state
+- Enables better testing of checkout preview UI components
+- Makes mock data more representative of real Amazon checkout flow
+
+### Notes:
+
+- This is still a mock implementation for development/testing
+- No actual Amazon API calls are made
+- Real implementation will fetch actual address and payment data
+- Delivery options will eventually come from Amazon's shipping calculation API
