@@ -2690,3 +2690,46 @@ The Products section already exists in skills.md with complete documentation:
 ### Conclusion:
 No changes needed - the documentation already meets all specified requirements. Both commands are properly documented with correct inputs and comprehensive outputs matching the task specification.
 
+
+## [2026-01-19 01:14:15] Verified Cart section in skills.md
+
+### Task: Add Cart section documenting: cart add, cart list, cart remove, cart clear (--confirm required), cart checkout (--confirm required, preview without flag)
+
+### Changes Made:
+1. Verified that the Cart section already exists in skills.md with complete documentation
+2. Confirmed all required commands are documented with proper structure and examples
+
+### Cart Commands Verified:
+1. **cart add** (lines 535-569):
+   - Inputs: asin (required), --quantity (optional, default 1)
+   - Output: Updated cart JSON with items, subtotal, tax, total, and item_count
+   - Example command and output included
+
+2. **cart list** (lines 573-585):
+   - Inputs: None
+   - Output: Same schema as cart add
+   - Example command included
+
+3. **cart remove** (lines 587-603):
+   - Inputs: asin (required)
+   - Output: Updated cart JSON (same schema as cart add)
+   - Example command and output included
+
+4. **cart clear** (lines 605-627):
+   - Inputs: --confirm flag (required)
+   - Output: Status JSON with items_removed count
+   - Properly documents that --confirm is required to execute
+   - Example command and output included
+
+5. **cart checkout** (lines 629-683):
+   - Inputs: --confirm flag (required for purchase), --address-id (optional), --payment-id (optional)
+   - Output: Preview mode (dry_run) without --confirm, confirmed purchase with order_id when --confirm is provided
+   - Properly documents preview functionality without flag
+   - Properly documents that --confirm is required to complete purchase
+   - Includes both preview and confirmed output examples
+
+### Files Verified:
+- /Users/zacharywentz/Development/amazon-cli/skills.md (Cart section at lines 535-683)
+
+### Summary:
+The Cart section was already completely documented in skills.md with all required commands, proper flag documentation (--confirm requirements), and preview/execute mode examples. No modifications were needed.
