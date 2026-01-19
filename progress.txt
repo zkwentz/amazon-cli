@@ -3,3 +3,36 @@
 - Initialized Go module with path: github.com/zkwentz/amazon-cli
 - Created go.mod file with Go version 1.25.5
 - Module is ready for development
+
+## Task: Configuration Management System
+
+- Created `/Users/zacharywentz/Development/amazon-cli/internal/config/config.go`
+- Implemented `AuthConfig` struct with fields:
+  - `AccessToken string` - OAuth access token
+  - `RefreshToken string` - OAuth refresh token
+  - `ExpiresAt time.Time` - Token expiration timestamp
+- Implemented `Config` struct containing `AuthConfig`
+- Implemented `LoadConfig(path string) (*Config, error)` function:
+  - Reads configuration from specified path or `~/.amazon-cli/config.json` by default
+  - Handles tilde (~) expansion to home directory
+  - Returns empty config if file doesn't exist (no error)
+  - Gracefully handles empty time strings in existing config files
+  - Properly parses JSON with RFC3339 time format
+- Implemented `SaveConfig(config *Config, path string) error` function:
+  - Writes configuration to specified path with 0600 permissions (owner read/write only)
+  - Creates parent directories with 0700 permissions if needed
+  - Handles tilde (~) expansion
+  - Marshals JSON with indentation for readability
+- Added helper methods:
+  - `DefaultConfigPath()` - Returns default config path
+  - `IsAuthenticated()` - Checks if user has valid, non-expired token
+  - `ClearAuth()` - Clears all authentication data
+- Created comprehensive test suite in `internal/config/config_test.go`:
+  - 16 test cases covering all functionality
+  - Tests for loading existing and non-existent files
+  - Tests for invalid JSON handling
+  - Tests for file permissions (0600 for config, 0700 for directories)
+  - Tests for path expansion and default paths
+  - Tests for authentication state checking
+  - Tests for round-trip save/load operations
+  - All tests passing successfully
