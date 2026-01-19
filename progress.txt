@@ -891,3 +891,58 @@
   - CreatedAt uses RFC3339 format for consistency with other timestamps
   - Uses getClient() helper for consistent client creation
   - Integrated with existing error handling patterns (models.ErrInvalidInput, output.Error)
+
+## Task: Search Results Sample HTML File Creation
+
+- Created `/testdata/search/search_results_sample.html`:
+  - Sample HTML fixture mimicking Amazon search results page structure
+  - Contains 5 sample products with complete details:
+    - Product 1: Sony WH-1000XM5 (ASIN B08N5WRWNW)
+      - Price: $349.99
+      - Rating: 4.5 stars
+      - Review Count: 12,453
+      - Prime: Yes
+      - Stock: In Stock
+    - Product 2: Bose QuietComfort Ultra (ASIN B0BYZ4K5W3)
+      - Price: $379.00
+      - Rating: 4.7 stars
+      - Review Count: 8,921
+      - Prime: Yes
+      - Stock: In Stock
+    - Product 3: Apple AirPods Max (ASIN B0D1XD1ZV3)
+      - Price: $549.00
+      - Rating: 4.6 stars
+      - Review Count: 15,678
+      - Prime: Yes
+      - Stock: Only 3 left in stock - order soon (low stock)
+    - Product 4: Sennheiser Momentum 4 (ASIN B09YMWQ9KX)
+      - Price: $299.95
+      - Rating: 4.4 stars
+      - Review Count: 6,234
+      - Prime: Yes
+      - Stock: In Stock
+    - Product 5: JBL Tune 770NC (ASIN B0C7QBMD97)
+      - Price: $129.95
+      - Rating: 4.3 stars
+      - Review Count: 4,521
+      - Prime: Yes
+      - Stock: Currently unavailable (out of stock)
+  - HTML structure follows Amazon search results pattern:
+    - Container: `#search .s-result-list`
+    - Each product: `.s-result-item` with `data-asin` attribute
+    - Product title: `.product-title` within `.s-product-info`
+    - Rating: `.rating-value` with `data-rating` attribute
+    - Review count: `.review-count` with `data-count` attribute
+    - Price: `.a-price` with nested `.price-whole`, `.price-decimal`, `.price-fraction`
+    - Prime badge: `.s-prime-badge` with `.a-icon-prime` and `.prime-shipping`
+    - Stock status: `.s-stock-status .availability` with classes (in-stock, low-stock, out-of-stock)
+  - Created `testdata/search/` directory to organize search-related fixtures
+  - File serves as test fixture for future search results parsing implementation
+  - All required attributes present for each product:
+    - ASIN (unique identifier)
+    - Title (product name)
+    - Price (dollar amount with cents)
+    - Rating (decimal value out of 5)
+    - Review count (integer)
+    - Prime badge (boolean via presence of prime elements)
+    - Stock status (string with various states)
