@@ -1950,3 +1950,100 @@ The test follows a comprehensive flow:
 - Positioned after the existing `TestClearCart` function
 - Validates cart state both before and after clearing
 - Ensures all monetary values return to zero state
+
+---
+
+## Checkout Confirm Flag Verification - $(date +"%Y-%m-%d %H:%M:%S")
+
+### Changes Made:
+
+1. **Updated `cartCheckoutCmd` in `/Users/zacharywentz/Development/amazon-cli/cmd/cart.go` (lines 137-228)**:
+   - Restructured the Run function to check `--confirm` flag BEFORE any checkout logic runs
+   - Moved confirm flag check to line 142, immediately after getting the client
+   - Split logic into two branches: preview mode (default) and confirmed checkout mode
+   - Preview mode (no --confirm): Gets address/payment IDs, calls PreviewCheckout, returns preview
+   - Confirmed mode (--confirm set): Gets address/payment IDs, calls CompleteCheckout, executes purchase
+
+2. **Created comprehensive test suite in `/Users/zacharywentz/Development/amazon-cli/cmd/cart_test.go`**:
+   - Added `TestCartCheckoutCmd_Configuration` to verify command structure
+   - Added `TestCartCheckoutCmd_Flags` to verify all flags are properly configured
+   - Added `TestCartCheckoutCmd_ConfirmFlagDefaultIsFalse` to verify preview mode is default
+   - Added `TestCartCheckoutCmd_PreviewModeIsDefault` to verify documentation mentions preview
+   - Added tests for all cart subcommands (add, list, remove, clear, checkout)
+   - Added tests for flag defaults and command structure
+   - Total of 12 test functions verifying cart command behavior
+
+### Implementation Details:
+
+**Previous behavior:**
+```go
+// Get address and payment IDs first
+// ... address/payment logic ...
+// Then check confirm flag
+if !cartConfirm {
+    // preview
+}
+// execute checkout
+```
+
+**New behavior:**
+```go
+// Check confirm flag FIRST
+if !cartConfirm {
+    // Get address/payment IDs for preview
+    // ... address/payment logic ...
+    // Preview checkout
+    return
+}
+// Get address/payment IDs for actual checkout
+// ... address/payment logic ...
+// Execute checkout
+```
+
+### Key Changes:
+
+1. **Confirm flag check moved to line 142**: Immediately after getting client, before any checkout logic
+2. **Preview mode is default**: When `--confirm` is not set, runs preview and returns early
+3. **Separated logic paths**: Preview and checkout now have distinct code paths
+4. **Improved comments**: Added clear comments explaining the default preview mode behavior
+5. **Maintains functionality**: Both preview and confirmed checkout still work correctly
+
+### Test Coverage:
+
+- Verifies `--confirm` flag defaults to false (preview mode)
+- Confirms command configuration and documentation
+- Tests all cart subcommands exist and are properly configured
+- Validates flag defaults for quantity, confirm, address-id, payment-id
+- Ensures getClient() returns singleton instance
+
+### Test Results:
+
+All 12 tests pass successfully:
+- TestCartCheckoutCmd_Configuration ✓
+- TestCartCheckoutCmd_Flags ✓
+- TestCartCheckoutCmd_ConfirmFlagDefaultIsFalse ✓
+- TestCartCheckoutCmd_PreviewModeIsDefault ✓
+- TestCartClearCmd_Configuration ✓
+- TestCartClearCmd_Flags ✓
+- TestCartAddCmd_Configuration ✓
+- TestCartAddCmd_Flags ✓
+- TestCartListCmd_Configuration ✓
+- TestCartRemoveCmd_Configuration ✓
+- TestCartCmd_Subcommands ✓
+- TestCartCmd_Configuration ✓
+
+### Purpose:
+
+- Ensures preview mode is the safe default behavior
+- Verifies `--confirm` flag must be explicitly set to execute checkout
+- Prevents accidental purchases by checking confirm flag before any checkout logic
+- Maintains clear separation between preview and execution paths
+- Provides comprehensive test coverage for cart command behavior
+
+### Technical Notes:
+
+- The code structure now makes it impossible to execute checkout without confirm flag
+- Preview mode returns early, preventing any execution path from reaching CompleteCheckout
+- Address and payment logic is duplicated in both branches to maintain clarity
+- Both branches properly handle default address/payment selection
+- Error handling remains consistent across both code paths
