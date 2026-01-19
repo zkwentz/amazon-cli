@@ -2532,3 +2532,67 @@ amazon-cli subscriptions cancel SUB123 --confirm
 
 ### Files Modified:
 - .github/workflows/ci.yml (lines 26 and 31: updated coverage file from coverage.out to coverage.txt)
+
+## Task: Create CONTRIBUTING.md file
+
+- Created comprehensive CONTRIBUTING.md file with all required sections
+- **Development Setup** section includes:
+  - Prerequisites (Go 1.22+, Git)
+  - Instructions to install Go and verify installation
+  - Repository cloning steps: `git clone https://github.com/zkwentz/amazon-cli.git`
+  - Dependency installation: `go mod download`
+  - Development tools installation (golangci-lint)
+  - Build instructions using both `go build` and `make build`
+  - Alternative installation via `go install`
+- **Running Tests** section includes:
+  - Basic test command: `go test ./...`
+  - Verbose output: `go test -v ./...`
+  - Race detection: `go test -v -race ./...`
+  - Coverage generation and visualization
+  - Package-specific testing
+  - Running individual tests
+  - Makefile shortcuts (`make test`, `make test-coverage`)
+- **Building** section includes:
+  - Building for current platform: `go build -o amazon-cli .`
+  - Building for all platforms: `make build-all`
+  - Target platforms listed (macOS, Linux, Windows for various architectures)
+  - Local installation to GOPATH
+  - Cleaning build artifacts
+- **Code Style** section includes:
+  - Formatting with `gofmt`: `go fmt ./...` or `make fmt`
+  - Linting with `golangci-lint`: `golangci-lint run` or `make lint`
+  - List of common linter checks
+  - Code organization guidelines
+  - Testing standards and best practices
+- **Submitting PRs** section includes:
+  - Branch naming conventions with examples:
+    - `feature/description` for new features
+    - `fix/description` for bug fixes
+    - `docs/description` for documentation
+    - `refactor/description` for refactoring
+    - `test/description` for tests
+  - Commit message format and guidelines:
+    - Short summary (50 chars)
+    - Detailed explanation wrapped at 72 chars
+    - Present tense usage
+    - Issue references
+    - Good and bad examples provided
+  - Step-by-step PR process (create branch, make changes, run checks, commit, push, open PR)
+  - Pull request template with sections:
+    - Description
+    - Type of change (bug fix, feature, breaking change, etc.)
+    - Testing checklist
+    - Code quality checklist
+    - Related issues
+  - Review process guidelines
+  - CI pipeline description (tests, lint, build for all platforms)
+- Additional sections:
+  - Error handling guidelines
+  - Security considerations
+  - Documentation requirements
+  - Getting help resources
+  - Code of conduct
+  - License information (MIT)
+
+### Files Created:
+- CONTRIBUTING.md (comprehensive contribution guide with all required sections)
