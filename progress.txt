@@ -2532,3 +2532,33 @@ amazon-cli subscriptions cancel SUB123 --confirm
 
 ### Files Modified:
 - .github/workflows/ci.yml (lines 26 and 31: updated coverage file from coverage.out to coverage.txt)
+
+## Task: Create SECURITY.md file with security policy
+- Created SECURITY.md in the root directory with comprehensive security documentation
+- Included the following sections as specified:
+
+### 1. Supported Versions
+- Added version support table showing v0.1.x as currently supported
+- Based on git tag v0.1.0 found in repository
+- Clear indication of which versions receive security patches
+
+### 2. Reporting Vulnerabilities
+- Provided security contact email: security@amazon-cli.io
+- Detailed reporting process with required information
+- Clear expectations for acknowledgment (48 hours) and assessment (5 business days)
+- Outlined resolution process including patch release and security advisory
+- Included disclosure policy requesting coordinated disclosure
+
+### 3. Security Best Practices
+- **Config file permissions (0600):** Detailed instructions to set chmod 0600 on ~/.amazon-cli/config.json with verification steps
+- **Credential rotation:** Guidelines for periodic re-authentication, logout procedures, and token monitoring
+- **--confirm flag usage:** Comprehensive list of all commands requiring --confirm flag with examples:
+  - cart checkout, cart clear, buy
+  - returns create
+  - subscriptions skip, frequency, cancel
+- **Additional recommendations:** System security, software updates, avoiding shared environments, log handling
+- **Security features overview:** HTTPS-only, no credential logging, rate limiting, token expiration
+
+### Files Created:
+- SECURITY.md (comprehensive security policy with all required sections)
+
