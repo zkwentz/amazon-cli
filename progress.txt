@@ -3,3 +3,18 @@
 - Initialized Go module with path: github.com/zkwentz/amazon-cli
 - Created go.mod file with Go version 1.25.5
 - Module is ready for development
+
+## Task: Create Amazon API Research Documentation
+
+- Created docs/amazon-api-research.md with comprehensive documentation
+- Documented all major Amazon authentication methods:
+  - Login with Amazon (LWA) OAuth 2.0
+  - Amazon Advertising API
+  - Selling Partner API (SP-API)
+  - Session cookies authentication
+  - Product Advertising API (PA-API)
+- Included detailed curl command examples for each authentication method
+- Documented best approaches for order history, cart access, and product search
+- Created comparison matrix showing capabilities of each method
+- Included security considerations and TOS compliance information
+- Provided clear recommendations for different use cases (personal/research vs production)
