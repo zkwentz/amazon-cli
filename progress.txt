@@ -3032,3 +3032,41 @@ Successfully removed the obsolete IMPLEMENTATION_AND_TEST_PLAN.md file (41,002 b
   - `TestServeFixture_WithQueryParams` - Tests path matching with query parameters
   - `TestServeFixture_RealFixtures` - Integration test with actual fixture files
   - All 9 tests passing successfully (0.285s total test time)
+
+## Task: Authentication Token Management
+
+- Created `/internal/amazon/auth.go`:
+  - Implemented `AuthTokens` struct with fields:
+    - `AccessToken string` - OAuth access token for API authentication
+    - `RefreshToken string` - Token used to refresh expired access tokens
+    - `ExpiresAt time.Time` - Timestamp when the access token expires
+  - Implemented `IsExpired() bool` method:
+    - Checks if the access token has expired by comparing current time with ExpiresAt
+    - Returns true if token is expired, false otherwise
+  - Implemented `ExpiresWithin(duration time.Duration) bool` method:
+    - Checks if the token will expire within the specified duration
+    - Useful for proactive token refresh before expiration
+    - Returns true if token expires within the given duration
+  - Implemented `RefreshTokens(refreshToken string) (*AuthTokens, error)` function:
+    - Placeholder implementation that returns mock tokens
+    - Returns new AuthTokens with mock access token valid for 1 hour
+    - Preserves the original refresh token in the response
+    - Ready to be replaced with actual Amazon OAuth API integration
+
+- Created comprehensive test suite in `/internal/amazon/auth_test.go`:
+  - `TestAuthTokens_IsExpired` - Tests token expiration detection:
+    - Verifies expired tokens (1 hour ago) return true
+    - Verifies valid tokens (1 hour future) return false
+    - Tests edge case of tokens expired just now
+  - `TestAuthTokens_ExpiresWithin` - Tests proactive expiration checking:
+    - Verifies tokens expiring in 15 minutes are detected within 30-minute window
+    - Verifies tokens expiring in 45 minutes are not within 30-minute window
+    - Handles already expired tokens correctly
+    - Tests boundary conditions (tokens expiring beyond duration)
+  - `TestRefreshTokens` - Tests token refresh functionality:
+    - Verifies refresh returns non-nil tokens
+    - Validates access token is non-empty
+    - Confirms refresh token is preserved
+    - Ensures returned tokens are not already expired
+    - Validates expiration is set to approximately 1 hour from now
+  - All 3 test functions with 9 test cases passing successfully
