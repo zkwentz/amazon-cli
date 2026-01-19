@@ -79,7 +79,7 @@ func JSON(data interface{}) error {
 	return NewPrinter("json", false).Print(data)
 }
 
-// Error is a convenience function to print an error to stdout
+// Error is a convenience function to print an error to stderr
 func Error(code, message string, details map[string]interface{}) error {
 	if details == nil {
 		details = map[string]interface{}{}
@@ -91,5 +91,10 @@ func Error(code, message string, details map[string]interface{}) error {
 			"details": details,
 		},
 	}
-	return JSON(errResponse)
+	output, err := json.MarshalIndent(errResponse, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(os.Stderr, string(output))
+	return nil
 }

@@ -2480,3 +2480,16 @@ amazon-cli subscriptions cancel SUB123 --confirm
 ### Files Modified:
 - pkg/models/errors.go (updated Error() method and imports)
 - pkg/models/errors_test.go (added 4 comprehensive test functions)
+
+
+## Task: Ensure Error function outputs to stderr
+- Modified Error() function in internal/output/output.go to output JSON formatted errors to stderr instead of stdout
+- The function signature Error(code, message string, details map[string]interface{}) was already present
+- Updated implementation to directly write to os.Stderr using json.MarshalIndent and fmt.Fprintln
+- Created comprehensive test suite in internal/output/output_test.go with multiple test cases:
+  - TestError: Tests various scenarios (nil details, empty details, complex nested details)
+  - TestError_OutputsToStderr: Verifies output goes to stderr
+  - TestError_JSONFormat: Verifies correct JSON structure
+- All tests pass successfully
+- Output format: {"error": {"code": "...", "message": "...", "details": {...}}}
+
