@@ -378,3 +378,173 @@ func TestAuthStatusCmd_ShortLivedToken(t *testing.T) {
 		t.Errorf("Expected expires_in_seconds to be positive, got %f", expiresInSeconds)
 	}
 }
+
+func TestAuthLogoutCmd_Success(t *testing.T) {
+	// Create a temporary directory for the test config
+	tmpDir := t.TempDir()
+	configPath := tmpDir + "/config.json"
+
+	// Create a config file with auth tokens
+	configData := `{
+  "auth": {
+    "access_token": "test_access_token",
+    "refresh_token": "test_refresh_token",
+    "expires_at": "2026-01-18T12:00:00Z"
+  }
+}`
+	if err := os.WriteFile(configPath, []byte(configData), 0600); err != nil {
+		t.Fatalf("Failed to write test config: %v", err)
+	}
+
+	// Override DefaultConfigPath by creating the config directory
+	home := os.Getenv("HOME")
+	originalConfigPath := home + "/.amazon-cli/config.json"
+
+	// Backup original config if it exists
+	var originalConfig []byte
+	var hadOriginalConfig bool
+	if data, err := os.ReadFile(originalConfigPath); err == nil {
+		originalConfig = data
+		hadOriginalConfig = true
+	}
+
+	// Ensure config directory exists
+	os.MkdirAll(home+"/.amazon-cli", 0700)
+
+	// Write test config to actual location
+	if err := os.WriteFile(originalConfigPath, []byte(configData), 0600); err != nil {
+		t.Fatalf("Failed to write test config to actual location: %v", err)
+	}
+
+	// Cleanup: restore original config
+	defer func() {
+		if hadOriginalConfig {
+			os.WriteFile(originalConfigPath, originalConfig, 0600)
+		} else {
+			os.Remove(originalConfigPath)
+		}
+	}()
+
+	// Capture stdout
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	// Run the command
+	authLogoutCmd.Run(authLogoutCmd, []string{})
+
+	// Restore stdout
+	w.Close()
+	os.Stdout = oldStdout
+
+	// Read captured output
+	var buf bytes.Buffer
+	io.Copy(&buf, r)
+
+	// Parse JSON output
+	var result map[string]interface{}
+	if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+		t.Fatalf("Failed to parse JSON output: %v\nOutput: %s", err, buf.String())
+	}
+
+	// Verify status is "logged_out"
+	status, ok := result["status"].(string)
+	if !ok {
+		t.Fatal("status field is missing or not a string")
+	}
+	if status != "logged_out" {
+		t.Errorf("Expected status 'logged_out', got '%s'", status)
+	}
+
+	// Verify config file was updated and tokens were cleared
+	configContent, err := os.ReadFile(originalConfigPath)
+	if err != nil {
+		t.Fatalf("Failed to read config after logout: %v", err)
+	}
+
+	var savedConfig map[string]interface{}
+	if err := json.Unmarshal(configContent, &savedConfig); err != nil {
+		t.Fatalf("Failed to parse saved config: %v", err)
+	}
+
+	// Check that auth tokens are cleared
+	auth, ok := savedConfig["auth"].(map[string]interface{})
+	if !ok {
+		t.Fatal("auth field is missing or not an object")
+	}
+
+	if accessToken, _ := auth["access_token"].(string); accessToken != "" {
+		t.Errorf("Expected access_token to be empty, got '%s'", accessToken)
+	}
+
+	if refreshToken, _ := auth["refresh_token"].(string); refreshToken != "" {
+		t.Errorf("Expected refresh_token to be empty, got '%s'", refreshToken)
+	}
+}
+
+func TestAuthLogoutCmd_NoExistingConfig(t *testing.T) {
+	// Create a temporary directory for the test config
+	tmpDir := t.TempDir()
+	configPath := tmpDir + "/config.json"
+
+	// Ensure no config file exists
+	os.Remove(configPath)
+
+	// Override DefaultConfigPath
+	home := os.Getenv("HOME")
+	originalConfigPath := home + "/.amazon-cli/config.json"
+
+	// Backup original config if it exists
+	var originalConfig []byte
+	var hadOriginalConfig bool
+	if data, err := os.ReadFile(originalConfigPath); err == nil {
+		originalConfig = data
+		hadOriginalConfig = true
+	}
+
+	// Remove config to simulate no existing config
+	os.Remove(originalConfigPath)
+
+	// Cleanup: restore original config
+	defer func() {
+		if hadOriginalConfig {
+			os.WriteFile(originalConfigPath, originalConfig, 0600)
+		}
+	}()
+
+	// Capture stdout
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	// Run the command
+	authLogoutCmd.Run(authLogoutCmd, []string{})
+
+	// Restore stdout
+	w.Close()
+	os.Stdout = oldStdout
+
+	// Read captured output
+	var buf bytes.Buffer
+	io.Copy(&buf, r)
+
+	// Parse JSON output
+	var result map[string]interface{}
+	if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+		t.Fatalf("Failed to parse JSON output: %v\nOutput: %s", err, buf.String())
+	}
+
+	// Verify status is "logged_out"
+	status, ok := result["status"].(string)
+	if !ok {
+		t.Fatal("status field is missing or not a string")
+	}
+	if status != "logged_out" {
+		t.Errorf("Expected status 'logged_out', got '%s'", status)
+	}
+
+	// Verify config file was created
+	if _, err := os.Stat(originalConfigPath); os.IsNotExist(err) {
+		t.Error("Expected config file to be created")
+	}
+}

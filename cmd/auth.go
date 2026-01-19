@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/zkwentz/amazon-cli/internal/config"
 	"github.com/zkwentz/amazon-cli/internal/output"
 	"github.com/zkwentz/amazon-cli/pkg/models"
 )
@@ -85,22 +86,24 @@ var authLogoutCmd = &cobra.Command{
 	Short: "Logout from Amazon",
 	Long:  `Clear stored credentials and logout from Amazon.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Clear auth from viper
-		viper.Set("auth.access_token", "")
-		viper.Set("auth.refresh_token", "")
-		viper.Set("auth.expires_at", "")
+		// Load config
+		cfg, err := config.LoadConfig(config.DefaultConfigPath())
+		if err != nil {
+			output.Error(models.ErrAmazonError, "Failed to load config: "+err.Error(), nil)
+			os.Exit(models.ExitGeneralError)
+		}
 
-		// Try to save config
-		home, _ := os.UserHomeDir()
-		configDir := home + "/.amazon-cli"
-		viper.SetConfigFile(configDir + "/config.json")
-		err := viper.WriteConfig()
+		// Clear auth tokens
+		cfg.ClearAuth()
 
+		// Save config
+		err = config.SaveConfig(cfg, config.DefaultConfigPath())
 		if err != nil {
 			output.Error(models.ErrAmazonError, "Failed to save config: "+err.Error(), nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
+		// Output JSON
 		output.JSON(map[string]interface{}{
 			"status": "logged_out",
 		})

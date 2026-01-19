@@ -233,3 +233,36 @@
   - All tests verify correct field types and values
   - All 6 auth status tests passing successfully (0.318s total test time)
   - Total test suite now includes 7 test functions (login + status tests)
+
+## Task: Auth Logout Command Implementation
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/cmd/auth.go`:
+  - Added import for `github.com/zkwentz/amazon-cli/internal/config` package
+  - Refactored `authLogoutCmd` Run function to use config package instead of viper directly:
+    - Loads config using `config.LoadConfig(config.DefaultConfigPath())`
+    - Clears auth tokens using `cfg.ClearAuth()` method
+    - Saves config using `config.SaveConfig(cfg, config.DefaultConfigPath())`
+    - Outputs JSON with `status: "logged_out"`
+  - Proper error handling:
+    - Returns error if config loading fails
+    - Returns error if config saving fails
+    - Uses `models.ErrAmazonError` and `models.ExitGeneralError` for error reporting
+  - Implementation follows same pattern as other auth commands
+
+- Enhanced `/Users/zacharywentz/Development/amazon-cli/cmd/auth_test.go` with logout tests:
+  - Implemented `TestAuthLogoutCmd_Success` test function:
+    - Creates temporary config with auth tokens
+    - Executes logout command
+    - Verifies JSON output contains `status: "logged_out"`
+    - Verifies config file is updated with cleared tokens
+    - Validates access_token and refresh_token are empty strings after logout
+    - Properly backs up and restores original config
+  - Implemented `TestAuthLogoutCmd_NoExistingConfig` test function:
+    - Tests logout when no config file exists
+    - Verifies command succeeds and creates config file
+    - Validates JSON output contains correct status
+  - Both tests use stdout capturing to validate JSON output
+  - Both tests verify file system state after command execution
+  - All 2 logout tests passing successfully
+  - Total test suite now includes 9 test functions (login + status + logout tests)
+  - All auth command tests passing (0.277s total test time)
