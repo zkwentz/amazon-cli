@@ -1482,3 +1482,64 @@
   - Proper resource cleanup with defer statements
   - Wraps errors with context using fmt.Errorf with %w verb
   - All tests passing with comprehensive coverage of reviews functionality
+
+## Task: Product Commands Implementation
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/cmd/product.go`:
+  - Added `strings` import for string manipulation in error handling
+  - Enhanced `productGetCmd` Run function with comprehensive error handling:
+    - Validates ASIN argument is not empty before calling client
+    - Calls `c.GetProduct(asin)` which validates ASIN format (10 alphanumeric characters)
+    - Implements proper error classification:
+      - Returns `models.ErrInvalidInput` with exit code `models.ExitInvalidArgs` (2) for validation errors
+      - Returns `models.ErrAmazonError` with exit code `models.ExitGeneralError` (1) for other errors
+    - Uses `strings.Contains()` to check error messages for validation patterns
+    - Outputs JSON result using `output.JSON(product)` on success
+  - Enhanced `productReviewsCmd` Run function with comprehensive error handling:
+    - Validates ASIN argument is not empty before calling client
+    - Calls `c.GetProductReviews(asin, reviewsLimit)` with --limit flag (default 10)
+    - Implements proper error classification:
+      - Returns `models.ErrInvalidInput` for empty ASIN validation errors
+      - Returns `models.ErrAmazonError` for other errors
+    - Outputs JSON result using `output.JSON(reviews)` on success
+  - Both commands leverage existing GetProduct and GetProductReviews implementations:
+    - GetProduct validates ASIN format and makes HTTP GET to `/dp/{asin}`
+    - GetProductReviews validates ASIN and makes HTTP GET to `/product-reviews/{asin}`
+    - Both include rate limiting, retry logic, CAPTCHA detection, and HTML parsing
+
+- Created comprehensive test suite in `/Users/zacharywentz/Development/amazon-cli/cmd/product_test.go`:
+  - 12 test functions covering all functionality:
+    - `TestProductGetCmd_Success` - Validates command configuration (Use, Short, Run)
+    - `TestProductGetCmd_ValidatesASIN` - Tests ASIN validation:
+      - Empty ASIN returns "ASIN cannot be empty" error
+      - Invalid formats tested: too short, too long, lowercase, special characters
+    - `TestProductGetCmd_ErrorConstants` - Verifies error constants:
+      - `ErrInvalidInput` = "INVALID_INPUT"
+      - `ExitInvalidArgs` = 2
+      - `ErrAmazonError` = "AMAZON_ERROR"
+      - `ExitGeneralError` = 1
+    - `TestProductGetCmd_ResponseParsing` - Tests JSON marshaling of Product struct:
+      - Validates all fields (ASIN, Title, Price, OriginalPrice, Rating, ReviewCount, Prime, InStock)
+    - `TestProductReviewsCmd_Success` - Validates reviews command configuration
+    - `TestProductReviewsCmd_LimitFlag` - Tests --limit flag:
+      - Verifies flag exists with default value "10"
+    - `TestProductReviewsCmd_ValidatesASIN` - Tests ASIN validation for reviews
+    - `TestProductReviewsCmd_DefaultLimit` - Tests limit defaulting to 10
+    - `TestProductReviewsCmd_ResponseParsing` - Tests JSON marshaling of ReviewsResponse:
+      - Validates ASIN, AverageRating, TotalReviews, Reviews array
+    - `TestProductCmd_Configuration` - Tests parent command configuration
+    - `TestProductCmd_Subcommands` - Verifies 2 subcommands registered: get, reviews
+    - `TestProductCmd_VariablesInitialized` - Tests package-level variables
+  - All 12 tests passing successfully (1.456s total test time)
+  - Tests cover command structure, ASIN validation, error handling, and JSON output
+
+- Implementation Summary:
+  - Both commands follow same pattern as other commands (orders, cart, returns)
+  - ASIN validation happens at command level AND in GetProduct/GetProductReviews methods
+  - Proper error classification distinguishes validation errors from general errors
+  - Clear error messages guide user to fix validation issues
+  - GetProduct leverages existing ASIN format validation (10 alphanumeric uppercase)
+  - GetProductReviews uses --limit flag for controlling number of reviews returned
+  - Both commands output JSON for consistency with other commands
+  - Integrated with existing error handling patterns and exit codes
+  - Commands use shared `getClient()` helper for consistent client creation

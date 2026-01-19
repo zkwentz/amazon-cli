@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/zkwentz/amazon-cli/internal/output"
@@ -27,12 +28,26 @@ var productGetCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		asin := args[0]
+
+		// Validate ASIN argument
+		if asin == "" {
+			output.Error(models.ErrInvalidInput, "ASIN cannot be empty", nil)
+			os.Exit(models.ExitInvalidArgs)
+		}
+
 		c := getClient()
 
 		product, err := c.GetProduct(asin)
 		if err != nil {
-			output.Error(models.ErrNotFound, err.Error(), nil)
-			os.Exit(models.ExitNotFound)
+			// Check if error is validation related
+			errMsg := err.Error()
+			if strings.Contains(errMsg, "invalid ASIN format") || strings.Contains(errMsg, "ASIN cannot be empty") {
+				output.Error(models.ErrInvalidInput, errMsg, nil)
+				os.Exit(models.ExitInvalidArgs)
+			}
+			// Otherwise treat as general error
+			output.Error(models.ErrAmazonError, errMsg, nil)
+			os.Exit(models.ExitGeneralError)
 		}
 
 		output.JSON(product)
@@ -47,12 +62,26 @@ var productReviewsCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		asin := args[0]
+
+		// Validate ASIN argument
+		if asin == "" {
+			output.Error(models.ErrInvalidInput, "ASIN cannot be empty", nil)
+			os.Exit(models.ExitInvalidArgs)
+		}
+
 		c := getClient()
 
 		reviews, err := c.GetProductReviews(asin, reviewsLimit)
 		if err != nil {
-			output.Error(models.ErrNotFound, err.Error(), nil)
-			os.Exit(models.ExitNotFound)
+			// Check if error is validation related
+			errMsg := err.Error()
+			if strings.Contains(errMsg, "ASIN cannot be empty") {
+				output.Error(models.ErrInvalidInput, errMsg, nil)
+				os.Exit(models.ExitInvalidArgs)
+			}
+			// Otherwise treat as general error
+			output.Error(models.ErrAmazonError, errMsg, nil)
+			os.Exit(models.ExitGeneralError)
 		}
 
 		output.JSON(reviews)
