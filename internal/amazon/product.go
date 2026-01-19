@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/zkwentz/amazon-cli/pkg/models"
@@ -116,18 +117,6 @@ func (c *Client) GetProductReviews(asin string, limit int) (*models.ReviewsRespo
 	}
 
 	return reviewsResponse, nil
-}
-
-// parseReviewsHTML parses Amazon reviews page HTML and extracts review information
-func parseReviewsHTML(html []byte, asin string, limit int) (*models.ReviewsResponse, error) {
-	// TODO: Implement actual HTML parsing for reviews
-	// For now, return empty response to avoid compilation errors
-	return &models.ReviewsResponse{
-		ASIN:          asin,
-		AverageRating: 0,
-		TotalReviews:  0,
-		Reviews:       []models.Review{},
-	}, nil
 }
 
 // parseProductDetailHTML parses Amazon product detail page HTML and extracts product information

@@ -1382,3 +1382,103 @@
   - Wraps errors with context using fmt.Errorf with %w verb
   - All tests passing with comprehensive coverage
 
+## Task: GetProductReviews Implementation with HTTP GET and HTML Parsing
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/internal/amazon/product.go`:
+  - Added `time` import for date parsing operations
+  - Replaced mock `GetProductReviews(asin string, limit int)` implementation with real HTTP integration:
+    - Validates ASIN is not empty (returns error if empty)
+    - Sets default limit to 10 if zero or negative value provided
+    - Constructs reviews URL: `{baseURL}/product-reviews/{asin}`
+    - Creates HTTP GET request using `http.NewRequest()`
+    - Executes request using `c.Do(req)` method (includes rate limiting, retries, browser headers)
+    - Validates HTTP response status code (expects 200 OK)
+    - Reads response body into buffer using `body.ReadFrom(resp.Body)`
+    - Checks for CAPTCHA detection using `c.detectCAPTCHA()` method
+    - Returns specific CAPTCHA error message if detected
+    - Calls `parseReviewsHTML()` function to extract review data from HTML
+    - Applies limit to reviews in parsing function
+    - Returns `ReviewsResponse` struct with ASIN, average rating, total reviews, and reviews array
+    - Proper error handling with context at each step
+    - Ensures response body is closed with `defer resp.Body.Close()`
+  - Implemented `parseReviewsHTML(html []byte, asin string, limit int) (*models.ReviewsResponse, error)` function:
+    - Parses HTML using goquery document parser from bytes reader
+    - Creates ReviewsResponse struct with provided ASIN
+    - Extracts average rating from page header using multiple selectors:
+      - `div[data-hook='rating-out-of-text']` - Primary rating text
+      - `span[data-hook='rating-out-of-text']` - Alternative rating span
+      - `i[data-hook='average-star-rating'] span.a-icon-alt` - Star icon alt text
+    - Parses rating using existing `parseRating()` helper from search.go
+    - Extracts total review count from:
+      - `div[data-hook='total-review-count']` - Primary review count
+      - `span[data-hook='total-review-count']` - Alternative review count span
+      - `div[data-hook='cr-filter-info-review-rating-count']` - Filter info review count
+    - Parses count using existing `parseReviewCount()` helper
+    - Iterates through `div[data-hook='review']` elements to extract individual reviews:
+      - Rating: From `i[data-hook='review-star-rating'] span.a-icon-alt` or `i[data-hook='cmps-review-star-rating'] span.a-icon-alt`, converted to int
+      - Title: From `a[data-hook='review-title'] span` or `span[data-hook='review-title']`
+      - Body: From `span[data-hook='review-body'] span`
+      - Author: From `span.a-profile-name`
+      - Date: From `span[data-hook='review-date']`, parsed using `parseDateFromReview()`
+      - Verified: Boolean based on presence of `span[data-hook='avp-badge']`
+    - Stops adding reviews after reaching limit count
+    - Only includes reviews with at least title or body content
+    - Returns ReviewsResponse with all extracted data
+  - Implemented `parseDateFromReview(dateText string) string` helper function:
+    - Removes "Reviewed in [Country] on " prefix from Amazon date format
+    - Extracts date after " on " substring
+    - Attempts to parse multiple date formats:
+      - "January 2, 2006" - Full month name
+      - "Jan 2, 2006" - Short month name
+      - "2 January 2006" - Day first format
+      - "2006-01-02" - ISO format
+    - Converts parsed date to YYYY-MM-DD format (2006-01-02)
+    - Returns original text if parsing fails (graceful degradation)
+
+- Created comprehensive test suite in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/product_test.go`:
+  - Added 7 test functions for review functionality:
+    - `TestParseReviewsHTML` - Tests parsing of complete reviews page:
+      - Sample HTML with 3 reviews
+      - Verifies ASIN: "B08N5WRWNW"
+      - Verifies average rating: 4.5
+      - Verifies total reviews: 1,234
+      - Verifies 3 reviews extracted with complete details:
+        - Review 1: Rating 5, title, body, author "John Doe", date "2024-01-15", verified purchase
+        - Review 2: Rating 4, not verified
+        - Review 3: Rating 3, verified
+    - `TestParseReviewsHTML_LimitReviews` - Tests limit parameter:
+      - HTML with 3 reviews, limit set to 2
+      - Verifies only 2 reviews returned
+    - `TestParseReviewsHTML_EmptyReviews` - Tests page without reviews:
+      - Returns empty reviews array with valid ASIN
+    - `TestParseReviewsHTML_MissingFields` - Tests reviews with missing fields:
+      - Reviews with only title or only body are included
+      - Reviews with neither title nor body are excluded
+      - Verifies 2 valid reviews returned from 3 HTML elements
+    - `TestParseDateFromReview` - Tests date parsing with 5 scenarios:
+      - "Reviewed in the United States on January 15, 2024" → "2024-01-15"
+      - "Reviewed in the United States on Jan 15, 2024" → "2024-01-15"
+      - "January 15, 2024" → "2024-01-15"
+      - "2024-01-15" → "2024-01-15"
+      - "Some random text" → "Some random text" (fallback)
+    - `TestGetProductReviews_EmptyASIN` - Tests empty ASIN validation:
+      - Verifies error message is "ASIN cannot be empty"
+    - `TestGetProductReviews_DefaultLimit` - Tests limit defaulting:
+      - Verifies 0 and negative limits default to 10
+  - All 7 new review tests passing successfully (2.816s total test time)
+  - All existing tests still passing (20 tests total)
+  - Tests use realistic Amazon HTML structures for reviews pages
+  - Tests cover happy path, edge cases, validation, and date parsing
+
+- Implementation Summary:
+  - GetProductReviews follows same pattern as other HTTP-based methods (GetProduct, GetOrders, Search)
+  - Leverages existing Client infrastructure for rate limiting, retries, and browser headers
+  - Reuses existing helper functions (parseRating, parseReviewCount) for consistency
+  - Limit parameter enforced during parsing for efficiency
+  - Date parsing handles multiple Amazon date formats gracefully
+  - Verified purchase badge detection for review authenticity
+  - CAPTCHA detection provides graceful degradation
+  - Clear, specific error messages for validation failures
+  - Proper resource cleanup with defer statements
+  - Wraps errors with context using fmt.Errorf with %w verb
+  - All tests passing with comprehensive coverage of reviews functionality

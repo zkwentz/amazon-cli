@@ -821,3 +821,276 @@ func TestGetProduct_ValidASINFormat(t *testing.T) {
 		})
 	}
 }
+func TestParseReviewsHTML(t *testing.T) {
+	// Sample HTML that mimics Amazon reviews page structure
+	html := []byte(`
+		<html>
+		<body>
+			<div data-hook="cr-filter-info-review-rating-count">
+				<span data-hook="total-review-count">1,234 total ratings</span>
+			</div>
+			<div data-hook="rating-out-of-text">4.5 out of 5 stars</div>
+
+			<div data-hook="review">
+				<i data-hook="review-star-rating">
+					<span class="a-icon-alt">5.0 out of 5 stars</span>
+				</i>
+				<a data-hook="review-title">
+					<span>Best product ever!</span>
+				</a>
+				<span data-hook="review-date">Reviewed in the United States on January 15, 2024</span>
+				<span data-hook="avp-badge">Verified Purchase</span>
+				<span class="a-profile-name">John Doe</span>
+				<span data-hook="review-body">
+					<span>This product exceeded my expectations. Highly recommend!</span>
+				</span>
+			</div>
+
+			<div data-hook="review">
+				<i data-hook="review-star-rating">
+					<span class="a-icon-alt">4.0 out of 5 stars</span>
+				</i>
+				<span data-hook="review-title">Good but pricey</span>
+				<span data-hook="review-date">Reviewed in the United States on January 10, 2024</span>
+				<span class="a-profile-name">Jane Smith</span>
+				<span data-hook="review-body">
+					<span>Great quality but a bit expensive.</span>
+				</span>
+			</div>
+
+			<div data-hook="review">
+				<i data-hook="review-star-rating">
+					<span class="a-icon-alt">3.0 out of 5 stars</span>
+				</i>
+				<span data-hook="review-title">It's okay</span>
+				<span data-hook="review-date">Reviewed in the United States on January 5, 2024</span>
+				<span data-hook="avp-badge">Verified Purchase</span>
+				<span class="a-profile-name">Bob Johnson</span>
+				<span data-hook="review-body">
+					<span>Works as expected but nothing special.</span>
+				</span>
+			</div>
+		</body>
+		</html>
+	`)
+
+	response, err := parseReviewsHTML(html, "B08N5WRWNW", 10)
+	if err != nil {
+		t.Fatalf("parseReviewsHTML failed: %v", err)
+	}
+
+	// Verify ASIN
+	if response.ASIN != "B08N5WRWNW" {
+		t.Errorf("Expected ASIN B08N5WRWNW, got %s", response.ASIN)
+	}
+
+	// Verify average rating
+	if response.AverageRating != 4.5 {
+		t.Errorf("Expected average rating 4.5, got %f", response.AverageRating)
+	}
+
+	// Verify total reviews
+	if response.TotalReviews != 1234 {
+		t.Errorf("Expected total reviews 1234, got %d", response.TotalReviews)
+	}
+
+	// Verify number of reviews
+	if len(response.Reviews) != 3 {
+		t.Fatalf("Expected 3 reviews, got %d", len(response.Reviews))
+	}
+
+	// Verify first review
+	review := response.Reviews[0]
+	if review.Rating != 5 {
+		t.Errorf("Expected review rating 5, got %d", review.Rating)
+	}
+	if review.Title != "Best product ever!" {
+		t.Errorf("Expected review title 'Best product ever!', got %s", review.Title)
+	}
+	if review.Author != "John Doe" {
+		t.Errorf("Expected author 'John Doe', got %s", review.Author)
+	}
+	if review.Body != "This product exceeded my expectations. Highly recommend!" {
+		t.Errorf("Expected review body text, got %s", review.Body)
+	}
+	if !review.Verified {
+		t.Error("Expected first review to be verified")
+	}
+	if review.Date != "2024-01-15" {
+		t.Errorf("Expected date 2024-01-15, got %s", review.Date)
+	}
+
+	// Verify second review (not verified)
+	review2 := response.Reviews[1]
+	if review2.Rating != 4 {
+		t.Errorf("Expected review rating 4, got %d", review2.Rating)
+	}
+	if review2.Verified {
+		t.Error("Expected second review to not be verified")
+	}
+}
+
+func TestParseReviewsHTML_LimitReviews(t *testing.T) {
+	html := []byte(`
+		<html>
+		<body>
+			<div data-hook="review">
+				<i data-hook="review-star-rating">
+					<span class="a-icon-alt">5.0 out of 5 stars</span>
+				</i>
+				<span data-hook="review-title">Review 1</span>
+				<span data-hook="review-body"><span>Body 1</span></span>
+			</div>
+			<div data-hook="review">
+				<i data-hook="review-star-rating">
+					<span class="a-icon-alt">4.0 out of 5 stars</span>
+				</i>
+				<span data-hook="review-title">Review 2</span>
+				<span data-hook="review-body"><span>Body 2</span></span>
+			</div>
+			<div data-hook="review">
+				<i data-hook="review-star-rating">
+					<span class="a-icon-alt">3.0 out of 5 stars</span>
+				</i>
+				<span data-hook="review-title">Review 3</span>
+				<span data-hook="review-body"><span>Body 3</span></span>
+			</div>
+		</body>
+		</html>
+	`)
+
+	// Limit to 2 reviews
+	response, err := parseReviewsHTML(html, "B12345TEST", 2)
+	if err != nil {
+		t.Fatalf("parseReviewsHTML failed: %v", err)
+	}
+
+	if len(response.Reviews) != 2 {
+		t.Errorf("Expected 2 reviews (limited), got %d", len(response.Reviews))
+	}
+}
+
+func TestParseReviewsHTML_EmptyReviews(t *testing.T) {
+	html := []byte(`
+		<html>
+		<body>
+			<div data-hook="rating-out-of-text">4.5 out of 5 stars</div>
+		</body>
+		</html>
+	`)
+
+	response, err := parseReviewsHTML(html, "B12345TEST", 10)
+	if err != nil {
+		t.Fatalf("parseReviewsHTML failed: %v", err)
+	}
+
+	if len(response.Reviews) != 0 {
+		t.Errorf("Expected 0 reviews, got %d", len(response.Reviews))
+	}
+
+	if response.ASIN != "B12345TEST" {
+		t.Errorf("Expected ASIN B12345TEST, got %s", response.ASIN)
+	}
+}
+
+func TestParseReviewsHTML_MissingFields(t *testing.T) {
+	html := []byte(`
+		<html>
+		<body>
+			<div data-hook="review">
+				<span data-hook="review-title">Title only review</span>
+			</div>
+			<div data-hook="review">
+				<span data-hook="review-body"><span>Body only review</span></span>
+			</div>
+			<div data-hook="review">
+			</div>
+		</body>
+		</html>
+	`)
+
+	response, err := parseReviewsHTML(html, "B12345TEST", 10)
+	if err != nil {
+		t.Fatalf("parseReviewsHTML failed: %v", err)
+	}
+
+	// Should only include reviews with title or body (first two)
+	if len(response.Reviews) != 2 {
+		t.Errorf("Expected 2 valid reviews, got %d", len(response.Reviews))
+	}
+}
+
+func TestParseDateFromReview(t *testing.T) {
+	tests := []struct {
+		name         string
+		input        string
+		expectedDate string
+	}{
+		{
+			name:         "Full Amazon format",
+			input:        "Reviewed in the United States on January 15, 2024",
+			expectedDate: "2024-01-15",
+		},
+		{
+			name:         "Short month format",
+			input:        "Reviewed in the United States on Jan 15, 2024",
+			expectedDate: "2024-01-15",
+		},
+		{
+			name:         "Without prefix",
+			input:        "January 15, 2024",
+			expectedDate: "2024-01-15",
+		},
+		{
+			name:         "ISO format",
+			input:        "2024-01-15",
+			expectedDate: "2024-01-15",
+		},
+		{
+			name:         "Invalid date",
+			input:        "Some random text",
+			expectedDate: "Some random text",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := parseDateFromReview(tt.input)
+			if result != tt.expectedDate {
+				t.Errorf("Expected date %s, got %s", tt.expectedDate, result)
+			}
+		})
+	}
+}
+
+func TestGetProductReviews_EmptyASIN(t *testing.T) {
+	client := NewClient()
+	_, err := client.GetProductReviews("", 10)
+	if err == nil {
+		t.Error("Expected error for empty ASIN, got nil")
+	}
+	expectedMsg := "ASIN cannot be empty"
+	if err.Error() != expectedMsg {
+		t.Errorf("Expected error message %q, got %q", expectedMsg, err.Error())
+	}
+}
+
+func TestGetProductReviews_DefaultLimit(t *testing.T) {
+	// This test would require mocking HTTP responses
+	// For now, we verify the limit is set to default when <= 0
+	client := NewClient()
+	
+	// Test with 0 limit - should default to 10
+	_, err := client.GetProductReviews("B08N5WRWNW", 0)
+	// Expected to fail with network error since we're not mocking, but shouldn't fail on validation
+	if err != nil && err.Error() == "limit must be positive" {
+		t.Error("Expected limit validation to allow 0 and default to 10")
+	}
+	
+	// Test with negative limit - should default to 10
+	_, err = client.GetProductReviews("B08N5WRWNW", -5)
+	// Expected to fail with network error since we're not mocking, but shouldn't fail on validation
+	if err != nil && err.Error() == "limit must be positive" {
+		t.Error("Expected limit validation to allow negative and default to 10")
+	}
+}

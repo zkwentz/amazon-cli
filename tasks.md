@@ -84,13 +84,13 @@ Each task is independent and self-contained. Execute in order for best results.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/search.go`, implement `parseSearchResultsHTML(html []byte) ([]models.Product, error)` that parses search HTML and extracts ASIN, title, price, rating, review_count, prime, in_stock for each product.
 
-- [ ] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/search.go`, update `Search(query string, opts SearchOptions)` to: build search URL with query params for category/minPrice/maxPrice/primeOnly, make HTTP GET, parse with parseSearchResultsHTML, return SearchResponse.
+- [x] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/search.go`, update `Search(query string, opts SearchOptions)` to: build search URL with query params for category/minPrice/maxPrice/primeOnly, make HTTP GET, parse with parseSearchResultsHTML, return SearchResponse.
 
-- [ ] Create file `internal/amazon/search_test.go` with tests: TestParseSearchResultsHTML_ExtractsProducts, TestSearch_WithPrimeFilter, TestSearch_WithPriceRange. Use fixtures and MockAmazonServer.
+- [x] Create file `internal/amazon/search_test.go` with tests: TestParseSearchResultsHTML_ExtractsProducts, TestSearch_WithPrimeFilter, TestSearch_WithPriceRange. Use fixtures and MockAmazonServer.
 
-- [ ] In file `/Users/zacharywentz/Development/amazon-cli/cmd/search.go`, update Run function to: get all flags (category, min-price, max-price, prime-only), create SearchOptions, call client.Search, output JSON result.
+- [x] In file `/Users/zacharywentz/Development/amazon-cli/cmd/search.go`, update Run function to: get all flags (category, min-price, max-price, prime-only), create SearchOptions, call client.Search, output JSON result.
 
-- [ ] Create file `testdata/products/product_detail_sample.html` with sample HTML mimicking Amazon product page with: ASIN, title, price, original_price, rating, review_count, prime badge, stock status, description, feature bullets, image URLs.
+- [x] Create file `testdata/products/product_detail_sample.html` with sample HTML mimicking Amazon product page with: ASIN, title, price, original_price, rating, review_count, prime badge, stock status, description, feature bullets, image URLs.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/product.go`, implement `parseProductDetailHTML(html []byte) (*models.Product, error)` that extracts all product fields from detail page HTML, handling missing optional fields gracefully.
 
