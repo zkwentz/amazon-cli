@@ -12,6 +12,19 @@
 - Test includes comprehensive error handling and informative error messages
 - Test verified working: passes successfully in 1.30s
 
+## Task: Clean up Go module dependencies
+
+- Ran `go mod tidy` to clean up go.mod and go.sum files
+- Changes made:
+  - Organized dependencies into direct and indirect sections
+  - Identified 4 direct dependencies: PuerkitoBio/goquery, google/uuid, spf13/cobra, spf13/viper
+  - Removed unused dependency: sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8
+  - Added missing test-related dependencies to go.sum (davecgh/go-spew, frankban/quicktest, kr/pretty, kr/text, pmezard/go-difflib, rogpeppe/go-internal, stretchr/testify)
+  - Updated go.sum with proper checksums for all dependencies
+  - Added gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 as indirect dependency
+  - Updated gopkg.in/yaml.v3 from v3.0.4 to v3.0.1 with proper checksums
+- Result: Cleaner, more accurate dependency management with proper separation of direct vs indirect dependencies
+
 ## Task: Add Safety Section to skills.md
 
 - Added comprehensive Safety section to `/Users/zacharywentz/Development/amazon-cli/skills.md` before the Safety Guidelines section
