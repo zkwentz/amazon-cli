@@ -1613,3 +1613,75 @@
   - AddToCart now uses these validation functions before proceeding with cart operations
   - Same validation logic is applied consistently across AddToCart and RemoveFromCart
   - Comprehensive test coverage ensures validation works correctly for all edge cases
+
+## RemoveFromCart Enhancement - $(date +%Y-%m-%d)
+
+### Task: Update RemoveFromCart to validate ASIN and remove items from cart
+
+- Enhanced `RemoveFromCart(asin string)` function in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart.go`:
+  - Added ASIN validation using existing `ValidateASIN(asin)` function
+    - Validates ASIN is not empty
+    - Validates ASIN format matches `^[A-Z0-9]{10}$` regex pattern
+    - Returns appropriate error messages for validation failures
+  - Implemented actual item removal from in-memory cart:
+    - Iterates through cart.Items slice to find matching ASIN
+    - Removes the item from cart by creating new slice without matched item
+    - Returns error "item with ASIN {asin} not found in cart" if ASIN not found
+  - Implemented complete totals recalculation after removal:
+    - Resets cart.Subtotal to 0
+    - Resets cart.ItemCount to 0
+    - Recalculates Subtotal by summing all remaining item subtotals
+    - Recalculates ItemCount by summing all remaining item quantities
+    - Recalculates EstimatedTax as 8% of Subtotal
+    - Recalculates Total as Subtotal + EstimatedTax
+  - Returns updated cart after successful removal
+
+- Comprehensive test suite enhancement in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart_test.go`:
+  - Added `models` package import for Cart type references
+  - Completely rewrote `TestRemoveFromCart` with 7 comprehensive test cases:
+    1. Remove item from cart with single item:
+       - Verifies item is removed from cart
+       - Verifies all totals (Subtotal, EstimatedTax, Total, ItemCount) reset to 0
+    2. Remove one item from cart with multiple items:
+       - Adds 2 different items with different quantities
+       - Removes first item, verifies second item remains
+       - Verifies totals are recalculated correctly for remaining item
+       - Checks exact Subtotal, EstimatedTax, and Total values
+    3. Remove item with multiple quantity:
+       - Adds item with quantity 3
+       - Verifies entire item entry is removed (not just quantity reduced)
+       - Verifies cart is empty after removal
+    4. Empty ASIN should fail:
+       - Validates error message "ASIN cannot be empty"
+    5. Invalid ASIN format should fail:
+       - Tests with "INVALID" (not 10 characters)
+       - Validates error message contains "invalid ASIN format"
+    6. Removing non-existent item should fail:
+       - Adds one item, attempts to remove different ASIN
+       - Validates error message contains "not found in cart"
+    7. Removing from empty cart should fail:
+       - Attempts to remove from empty cart
+       - Validates error message contains "not found in cart"
+  - Enhanced test structure with:
+    - setupCart function to prepare cart state before each test
+    - checkCart function to validate cart state after removal
+    - errContains for flexible error message checking
+    - Detailed assertions for all cart fields
+
+- Test Results:
+  - All 7 RemoveFromCart test cases pass successfully
+  - All 112 tests in internal/amazon package pass (55.826s total test time)
+  - RemoveFromCart now has comprehensive test coverage including:
+    - Validation edge cases
+    - Single item removal
+    - Multiple item scenarios
+    - Total recalculation verification
+    - Error handling for all failure modes
+
+- Implementation Quality:
+  - RemoveFromCart now properly validates input using existing ValidateASIN utility
+  - Cart state is correctly maintained after item removal
+  - All financial calculations (Subtotal, Tax, Total) are accurate
+  - Item counts are properly tracked across operations
+  - Error messages are clear and descriptive
+  - Implementation follows existing code patterns in AddToCart and other cart functions

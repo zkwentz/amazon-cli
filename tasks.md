@@ -102,9 +102,9 @@ Each task is independent and self-contained. Execute in order for best results.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/cmd/product.go`, update `productGetCmd` Run function to: validate ASIN argument, call client.GetProduct, output JSON. Update `productReviewsCmd` to call GetProductReviews with --limit flag.
 
-- [ ] Create file `internal/validation/validators.go` with: `ValidateASIN(asin string) error` (must be 10 alphanumeric chars), `ValidateOrderID(id string) error` (format XXX-XXXXXXX-XXXXXXX), `ValidateQuantity(qty int) error` (1-999), `ValidatePriceRange(min, max float64) error` (min >= 0, max > min).
+- [x] Create file `internal/validation/validators.go` with: `ValidateASIN(asin string) error` (must be 10 alphanumeric chars), `ValidateOrderID(id string) error` (format XXX-XXXXXXX-XXXXXXX), `ValidateQuantity(qty int) error` (1-999), `ValidatePriceRange(min, max float64) error` (min >= 0, max > min).
 
-- [ ] Create file `internal/validation/validators_test.go` with exhaustive tests: valid inputs pass, empty strings fail, wrong lengths fail, special characters fail, boundary values tested. Achieve 100% coverage on validators.go.
+- [x] Create file `internal/validation/validators_test.go` with exhaustive tests: valid inputs pass, empty strings fail, wrong lengths fail, special characters fail, boundary values tested. Achieve 100% coverage on validators.go.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart.go`, update `AddToCart(asin string, quantity int)` to: call ValidateASIN, call ValidateQuantity, then proceed with existing mock implementation that adds to in-memory cart.
 
