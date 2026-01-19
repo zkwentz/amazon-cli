@@ -137,7 +137,58 @@ Without --confirm, shows a preview of the order.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		c := getClient()
 
-		// Get address and payment IDs, use defaults if not provided
+		// Check confirm flag BEFORE any checkout logic
+		// Default is preview mode - if --confirm is not set, show preview
+		if !cartConfirm {
+			// Get address and payment IDs for preview
+			addressID := cartAddressID
+			paymentID := cartPaymentID
+
+			if addressID == "" {
+				addresses, _ := c.GetAddresses()
+				for _, addr := range addresses {
+					if addr.Default {
+						addressID = addr.ID
+						break
+					}
+				}
+				if addressID == "" && len(addresses) > 0 {
+					addressID = addresses[0].ID
+				}
+			}
+
+			if paymentID == "" {
+				payments, _ := c.GetPaymentMethods()
+				for _, pm := range payments {
+					if pm.Default {
+						paymentID = pm.ID
+						break
+					}
+				}
+				if paymentID == "" && len(payments) > 0 {
+					paymentID = payments[0].ID
+				}
+			}
+
+			// Preview checkout
+			preview, err := c.PreviewCheckout(addressID, paymentID)
+			if err != nil {
+				output.Error(models.ErrInvalidInput, err.Error(), nil)
+				os.Exit(models.ExitInvalidArgs)
+			}
+
+			output.JSON(map[string]interface{}{
+				"dry_run":        true,
+				"cart":           preview.Cart,
+				"address":        preview.Address,
+				"payment_method": preview.PaymentMethod,
+				"message":        "Add --confirm to complete purchase",
+			})
+			return
+		}
+
+		// Execute checkout only when --confirm flag is set
+		// Get address and payment IDs for actual checkout
 		addressID := cartAddressID
 		paymentID := cartPaymentID
 
@@ -167,25 +218,6 @@ Without --confirm, shows a preview of the order.`,
 			}
 		}
 
-		if !cartConfirm {
-			// Preview checkout
-			preview, err := c.PreviewCheckout(addressID, paymentID)
-			if err != nil {
-				output.Error(models.ErrInvalidInput, err.Error(), nil)
-				os.Exit(models.ExitInvalidArgs)
-			}
-
-			output.JSON(map[string]interface{}{
-				"dry_run":        true,
-				"cart":           preview.Cart,
-				"address":        preview.Address,
-				"payment_method": preview.PaymentMethod,
-				"message":        "Add --confirm to complete purchase",
-			})
-			return
-		}
-
-		// Execute checkout
 		confirmation, err := c.CompleteCheckout(addressID, paymentID)
 		if err != nil {
 			output.Error(models.ErrPurchaseFailed, err.Error(), nil)

@@ -421,6 +421,32 @@ func TestGetCart(t *testing.T) {
 	}
 }
 
+func TestRemoveFromCart_ActuallyRemovesItem(t *testing.T) {
+	client := NewClient()
+
+	// Add item to cart
+	cart, err := client.AddToCart("B08N5WRWNW", 1)
+	if err != nil {
+		t.Fatalf("failed to add to cart: %v", err)
+	}
+
+	// Verify count is 1
+	if cart.ItemCount != 1 {
+		t.Errorf("after adding item, ItemCount = %d, want 1", cart.ItemCount)
+	}
+
+	// Remove item from cart
+	cart, err = client.RemoveFromCart("B08N5WRWNW")
+	if err != nil {
+		t.Fatalf("failed to remove from cart: %v", err)
+	}
+
+	// Verify count is 0
+	if cart.ItemCount != 0 {
+		t.Errorf("after removing item, ItemCount = %d, want 0", cart.ItemCount)
+	}
+}
+
 func TestRemoveFromCart(t *testing.T) {
 	tests := []struct {
 		name        string

@@ -1846,3 +1846,52 @@ The updated `PreviewCheckout` function now returns:
 - No actual Amazon API calls are made
 - Real implementation will fetch actual address and payment data
 - Delivery options will eventually come from Amazon's shipping calculation API
+
+## Task: Add TestRemoveFromCart_ActuallyRemovesItem test
+
+Date: 2026-01-19
+
+### Changes Made:
+
+1. **Added new test in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart_test.go` (lines 424-448)**:
+   - Created `TestRemoveFromCart_ActuallyRemovesItem` function
+   - Tests the complete flow of adding and removing an item from the cart
+   - Verifies cart item count transitions correctly from 1 to 0
+
+### Test Implementation:
+
+The test follows a simple flow:
+1. **Add item**: Calls `AddToCart("B08N5WRWNW", 1)` to add one item
+2. **Verify count is 1**: Asserts `cart.ItemCount == 1` after adding
+3. **Remove item**: Calls `RemoveFromCart("B08N5WRWNW")` to remove the item
+4. **Verify count is 0**: Asserts `cart.ItemCount == 0` after removing
+
+### Test Details:
+
+- Uses standard Amazon ASIN "B08N5WRWNW" for testing
+- Tests with quantity of 1 to keep the test simple and focused
+- Verifies ItemCount field changes correctly during add/remove operations
+- Uses `t.Fatalf()` for setup errors (add/remove failures)
+- Uses `t.Errorf()` for assertion failures with descriptive messages
+
+### Test Results:
+
+- Test passes successfully: `TestRemoveFromCart_ActuallyRemovesItem` (0.00s)
+- Confirms that `AddToCart` correctly increments ItemCount
+- Confirms that `RemoveFromCart` correctly decrements ItemCount to zero
+- Validates the cart state is properly maintained through operations
+
+### Purpose:
+
+- Provides a simple, focused test for the add/remove cart flow
+- Verifies that items can be successfully added and removed
+- Ensures ItemCount is accurately tracked during cart operations
+- Complements existing `TestRemoveFromCart` which uses table-driven tests
+- Offers a straightforward test case for basic cart functionality
+
+### Technical Notes:
+
+- Test is independent and doesn't rely on any shared state
+- Creates a new client instance to ensure clean state
+- Tests the most common use case: adding one item and removing it
+- Positioned before the more comprehensive `TestRemoveFromCart` function
