@@ -2658,3 +2658,35 @@ The Search section in skills.md already contains complete documentation that exc
 
 ### Conclusion:
 No changes needed - the documentation already meets all specified requirements.
+
+## Task: Add Products Section to skills.md
+
+### What was requested:
+Add Products section documenting:
+- product get (asin input, full product output)
+- product reviews (asin, --limit inputs, reviews array output)
+
+### What was found:
+The Products section already exists in skills.md with complete documentation:
+
+1. **product get** (lines 459-495):
+   - Input: asin (string, required)
+   - Output: Full product object including:
+     * asin, title, price, original_price
+     * rating, review_count
+     * prime, in_stock, delivery_estimate
+     * description, features array, images array
+   - Includes example command and full JSON output
+
+2. **product reviews** (lines 499-531):
+   - Inputs:
+     * asin (string, required)
+     * --limit (int, optional, default: 10)
+   - Output: Reviews object including:
+     * asin, average_rating, total_reviews
+     * reviews array with: rating, title, body, author, date, verified
+   - Includes example command with --limit flag and full JSON output
+
+### Conclusion:
+No changes needed - the documentation already meets all specified requirements. Both commands are properly documented with correct inputs and comprehensive outputs matching the task specification.
+
