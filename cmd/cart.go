@@ -45,11 +45,11 @@ var cartAddCmd = &cobra.Command{
 
 		cart, err := c.AddToCart(asin, cartQuantity)
 		if err != nil {
-			output.Error(models.ErrInvalidInput, err.Error(), nil)
+			_ = output.Error(models.ErrInvalidInput, err.Error(), nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
-		output.JSON(cart)
+		_ = output.JSON(cart)
 	},
 }
 
@@ -63,11 +63,11 @@ var cartListCmd = &cobra.Command{
 
 		cart, err := c.GetCart()
 		if err != nil {
-			output.Error(models.ErrAmazonError, err.Error(), nil)
+			_ = output.Error(models.ErrAmazonError, err.Error(), nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
-		output.JSON(cart)
+		_ = output.JSON(cart)
 	},
 }
 
@@ -83,11 +83,11 @@ var cartRemoveCmd = &cobra.Command{
 
 		cart, err := c.RemoveFromCart(asin)
 		if err != nil {
-			output.Error(models.ErrInvalidInput, err.Error(), nil)
+			_ = output.Error(models.ErrInvalidInput, err.Error(), nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
-		output.JSON(cart)
+		_ = output.JSON(cart)
 	},
 }
 
@@ -102,7 +102,7 @@ var cartClearCmd = &cobra.Command{
 		if !cartConfirm {
 			// Dry run - show what would be cleared
 			cart, _ := c.GetCart()
-			output.JSON(map[string]interface{}{
+			_ = output.JSON(map[string]interface{}{
 				"dry_run":       true,
 				"would_clear":   cart.ItemCount,
 				"current_total": cart.Total,
@@ -116,11 +116,11 @@ var cartClearCmd = &cobra.Command{
 
 		err := c.ClearCart()
 		if err != nil {
-			output.Error(models.ErrAmazonError, err.Error(), nil)
+			_ = output.Error(models.ErrAmazonError, err.Error(), nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
-		output.JSON(map[string]interface{}{
+		_ = output.JSON(map[string]interface{}{
 			"status":        "cleared",
 			"items_removed": itemCount,
 		})
@@ -173,11 +173,11 @@ Without --confirm, shows a preview of the order.`,
 			// Preview checkout
 			preview, err := c.PreviewCheckout(addressID, paymentID)
 			if err != nil {
-				output.Error(models.ErrInvalidInput, err.Error(), nil)
+				_ = output.Error(models.ErrInvalidInput, err.Error(), nil)
 				os.Exit(models.ExitInvalidArgs)
 			}
 
-			output.JSON(map[string]interface{}{
+			_ = output.JSON(map[string]interface{}{
 				"dry_run":        true,
 				"cart":           preview.Cart,
 				"address":        preview.Address,
@@ -220,11 +220,11 @@ Without --confirm, shows a preview of the order.`,
 
 		confirmation, err := c.CompleteCheckout(addressID, paymentID)
 		if err != nil {
-			output.Error(models.ErrPurchaseFailed, err.Error(), nil)
+			_ = output.Error(models.ErrPurchaseFailed, err.Error(), nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
-		output.JSON(confirmation)
+		_ = output.JSON(confirmation)
 	},
 }
 

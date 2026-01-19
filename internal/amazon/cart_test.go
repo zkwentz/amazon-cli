@@ -413,6 +413,7 @@ func TestGetCart(t *testing.T) {
 
 	if cart == nil {
 		t.Error("GetCart() returned nil cart")
+		return
 	}
 
 	// Empty cart should have zero items

@@ -26,7 +26,7 @@ var authLoginCmd = &cobra.Command{
 Opens your default browser to Amazon's login page.
 After authentication, tokens are stored locally.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		output.JSON(map[string]interface{}{
+		_ = output.JSON(map[string]interface{}{
 			"status":  "login_required",
 			"message": "Browser-based login not yet implemented",
 		})
@@ -43,7 +43,7 @@ var authStatusCmd = &cobra.Command{
 		expiresAtStr := viper.GetString("auth.expires_at")
 
 		if accessToken == "" {
-			output.JSON(map[string]interface{}{
+			_ = output.JSON(map[string]interface{}{
 				"authenticated": false,
 				"message":       "Not logged in. Run 'amazon-cli auth login' to authenticate.",
 			})
@@ -52,7 +52,7 @@ var authStatusCmd = &cobra.Command{
 
 		expiresAt, err := time.Parse(time.RFC3339, expiresAtStr)
 		if err != nil {
-			output.JSON(map[string]interface{}{
+			_ = output.JSON(map[string]interface{}{
 				"authenticated": false,
 				"message":       "Invalid token expiry. Please re-authenticate.",
 			})
@@ -61,7 +61,7 @@ var authStatusCmd = &cobra.Command{
 
 		now := time.Now()
 		if now.After(expiresAt) {
-			output.JSON(map[string]interface{}{
+			_ = output.JSON(map[string]interface{}{
 				"authenticated":      false,
 				"expired":            true,
 				"expires_at":         expiresAtStr,
@@ -72,7 +72,7 @@ var authStatusCmd = &cobra.Command{
 
 		expiresInSeconds := int(expiresAt.Sub(now).Seconds())
 
-		output.JSON(map[string]interface{}{
+		_ = output.JSON(map[string]interface{}{
 			"authenticated":      true,
 			"expires_at":         expiresAtStr,
 			"expires_in_seconds": expiresInSeconds,
@@ -89,7 +89,7 @@ var authLogoutCmd = &cobra.Command{
 		// Load config
 		cfg, err := config.LoadConfig(config.DefaultConfigPath())
 		if err != nil {
-			output.Error(models.ErrAmazonError, "Failed to load config: "+err.Error(), nil)
+			_ = output.Error(models.ErrAmazonError, "Failed to load config: "+err.Error(), nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
@@ -99,12 +99,12 @@ var authLogoutCmd = &cobra.Command{
 		// Save config
 		err = config.SaveConfig(cfg, config.DefaultConfigPath())
 		if err != nil {
-			output.Error(models.ErrAmazonError, "Failed to save config: "+err.Error(), nil)
+			_ = output.Error(models.ErrAmazonError, "Failed to save config: "+err.Error(), nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
 		// Output JSON
-		output.JSON(map[string]interface{}{
+		_ = output.JSON(map[string]interface{}{
 			"status": "logged_out",
 		})
 	},

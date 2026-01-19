@@ -126,67 +126,67 @@ Each task is independent and self-contained. Execute in order for best results.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/cmd/buy.go`, update `buyCmd` Run function to: validate ASIN, if no --confirm show product preview with price and quantity, if --confirm call AddToCart then CompleteCheckout, output result.
 
-- [ ] Create file `pkg/models/subscription.go` with structs: `Subscription` (SubscriptionID, ASIN, Title, Price, DiscountPercent, FrequencyWeeks, NextDelivery, Status, Quantity), `SubscriptionsResponse` (Subscriptions []Subscription), `UpcomingDelivery` (SubscriptionID, ASIN, Title, DeliveryDate, Quantity).
+- [x] Create file `pkg/models/subscription.go` with structs: `Subscription` (SubscriptionID, ASIN, Title, Price, DiscountPercent, FrequencyWeeks, NextDelivery, Status, Quantity), `SubscriptionsResponse` (Subscriptions []Subscription), `UpcomingDelivery` (SubscriptionID, ASIN, Title, DeliveryDate, Quantity).
 
-- [ ] Create file `internal/amazon/subscriptions.go` with mock implementations: `GetSubscriptions() (*models.SubscriptionsResponse, error)` returning 2 mock subscriptions, `GetSubscription(id string) (*models.Subscription, error)` returning mock subscription.
+- [x] Create file `internal/amazon/subscriptions.go` with mock implementations: `GetSubscriptions() (*models.SubscriptionsResponse, error)` returning 2 mock subscriptions, `GetSubscription(id string) (*models.Subscription, error)` returning mock subscription.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/subscriptions.go`, add: `SkipDelivery(id string) (*models.Subscription, error)` that returns subscription with NextDelivery advanced by FrequencyWeeks, `CancelSubscription(id string) (*models.Subscription, error)` that returns subscription with Status="cancelled".
 
-- [ ] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/subscriptions.go`, add: `UpdateFrequency(id string, weeks int) (*models.Subscription, error)` that validates weeks is 1-26 and returns subscription with updated FrequencyWeeks, `GetUpcomingDeliveries() ([]models.UpcomingDelivery, error)` returning mock deliveries sorted by date.
+- [x] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/subscriptions.go`, add: `UpdateFrequency(id string, weeks int) (*models.Subscription, error)` that validates weeks is 1-26 and returns subscription with updated FrequencyWeeks, `GetUpcomingDeliveries() ([]models.UpcomingDelivery, error)` returning mock deliveries sorted by date.
 
-- [ ] Create file `cmd/subscriptions.go` with `subscriptions` parent command and subcommands: `list` (calls GetSubscriptions), `get <id>` (calls GetSubscription), `upcoming` (calls GetUpcomingDeliveries). All output JSON.
+- [x] Create file `cmd/subscriptions.go` with `subscriptions` parent command and subcommands: `list` (calls GetSubscriptions), `get <id>` (calls GetSubscription), `upcoming` (calls GetUpcomingDeliveries). All output JSON.
 
-- [ ] In file `/Users/zacharywentz/Development/amazon-cli/cmd/subscriptions.go`, add `skip <id>` command with --confirm flag. Without --confirm show what would be skipped. With --confirm call SkipDelivery.
+- [x] In file `/Users/zacharywentz/Development/amazon-cli/cmd/subscriptions.go`, add `skip <id>` command with --confirm flag. Without --confirm show what would be skipped. With --confirm call SkipDelivery.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/cmd/subscriptions.go`, add `frequency <id>` command with --interval flag (required, weeks) and --confirm flag. Validate interval 1-26. Without --confirm show preview. With --confirm call UpdateFrequency.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/cmd/subscriptions.go`, add `cancel <id>` command with --confirm flag. Without --confirm show cancellation preview. With --confirm call CancelSubscription.
 
-- [ ] Create file `internal/amazon/subscriptions_test.go` with tests: TestGetSubscriptions_ReturnsList, TestSkipDelivery_AdvancesDate, TestUpdateFrequency_InvalidWeeks_ReturnsError, TestCancelSubscription_SetsStatusCancelled.
+- [x] Create file `internal/amazon/subscriptions_test.go` with tests: TestGetSubscriptions_ReturnsList, TestSkipDelivery_AdvancesDate, TestUpdateFrequency_InvalidWeeks_ReturnsError, TestCancelSubscription_SetsStatusCancelled.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/pkg/models/errors.go`, ensure these error codes exist as constants: AUTH_REQUIRED, AUTH_EXPIRED, NOT_FOUND, RATE_LIMITED, INVALID_INPUT, PURCHASE_FAILED, NETWORK_ERROR, AMAZON_ERROR, CAPTCHA_REQUIRED. Add any missing ones.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/pkg/models/errors.go`, ensure `CLIError` struct has Code, Message, Details fields and implements `Error() string` method that returns JSON formatted error string.
 
-- [ ] In file `/Users/zacharywentz/Development/amazon-cli/pkg/models/errors.go`, add `NewCLIError(code, message string, details map[string]interface{}) *CLIError` constructor function and exit code constants: ExitSuccess=0, ExitGeneralError=1, ExitInvalidArgs=2, ExitAuthError=3, ExitNetworkError=4, ExitRateLimited=5, ExitNotFound=6.
+- [x] In file `/Users/zacharywentz/Development/amazon-cli/pkg/models/errors.go`, add `NewCLIError(code, message string, details map[string]interface{}) *CLIError` constructor function and exit code constants: ExitSuccess=0, ExitGeneralError=1, ExitInvalidArgs=2, ExitAuthError=3, ExitNetworkError=4, ExitRateLimited=5, ExitNotFound=6.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/internal/output/output.go`, ensure `Error(code, message string, details map[string]interface{})` function exists that outputs JSON formatted error to stderr: `{"error": {"code": "...", "message": "...", "details": {...}}}`.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/client.go`, wrap all errors with context using fmt.Errorf with %w: network errors get "network request failed: %w", parse errors get "failed to parse response: %w", auth errors get "authentication failed: %w".
 
-- [ ] Create file `internal/output/output_test.go` with tests: TestJSON_OutputsValidJSON, TestError_OutputsErrorSchema, TestError_IncludesAllFields. Verify JSON is parseable.
+- [x] Create file `internal/output/output_test.go` with tests: TestJSON_OutputsValidJSON, TestError_OutputsErrorSchema, TestError_IncludesAllFields. Verify JSON is parseable.
 
-- [ ] Create file `.github/workflows/ci.yml` with: name "CI", triggers on push to main and pull_request to main, job "test" with matrix (ubuntu-latest, macos-latest, windows-latest) and go 1.21, steps to checkout, setup-go, run `go test -v -race -coverprofile=coverage.txt ./...`.
+- [x] Create file `.github/workflows/ci.yml` with: name "CI", triggers on push to main and pull_request to main, job "test" with matrix (ubuntu-latest, macos-latest, windows-latest) and go 1.21, steps to checkout, setup-go, run `go test -v -race -coverprofile=coverage.txt ./...`.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/.github/workflows/ci.yml`, add job "lint" that runs on ubuntu-latest, uses golangci/golangci-lint-action@v4 with version latest.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/.github/workflows/ci.yml`, add step to upload coverage to codecov using codecov/codecov-action@v4 with file ./coverage.txt.
 
-- [ ] Create file `.github/workflows/release.yml` with: name "Release", trigger on push tags 'v*', job "release" on ubuntu-latest, steps to checkout with fetch-depth 0, setup-go, run goreleaser/goreleaser-action@v5 with args "release --clean" and env GITHUB_TOKEN.
+- [x] Create file `.github/workflows/release.yml` with: name "Release", trigger on push tags 'v*', job "release" on ubuntu-latest, steps to checkout with fetch-depth 0, setup-go, run goreleaser/goreleaser-action@v5 with args "release --clean" and env GITHUB_TOKEN.
 
-- [ ] Create file `.github/PULL_REQUEST_TEMPLATE.md` with sections: Description, Changes (bullet list), Testing checklist (unit tests, integration tests, manual testing), Checklist (tests pass, coverage maintained, docs updated).
+- [x] Create file `.github/PULL_REQUEST_TEMPLATE.md` with sections: Description, Changes (bullet list), Testing checklist (unit tests, integration tests, manual testing), Checklist (tests pass, coverage maintained, docs updated).
 
-- [ ] Create file `.github/ISSUE_TEMPLATE/bug_report.md` with fields: Description, Steps to Reproduce, Expected Behavior, Actual Behavior, Environment (OS, CLI version), Logs/Output.
+- [x] Create file `.github/ISSUE_TEMPLATE/bug_report.md` with fields: Description, Steps to Reproduce, Expected Behavior, Actual Behavior, Environment (OS, CLI version), Logs/Output.
 
-- [ ] Create file `.github/ISSUE_TEMPLATE/feature_request.md` with fields: Feature Description, Use Case, Proposed Solution, Alternatives Considered.
+- [x] Create file `.github/ISSUE_TEMPLATE/feature_request.md` with fields: Feature Description, Use Case, Proposed Solution, Alternatives Considered.
 
-- [ ] Create file `CONTRIBUTING.md` with sections: Development Setup (go install, clone repo), Running Tests (go test ./...), Building (go build), Code Style (gofmt, golangci-lint), Submitting PRs (branch naming, commit messages, PR template).
+- [x] Create file `CONTRIBUTING.md` with sections: Development Setup (go install, clone repo), Running Tests (go test ./...), Building (go build), Code Style (gofmt, golangci-lint), Submitting PRs (branch naming, commit messages, PR template).
 
-- [ ] Create file `SECURITY.md` with sections: Supported Versions (table), Reporting Vulnerabilities (email/process), Security Best Practices (config file permissions 0600, credential rotation, --confirm flag usage).
+- [x] Create file `SECURITY.md` with sections: Supported Versions (table), Reporting Vulnerabilities (email/process), Security Best Practices (config file permissions 0600, credential rotation, --confirm flag usage).
 
-- [ ] Create file `CHANGELOG.md` with header following Keep a Changelog format, [Unreleased] section, and [1.0.0] section listing all features: Authentication, Orders, Returns, Search, Products, Cart, Checkout, Subscriptions, Rate Limiting.
+- [x] Create file `CHANGELOG.md` with header following Keep a Changelog format, [Unreleased] section, and [1.0.0] section listing all features: Authentication, Orders, Returns, Search, Products, Cart, Checkout, Subscriptions, Rate Limiting.
 
-- [ ] Create file `docs/TROUBLESHOOTING.md` with common issues and solutions: "Authentication Failed" (re-run auth login), "Rate Limited" (wait and retry), "CAPTCHA Required" (complete in browser), "Command Not Found" (check PATH), "Permission Denied on Config" (check file permissions).
+- [x] Create file `docs/TROUBLESHOOTING.md` with common issues and solutions: "Authentication Failed" (re-run auth login), "Rate Limited" (wait and retry), "CAPTCHA Required" (complete in browser), "Command Not Found" (check PATH), "Permission Denied on Config" (check file permissions).
 
 - [ ] Update file `/Users/zacharywentz/Development/amazon-cli/README.md` to add badges at top: CI status badge from GitHub Actions, Go version badge, License badge. Use shields.io format.
 
-- [ ] Update file `/Users/zacharywentz/Development/amazon-cli/README.md` to ensure all command examples in Quick Start section actually work with current implementation. Test each command.
+- [x] Update file `/Users/zacharywentz/Development/amazon-cli/README.md` to ensure all command examples in Quick Start section actually work with current implementation. Test each command.
 
-- [ ] Create file `skills.md` with YAML frontmatter: name: amazon-cli, description: CLI for Amazon shopping automation, version: 1.0.0, author: zkwentz, repository URL, tags: [shopping, e-commerce, amazon, automation].
+- [x] Create file `skills.md` with YAML frontmatter: name: amazon-cli, description: CLI for Amazon shopping automation, version: 1.0.0, author: zkwentz, repository URL, tags: [shopping, e-commerce, amazon, automation].
 
-- [ ] In file `/Users/zacharywentz/Development/amazon-cli/skills.md`, add Installation section with Homebrew instructions (brew tap, brew install) and binary download instructions.
+- [x] In file `/Users/zacharywentz/Development/amazon-cli/skills.md`, add Installation section with Homebrew instructions (brew tap, brew install) and binary download instructions.
 
-- [ ] In file `/Users/zacharywentz/Development/amazon-cli/skills.md`, add Authentication section documenting: auth login (inputs: none, output: status JSON), auth status (inputs: none, output: auth state JSON), auth logout (inputs: none, output: confirmation JSON).
+- [x] In file `/Users/zacharywentz/Development/amazon-cli/skills.md`, add Authentication section documenting: auth login (inputs: none, output: status JSON), auth status (inputs: none, output: auth state JSON), auth logout (inputs: none, output: confirmation JSON).
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/skills.md`, add Orders section documenting each command with inputs, outputs, and example: orders list (--limit, --status), orders get (order-id), orders track (order-id), orders history (--year).
 
@@ -206,23 +206,23 @@ Each task is independent and self-contained. Execute in order for best results.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/skills.md`, add Examples section with 5 common AI agent tasks: "Check recent orders" (orders list --limit 5), "Track a package" (orders track <id>), "Search products" (search "query" --prime-only), "Add to cart" (cart add <asin>), "Preview checkout" (cart checkout without --confirm).
 
-- [ ] Create file `test/e2e/cli_test.go` with test `TestCLI_Help_Works` that builds the binary with `go build`, runs `./amazon-cli --help`, and verifies exit code is 0 and output contains "amazon-cli".
+- [x] Create file `test/e2e/cli_test.go` with test `TestCLI_Help_Works` that builds the binary with `go build`, runs `./amazon-cli --help`, and verifies exit code is 0 and output contains "amazon-cli".
 
-- [ ] In file `/Users/zacharywentz/Development/amazon-cli/test/e2e/cli_test.go`, add test `TestCLI_OrdersList_OutputsJSON` that runs `./amazon-cli orders list --limit 1` and verifies output is valid JSON with "orders" key.
+- [x] In file `/Users/zacharywentz/Development/amazon-cli/test/e2e/cli_test.go`, add test `TestCLI_OrdersList_OutputsJSON` that runs `./amazon-cli orders list --limit 1` and verifies output is valid JSON with "orders" key.
 
-- [ ] In file `/Users/zacharywentz/Development/amazon-cli/test/e2e/cli_test.go`, add test `TestCLI_CartCheckout_RequiresConfirm` that runs `./amazon-cli cart checkout` without --confirm and verifies output contains "dry_run": true.
+- [x] In file `/Users/zacharywentz/Development/amazon-cli/test/e2e/cli_test.go`, add test `TestCLI_CartCheckout_RequiresConfirm` that runs `./amazon-cli cart checkout` without --confirm and verifies output contains "dry_run": true.
 
-- [ ] In file `/Users/zacharywentz/Development/amazon-cli/test/e2e/cli_test.go`, add test `TestCLI_Search_ReturnsResults` that runs `./amazon-cli search "test"` and verifies output is valid JSON with "query" and "results" keys.
+- [x] In file `/Users/zacharywentz/Development/amazon-cli/test/e2e/cli_test.go`, add test `TestCLI_Search_ReturnsResults` that runs `./amazon-cli search "test"` and verifies output is valid JSON with "query" and "results" keys.
 
-- [ ] In file `/Users/zacharywentz/Development/amazon-cli/test/e2e/cli_test.go`, add test `TestCLI_InvalidASIN_ReturnsError` that runs `./amazon-cli product get "invalid"` and verifies exit code is non-zero and output contains error.
+- [x] In file `/Users/zacharywentz/Development/amazon-cli/test/e2e/cli_test.go`, add test `TestCLI_InvalidASIN_ReturnsError` that runs `./amazon-cli product get "invalid"` and verifies exit code is non-zero and output contains error.
 
-- [ ] Run command `go test -v -coverprofile=coverage.out ./...` in project root and verify all tests pass. Run `go tool cover -func=coverage.out | grep total` and document the coverage percentage.
+- [x] Run command `go test -v -coverprofile=coverage.out ./...` in project root and verify all tests pass. Run `go tool cover -func=coverage.out | grep total` and document the coverage percentage.
 
-- [ ] Run command `golangci-lint run` in project root and fix any linter errors or warnings. Ensure zero issues reported.
+- [x] Run command `golangci-lint run` in project root and fix any linter errors or warnings. Ensure zero issues reported.
 
-- [ ] Run command `go build -o amazon-cli .` in project root and verify binary is created. Test `./amazon-cli --help` works.
+- [x] Run command `go build -o amazon-cli .` in project root and verify binary is created. Test `./amazon-cli --help` works.
 
-- [ ] Run command `go build -ldflags "-X main.version=1.0.0" -o amazon-cli .` to verify version embedding works. If main.version variable doesn't exist, add it to main.go.
+- [x] Run command `go build -ldflags "-X main.version=1.0.0" -o amazon-cli .` to verify version embedding works. If main.version variable doesn't exist, add it to main.go.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/main.go`, add `var version = "dev"` at package level and update to print version when `--version` flag is passed or add version command if not exists.
 

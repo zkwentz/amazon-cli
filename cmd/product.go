@@ -31,7 +31,7 @@ var productGetCmd = &cobra.Command{
 
 		// Validate ASIN argument
 		if asin == "" {
-			output.Error(models.ErrInvalidInput, "ASIN cannot be empty", nil)
+			_ = output.Error(models.ErrInvalidInput, "ASIN cannot be empty", nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
@@ -42,15 +42,15 @@ var productGetCmd = &cobra.Command{
 			// Check if error is validation related
 			errMsg := err.Error()
 			if strings.Contains(errMsg, "invalid ASIN format") || strings.Contains(errMsg, "ASIN cannot be empty") {
-				output.Error(models.ErrInvalidInput, errMsg, nil)
+				_ = output.Error(models.ErrInvalidInput, errMsg, nil)
 				os.Exit(models.ExitInvalidArgs)
 			}
 			// Otherwise treat as general error
-			output.Error(models.ErrAmazonError, errMsg, nil)
+			_ = output.Error(models.ErrAmazonError, errMsg, nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
-		output.JSON(product)
+		_ = output.JSON(product)
 	},
 }
 
@@ -65,7 +65,7 @@ var productReviewsCmd = &cobra.Command{
 
 		// Validate ASIN argument
 		if asin == "" {
-			output.Error(models.ErrInvalidInput, "ASIN cannot be empty", nil)
+			_ = output.Error(models.ErrInvalidInput, "ASIN cannot be empty", nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
@@ -76,15 +76,15 @@ var productReviewsCmd = &cobra.Command{
 			// Check if error is validation related
 			errMsg := err.Error()
 			if strings.Contains(errMsg, "ASIN cannot be empty") {
-				output.Error(models.ErrInvalidInput, errMsg, nil)
+				_ = output.Error(models.ErrInvalidInput, errMsg, nil)
 				os.Exit(models.ExitInvalidArgs)
 			}
 			// Otherwise treat as general error
-			output.Error(models.ErrAmazonError, errMsg, nil)
+			_ = output.Error(models.ErrAmazonError, errMsg, nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
-		output.JSON(reviews)
+		_ = output.JSON(reviews)
 	},
 }
 

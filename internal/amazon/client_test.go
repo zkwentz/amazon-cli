@@ -103,7 +103,7 @@ func TestDo_Success(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("success"))
+		_, _ = w.Write([]byte("success"))
 	}))
 	defer server.Close()
 
@@ -179,11 +179,11 @@ func TestDo_RetryOn429(t *testing.T) {
 		if attemptCount < 3 {
 			// Return 429 for first 2 attempts
 			w.WriteHeader(http.StatusTooManyRequests)
-			w.Write([]byte("rate limited"))
+			_, _ = w.Write([]byte("rate limited"))
 		} else {
 			// Return 200 on 3rd attempt
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("success"))
+			_, _ = w.Write([]byte("success"))
 		}
 	}))
 	defer server.Close()
@@ -222,10 +222,10 @@ func TestDo_RetryOn503(t *testing.T) {
 		attemptCount++
 		if attemptCount == 1 {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte("service unavailable"))
+			_, _ = w.Write([]byte("service unavailable"))
 		} else {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("success"))
+			_, _ = w.Write([]byte("success"))
 		}
 	}))
 	defer server.Close()
@@ -255,7 +255,7 @@ func TestDo_StopsAfterMaxRetries(t *testing.T) {
 		attemptCount++
 		// Always return 429
 		w.WriteHeader(http.StatusTooManyRequests)
-		w.Write([]byte("rate limited"))
+		_, _ = w.Write([]byte("rate limited"))
 	}))
 	defer server.Close()
 
@@ -294,7 +294,7 @@ func TestDo_NoRetryOn200(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		attemptCount++
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("success"))
+		_, _ = w.Write([]byte("success"))
 	}))
 	defer server.Close()
 
@@ -318,7 +318,7 @@ func TestDo_NoRetryOn404(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		attemptCount++
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("not found"))
+		_, _ = w.Write([]byte("not found"))
 	}))
 	defer server.Close()
 
