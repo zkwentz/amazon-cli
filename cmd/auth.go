@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -26,36 +25,9 @@ var authLoginCmd = &cobra.Command{
 Opens your default browser to Amazon's login page.
 After authentication, tokens are stored locally.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// For now, simulate a login since we don't have real OAuth
-		// In a real implementation, this would:
-		// 1. Start a local HTTP server
-		// 2. Open browser to Amazon OAuth URL
-		// 3. Handle callback with auth code
-		// 4. Exchange code for tokens
-		// 5. Store tokens in config
-
-		fmt.Fprintln(os.Stderr, "Opening browser for Amazon login...")
-		fmt.Fprintln(os.Stderr, "(Note: OAuth not yet implemented - using mock auth)")
-
-		// Simulate successful login
-		expiresAt := time.Now().Add(24 * time.Hour)
-
-		// Store in viper/config
-		viper.Set("auth.access_token", "mock_access_token")
-		viper.Set("auth.refresh_token", "mock_refresh_token")
-		viper.Set("auth.expires_at", expiresAt.Format(time.RFC3339))
-
-		// Try to save config
-		home, _ := os.UserHomeDir()
-		configDir := home + "/.amazon-cli"
-		os.MkdirAll(configDir, 0700)
-		viper.SetConfigFile(configDir + "/config.json")
-		viper.WriteConfig()
-
 		output.JSON(map[string]interface{}{
-			"status":     "authenticated",
-			"expires_at": expiresAt.Format(time.RFC3339),
-			"message":    "Mock authentication successful (OAuth not yet implemented)",
+			"status":  "login_required",
+			"message": "Browser-based login not yet implemented",
 		})
 	},
 }

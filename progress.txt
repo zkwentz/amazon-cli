@@ -178,3 +178,24 @@
   - `TestDetectCAPTCHA_DetectsMultipleIndicators` - Tests detection with multiple indicators present
   - All 10 CAPTCHA detection tests passing successfully
   - All package tests passing (32.9s total test time)
+
+## Task: Auth Login Command Placeholder Implementation
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/cmd/auth.go`:
+  - Simplified `authLoginCmd` Run function to output placeholder JSON
+  - Removed mock authentication logic that simulated OAuth flow
+  - Removed unnecessary code that set mock tokens in viper config
+  - Function now outputs JSON with:
+    - `status`: "login_required"
+    - `message`: "Browser-based login not yet implemented"
+  - Removed unused `fmt` import
+  - This serves as a placeholder for future OAuth implementation
+
+- Created `/Users/zacharywentz/Development/amazon-cli/cmd/auth_test.go`:
+  - Implemented `TestAuthLoginCmd` test function
+  - Test captures stdout output by redirecting `os.Stdout` to a pipe
+  - Parses JSON output and validates:
+    - `status` field equals "login_required"
+    - `message` field equals "Browser-based login not yet implemented"
+  - Uses proper cleanup to restore `os.Stdout` after test
+  - Test passing successfully
