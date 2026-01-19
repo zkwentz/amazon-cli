@@ -62,13 +62,13 @@ Each task is independent and self-contained. Execute in order for best results.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/cmd/orders.go`, update `ordersTrackCmd` Run function to: validate orderID, call GetOrderTracking, output tracking JSON.
 
-- [ ] Create file `pkg/models/return.go` with structs: `ReturnableItem` (OrderID, ItemID, ASIN, Title, Price, PurchaseDate, ReturnWindow), `ReturnOption` (Method, Label, DropoffLocation, Fee), `Return` (ReturnID, OrderID, ItemID, Status, Reason, CreatedAt), `ReturnLabel` (URL, Carrier, Instructions).
+- [x] Create file `pkg/models/return.go` with structs: `ReturnableItem` (OrderID, ItemID, ASIN, Title, Price, PurchaseDate, ReturnWindow), `ReturnOption` (Method, Label, DropoffLocation, Fee), `Return` (ReturnID, OrderID, ItemID, Status, Reason, CreatedAt), `ReturnLabel` (URL, Carrier, Instructions).
 
-- [ ] Create file `testdata/returns/returnable_items_sample.html` with sample HTML mimicking Amazon's returns center showing 2 returnable items with order_id, item_id, title, price, purchase_date, return_window.
+- [x] Create file `testdata/returns/returnable_items_sample.html` with sample HTML mimicking Amazon's returns center showing 2 returnable items with order_id, item_id, title, price, purchase_date, return_window.
 
-- [ ] Create file `internal/amazon/returns.go` with: `GetReturnableItems() ([]models.ReturnableItem, error)` that makes GET request and parses HTML, `GetReturnOptions(orderID, itemID string) ([]models.ReturnOption, error)` placeholder returning mock options.
+- [x] Create file `internal/amazon/returns.go` with: `GetReturnableItems() ([]models.ReturnableItem, error)` that makes GET request and parses HTML, `GetReturnOptions(orderID, itemID string) ([]models.ReturnOption, error)` placeholder returning mock options.
 
-- [ ] Create file `internal/amazon/returns.go` with: `CreateReturn(orderID, itemID, reason string) (*models.Return, error)` that validates reason against allowed list (defective, wrong_item, not_as_described, no_longer_needed, better_price, other), returns mock Return with generated returnID.
+- [x] Create file `internal/amazon/returns.go` with: `CreateReturn(orderID, itemID, reason string) (*models.Return, error)` that validates reason against allowed list (defective, wrong_item, not_as_described, no_longer_needed, better_price, other), returns mock Return with generated returnID.
 
 - [ ] Create file `internal/amazon/returns.go` with: `GetReturnLabel(returnID string) (*models.ReturnLabel, error)` returning mock label data, `GetReturnStatus(returnID string) (*models.Return, error)` returning mock status.
 

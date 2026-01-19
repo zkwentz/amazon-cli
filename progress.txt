@@ -766,3 +766,128 @@
     - General errors (network failures, parsing errors, CAPTCHA, etc.)
   - JSON output includes nested structures for items array and tracking object
   - Implementation follows same patterns as other order commands (list, track, history)
+
+## Task: Returns Create Command Implementation
+
+- Created `/Users/zacharywentz/Development/amazon-cli/pkg/models/return.go`:
+  - Defined `ReturnableItem` struct with fields:
+    - `OrderID string` - Order ID of the item
+    - `ItemID string` - Unique item identifier
+    - `ASIN string` - Amazon Standard Identification Number
+    - `Title string` - Product title
+    - `Price float64` - Item price
+    - `PurchaseDate string` - Date item was purchased
+    - `ReturnWindow string` - Return window deadline
+  - Defined `ReturnOption` struct with fields:
+    - `Method string` - Return method (e.g., "ups_dropoff")
+    - `Label string` - Human-readable label
+    - `DropoffLocation string` - Optional dropoff location description
+    - `Fee float64` - Return shipping fee
+  - Defined `Return` struct with fields:
+    - `ReturnID string` - Unique return identifier (format: "RET-{uuid}")
+    - `OrderID string` - Associated order ID
+    - `ItemID string` - Associated item ID
+    - `Status string` - Return status (e.g., "pending")
+    - `Reason string` - Return reason code
+    - `CreatedAt string` - RFC3339 timestamp of return creation
+  - Defined `ReturnLabel` struct with fields:
+    - `URL string` - Label download URL
+    - `Carrier string` - Shipping carrier name
+    - `Instructions string` - Return instructions
+
+- Created `/Users/zacharywentz/Development/amazon-cli/internal/amazon/returns.go`:
+  - Added `github.com/google/uuid` dependency for unique ID generation
+  - Defined `validReturnReasons` map with 6 allowed return reasons:
+    - "defective" - Item is defective or damaged
+    - "wrong_item" - Wrong item received
+    - "not_as_described" - Item not as described
+    - "no_longer_needed" - No longer needed
+    - "better_price" - Found better price
+    - "other" - Other reason
+  - Implemented `CreateReturn(orderID, itemID, reason string) (*models.Return, error)`:
+    - Validates orderID is not empty (returns error if empty)
+    - Validates itemID is not empty (returns error if empty)
+    - Validates reason is not empty (returns error if empty)
+    - Validates reason is in allowed list (returns error with list of valid reasons if invalid)
+    - Generates unique return ID using UUID: format "RET-{uuid}"
+    - Creates Return struct with:
+      - Generated ReturnID
+      - Provided OrderID and ItemID
+      - Provided Reason
+      - Status set to "pending"
+      - CreatedAt set to current timestamp in RFC3339 format
+    - Returns populated Return struct
+    - All validation errors include clear error messages
+
+- Created `/Users/zacharywentz/Development/amazon-cli/cmd/returns.go`:
+  - Defined package-level variables:
+    - `returnsReason string` - Return reason flag value
+    - `returnsConfirm bool` - Confirmation flag value
+  - Implemented `returnsCmd` parent command:
+    - Use: "returns"
+    - Short: "Manage returns"
+    - Long: "List returnable items, get return options, and create returns."
+  - Implemented `returnsCreateCmd` subcommand:
+    - Use: "create <order-id> <item-id>"
+    - Args: cobra.ExactArgs(2) - requires exactly 2 arguments
+    - Validates orderID is not empty
+    - Validates itemID is not empty
+    - Validates reason flag is provided (marked as required flag)
+    - Without --confirm flag (dry run mode):
+      - Outputs preview JSON with:
+        - `dry_run: true`
+        - `order_id`, `item_id`, `reason` values
+        - `message: "Add --confirm to submit the return"`
+      - Does not call CreateReturn
+    - With --confirm flag:
+      - Calls `c.CreateReturn(orderID, itemID, returnsReason)`
+      - Outputs Return struct as JSON on success
+      - Returns error with proper exit code on failure
+    - Error handling:
+      - Uses `models.ErrInvalidInput` for validation errors
+      - Uses `models.ExitInvalidArgs` exit code (2) for invalid arguments
+      - Calls `output.Error()` for formatted error output
+  - Flag configuration:
+    - `--reason` flag (required): Return reason from allowed list
+    - `--confirm` flag (optional, default false): Confirmation to execute return
+    - Reason flag marked as required using MarkFlagRequired
+  - Command registered with rootCmd in init() function
+
+- Created comprehensive test suite in `/Users/zacharywentz/Development/amazon-cli/cmd/returns_test.go`:
+  - 15 test functions covering all functionality:
+    - `TestReturnsCreateCmd_Success` - Validates command configuration (Use, Short, Run, Args)
+    - `TestReturnsCreateCmd_Flags` - Tests --reason and --confirm flags exist with correct defaults
+    - `TestReturnsCreateCmd_ReasonRequired` - Verifies --reason flag is marked as required
+    - `TestReturnsCmd_Configuration` - Tests parent command configuration (Use, Short, Long)
+    - `TestReturnsCmd_Subcommands` - Verifies create subcommand is registered
+    - `TestReturnsCmd_VariablesInitialized` - Tests package-level variables
+    - `TestReturnsCreateCmd_ResponseParsing` - Tests JSON marshaling of Return struct
+    - `TestReturnsCreateCmd_DryRunPreview` - Tests dry run preview output structure
+    - `TestReturnsCreateCmd_ValidReasons` - Tests all 6 valid return reasons:
+      - defective, wrong_item, not_as_described, no_longer_needed, better_price, other
+    - `TestReturnsCreateCmd_InvalidReason` - Tests invalid reasons are rejected:
+      - "invalid_reason", empty string, uppercase "DEFECTIVE", "changed my mind"
+    - `TestReturnsCreateCmd_EmptyOrderID` - Tests empty orderID validation
+    - `TestReturnsCreateCmd_EmptyItemID` - Tests empty itemID validation
+    - `TestReturnsCreateCmd_GeneratesReturnID` - Tests return ID generation is unique
+    - `TestReturnsCreateCmd_SetsCorrectStatus` - Verifies status is set to "pending"
+    - `TestReturnsCreateCmd_SetsCreatedAt` - Verifies CreatedAt timestamp is set
+  - All 15 tests passing successfully (0.306s total test time)
+  - Tests cover command structure, flag configuration, validation, dry run mode, and return creation
+  - Tests use amazon.NewClient() to test CreateReturn method directly
+  - Tests verify JSON output structure for both dry run and actual execution
+
+- Implementation Summary:
+  - Command follows same pattern as other commands (orders, cart)
+  - Dry run mode (without --confirm) shows preview without side effects
+  - Confirm flag required for actual return submission
+  - Comprehensive validation at multiple layers:
+    - Cobra Args validator for argument count
+    - Command-level validation for empty strings
+    - CreateReturn method validation for reason codes
+  - Clear error messages guide user to fix validation errors
+  - Return IDs use UUID format for uniqueness: "RET-{uuid}"
+  - Status always set to "pending" for new returns
+  - CreatedAt uses RFC3339 format for consistency with other timestamps
+  - Uses getClient() helper for consistent client creation
+  - Integrated with existing error handling patterns (models.ErrInvalidInput, output.Error)
