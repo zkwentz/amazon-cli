@@ -102,6 +102,7 @@ func TestBuyCmd_HasQuantityFlag(t *testing.T) {
 	quantityFlag := buyCmd.Flags().Lookup("quantity")
 	if quantityFlag == nil {
 		t.Error("Expected --quantity/-n flag to be defined")
+		return
 	}
 
 	if quantityFlag.DefValue != "1" {
@@ -114,11 +115,13 @@ func TestBuyCmd_HasOptionalAddressAndPaymentFlags(t *testing.T) {
 	addressIDFlag := buyCmd.Flags().Lookup("address-id")
 	if addressIDFlag == nil {
 		t.Error("Expected --address-id flag to be defined")
+		return
 	}
 
 	paymentIDFlag := buyCmd.Flags().Lookup("payment-id")
 	if paymentIDFlag == nil {
 		t.Error("Expected --payment-id flag to be defined")
+		return
 	}
 
 	// Both should be optional (empty default)

@@ -441,7 +441,7 @@ func TestSearch_URLConstruction(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		capturedURL = r.URL.String()
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`<html><body></body></html>`))
+		_, _ = w.Write([]byte(`<html><body></body></html>`))
 	}))
 	defer server.Close()
 
@@ -568,7 +568,7 @@ func TestSearch_DefaultPage(t *testing.T) {
 			t.Error("Expected no page parameter for default page")
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`<html><body></body></html>`))
+		_, _ = w.Write([]byte(`<html><body></body></html>`))
 	}))
 	defer server.Close()
 
@@ -609,7 +609,7 @@ func TestSearch_HTTPError(t *testing.T) {
 func TestSearch_CAPTCHADetection(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`
+		_, _ = w.Write([]byte(`
 			<html>
 			<body>
 				<p>Sorry, we just need to make sure you're not a robot.</p>
@@ -637,7 +637,7 @@ func TestSearch_CAPTCHADetection(t *testing.T) {
 func TestSearch_SuccessfulResponse(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`
+		_, _ = w.Write([]byte(`
 			<html>
 			<body>
 				<div data-asin="B08N5WRWNW">

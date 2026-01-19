@@ -15,7 +15,6 @@ import (
 type Client struct {
 	httpClient  *http.Client
 	baseURL     string
-	sessionID   string
 	cart        *models.Cart // In-memory cart for testing/development
 	rateLimiter *ratelimit.RateLimiter
 	maxRetries  int

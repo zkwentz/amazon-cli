@@ -32,7 +32,7 @@ var frequencyCmd = &cobra.Command{
 
 		// Validate interval
 		if subscriptionInterval < 1 || subscriptionInterval > 26 {
-			output.Error(models.ErrInvalidInput, "interval must be between 1 and 26 weeks", nil)
+			_ = output.Error(models.ErrInvalidInput, "interval must be between 1 and 26 weeks", nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
@@ -40,7 +40,7 @@ var frequencyCmd = &cobra.Command{
 		if !subscriptionConfirm {
 			// Get current subscription info for preview
 			// For now, we'll show a preview with the new frequency
-			output.JSON(map[string]interface{}{
+			_ = output.JSON(map[string]interface{}{
 				"dry_run":         true,
 				"subscription_id": id,
 				"new_interval":    subscriptionInterval,
@@ -52,11 +52,11 @@ var frequencyCmd = &cobra.Command{
 		// With --confirm, call UpdateFrequency
 		subscription, err := c.UpdateFrequency(id, subscriptionInterval)
 		if err != nil {
-			output.Error(models.ErrInvalidInput, err.Error(), nil)
+			_ = output.Error(models.ErrInvalidInput, err.Error(), nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
-		output.JSON(subscription)
+		_ = output.JSON(subscription)
 	},
 }
 
@@ -77,14 +77,14 @@ Without --confirm, shows a preview of the cancellation.`,
 			// Get subscription details for preview
 			subscription, err := c.CancelSubscription(id)
 			if err != nil {
-				output.Error(models.ErrInvalidInput, err.Error(), nil)
+				_ = output.Error(models.ErrInvalidInput, err.Error(), nil)
 				os.Exit(models.ExitInvalidArgs)
 			}
 
 			// Reset status to show current state in preview
 			subscription.Status = "active"
 
-			output.JSON(map[string]interface{}{
+			_ = output.JSON(map[string]interface{}{
 				"dry_run":      true,
 				"subscription": subscription,
 				"message":      "Add --confirm to cancel this subscription",
@@ -95,11 +95,11 @@ Without --confirm, shows a preview of the cancellation.`,
 		// With --confirm, execute the cancellation
 		subscription, err := c.CancelSubscription(id)
 		if err != nil {
-			output.Error(models.ErrAmazonError, err.Error(), nil)
+			_ = output.Error(models.ErrAmazonError, err.Error(), nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
-		output.JSON(subscription)
+		_ = output.JSON(subscription)
 	},
 }
 
@@ -112,7 +112,7 @@ func init() {
 
 	// Flags for frequency command
 	frequencyCmd.Flags().IntVarP(&subscriptionInterval, "interval", "i", 0, "Delivery interval in weeks (1-26, required)")
-	frequencyCmd.MarkFlagRequired("interval")
+	_ = frequencyCmd.MarkFlagRequired("interval")
 	frequencyCmd.Flags().BoolVar(&subscriptionConfirm, "confirm", false, "Confirm the frequency update")
 
 	// Flags for cancel command

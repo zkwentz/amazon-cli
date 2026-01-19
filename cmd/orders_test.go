@@ -1,33 +1,14 @@
 package cmd
 
 import (
-	"bytes"
 	"encoding/json"
-	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/zkwentz/amazon-cli/internal/amazon"
 	"github.com/zkwentz/amazon-cli/pkg/models"
 )
-
-// captureStdout captures stdout output during test execution
-func captureStdout(f func()) string {
-	old := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	f()
-
-	w.Close()
-	os.Stdout = old
-
-	var buf bytes.Buffer
-	io.Copy(&buf, r)
-	return buf.String()
-}
 
 func TestOrdersListCmd_Success(t *testing.T) {
 	// Create a test server that returns sample order list HTML
@@ -50,7 +31,7 @@ func TestOrdersListCmd_Success(t *testing.T) {
 			`
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(html))
+			_, _ = w.Write([]byte(html))
 		} else {
 			w.WriteHeader(http.StatusNotFound)
 		}
@@ -245,7 +226,7 @@ func TestOrdersListCmd_ErrorHandling(t *testing.T) {
 	// Create a test server that returns an error
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal Server Error"))
+		_, _ = w.Write([]byte("Internal Server Error"))
 	}))
 	defer server.Close()
 

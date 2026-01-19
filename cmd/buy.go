@@ -30,14 +30,14 @@ Without --confirm, shows a preview of what would be purchased.`,
 
 		// Validate ASIN format
 		if err := amazon.ValidateASIN(asin); err != nil {
-			output.Error(models.ErrInvalidInput, "Invalid ASIN: "+err.Error(), nil)
+			_ = output.Error(models.ErrInvalidInput, "Invalid ASIN: "+err.Error(), nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
 		// Get product details
 		product, err := c.GetProduct(asin)
 		if err != nil {
-			output.Error(models.ErrNotFound, "Product not found: "+err.Error(), nil)
+			_ = output.Error(models.ErrNotFound, "Product not found: "+err.Error(), nil)
 			os.Exit(models.ExitNotFound)
 		}
 
@@ -48,7 +48,7 @@ Without --confirm, shows a preview of what would be purchased.`,
 
 		if !buyConfirm {
 			// Preview purchase
-			output.JSON(map[string]interface{}{
+			_ = output.JSON(map[string]interface{}{
 				"dry_run": true,
 				"product": map[string]interface{}{
 					"asin":  product.ASIN,
@@ -97,17 +97,17 @@ Without --confirm, shows a preview of what would be purchased.`,
 		// Add to cart and checkout
 		_, err = c.AddToCart(asin, buyQuantity)
 		if err != nil {
-			output.Error(models.ErrInvalidInput, "Failed to add to cart: "+err.Error(), nil)
+			_ = output.Error(models.ErrInvalidInput, "Failed to add to cart: "+err.Error(), nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
 		confirmation, err := c.CompleteCheckout(addressID, paymentID)
 		if err != nil {
-			output.Error(models.ErrPurchaseFailed, "Checkout failed: "+err.Error(), nil)
+			_ = output.Error(models.ErrPurchaseFailed, "Checkout failed: "+err.Error(), nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
-		output.JSON(confirmation)
+		_ = output.JSON(confirmation)
 	},
 }
 

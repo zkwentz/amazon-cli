@@ -36,11 +36,11 @@ var searchCmd = &cobra.Command{
 
 		results, err := c.Search(query, opts)
 		if err != nil {
-			output.Error(models.ErrAmazonError, err.Error(), nil)
+			_ = output.Error(models.ErrAmazonError, err.Error(), nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
-		output.JSON(results)
+		_ = output.JSON(results)
 	},
 }
 

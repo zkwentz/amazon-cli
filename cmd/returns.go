@@ -34,19 +34,19 @@ Without --confirm, shows a preview of the return. With --confirm, submits the re
 
 		// Validate orderID is not empty
 		if orderID == "" {
-			output.Error(models.ErrInvalidInput, "order ID cannot be empty", nil)
+			_ = output.Error(models.ErrInvalidInput, "order ID cannot be empty", nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
 		// Validate itemID is not empty
 		if itemID == "" {
-			output.Error(models.ErrInvalidInput, "item ID cannot be empty", nil)
+			_ = output.Error(models.ErrInvalidInput, "item ID cannot be empty", nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
 		// Validate reason is provided
 		if returnsReason == "" {
-			output.Error(models.ErrInvalidInput, "reason is required (use --reason flag with: defective, wrong_item, not_as_described, no_longer_needed, better_price, other)", nil)
+			_ = output.Error(models.ErrInvalidInput, "reason is required (use --reason flag with: defective, wrong_item, not_as_described, no_longer_needed, better_price, other)", nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
@@ -54,7 +54,7 @@ Without --confirm, shows a preview of the return. With --confirm, submits the re
 
 		if !returnsConfirm {
 			// Dry run - show preview
-			output.JSON(map[string]interface{}{
+			_ = output.JSON(map[string]interface{}{
 				"dry_run":  true,
 				"order_id": orderID,
 				"item_id":  itemID,
@@ -67,11 +67,11 @@ Without --confirm, shows a preview of the return. With --confirm, submits the re
 		// Execute return creation
 		ret, err := c.CreateReturn(orderID, itemID, returnsReason)
 		if err != nil {
-			output.Error(models.ErrInvalidInput, err.Error(), nil)
+			_ = output.Error(models.ErrInvalidInput, err.Error(), nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
-		output.JSON(ret)
+		_ = output.JSON(ret)
 	},
 }
 
@@ -86,7 +86,7 @@ var returnsLabelCmd = &cobra.Command{
 
 		// Validate returnID is not empty
 		if returnID == "" {
-			output.Error(models.ErrInvalidInput, "return ID cannot be empty", nil)
+			_ = output.Error(models.ErrInvalidInput, "return ID cannot be empty", nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
@@ -95,11 +95,11 @@ var returnsLabelCmd = &cobra.Command{
 		// Get return label
 		label, err := c.GetReturnLabel(returnID)
 		if err != nil {
-			output.Error(models.ErrInvalidInput, err.Error(), nil)
+			_ = output.Error(models.ErrInvalidInput, err.Error(), nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
-		output.JSON(label)
+		_ = output.JSON(label)
 	},
 }
 
@@ -114,7 +114,7 @@ var returnsStatusCmd = &cobra.Command{
 
 		// Validate returnID is not empty
 		if returnID == "" {
-			output.Error(models.ErrInvalidInput, "return ID cannot be empty", nil)
+			_ = output.Error(models.ErrInvalidInput, "return ID cannot be empty", nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
@@ -123,11 +123,11 @@ var returnsStatusCmd = &cobra.Command{
 		// Get return status
 		ret, err := c.GetReturnStatus(returnID)
 		if err != nil {
-			output.Error(models.ErrInvalidInput, err.Error(), nil)
+			_ = output.Error(models.ErrInvalidInput, err.Error(), nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
-		output.JSON(ret)
+		_ = output.JSON(ret)
 	},
 }
 
@@ -142,5 +142,5 @@ func init() {
 	// Flags for returns create
 	returnsCreateCmd.Flags().StringVar(&returnsReason, "reason", "", "Return reason (required): defective, wrong_item, not_as_described, no_longer_needed, better_price, other")
 	returnsCreateCmd.Flags().BoolVar(&returnsConfirm, "confirm", false, "Confirm the return creation")
-	returnsCreateCmd.MarkFlagRequired("reason")
+	_ = returnsCreateCmd.MarkFlagRequired("reason")
 }

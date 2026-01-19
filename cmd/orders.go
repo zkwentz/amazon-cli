@@ -33,11 +33,11 @@ var ordersListCmd = &cobra.Command{
 
 		orders, err := c.GetOrders(ordersLimit, ordersStatus)
 		if err != nil {
-			output.Error(models.ErrAmazonError, err.Error(), nil)
+			_ = output.Error(models.ErrAmazonError, err.Error(), nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
-		output.JSON(orders)
+		_ = output.JSON(orders)
 	},
 }
 
@@ -53,7 +53,7 @@ var ordersGetCmd = &cobra.Command{
 
 		// Validate orderID is not empty (additional safety check)
 		if orderID == "" {
-			output.Error(models.ErrInvalidInput, "order ID cannot be empty", nil)
+			_ = output.Error(models.ErrInvalidInput, "order ID cannot be empty", nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
@@ -67,17 +67,17 @@ var ordersGetCmd = &cobra.Command{
 			// GetOrder returns "failed to extract order ID from HTML" when order is not found
 			errMsg := err.Error()
 			if strings.Contains(errMsg, "failed to extract order ID from HTML") {
-				output.Error(models.ErrNotFound, "order not found: "+orderID, nil)
+				_ = output.Error(models.ErrNotFound, "order not found: "+orderID, nil)
 				os.Exit(models.ExitNotFound)
 			}
 
 			// Handle other errors as general Amazon errors
-			output.Error(models.ErrAmazonError, errMsg, nil)
+			_ = output.Error(models.ErrAmazonError, errMsg, nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
 		// Output JSON result
-		output.JSON(order)
+		_ = output.JSON(order)
 	},
 }
 
@@ -92,7 +92,7 @@ var ordersTrackCmd = &cobra.Command{
 
 		// Validate orderID is not empty
 		if orderID == "" {
-			output.Error(models.ErrInvalidInput, "order ID cannot be empty", nil)
+			_ = output.Error(models.ErrInvalidInput, "order ID cannot be empty", nil)
 			os.Exit(models.ExitInvalidArgs)
 		}
 
@@ -100,11 +100,11 @@ var ordersTrackCmd = &cobra.Command{
 
 		tracking, err := c.GetOrderTracking(orderID)
 		if err != nil {
-			output.Error(models.ErrNotFound, err.Error(), nil)
+			_ = output.Error(models.ErrNotFound, err.Error(), nil)
 			os.Exit(models.ExitNotFound)
 		}
 
-		output.JSON(tracking)
+		_ = output.JSON(tracking)
 	},
 }
 
@@ -123,11 +123,11 @@ var ordersHistoryCmd = &cobra.Command{
 
 		orders, err := c.GetOrderHistory(year)
 		if err != nil {
-			output.Error(models.ErrAmazonError, err.Error(), nil)
+			_ = output.Error(models.ErrAmazonError, err.Error(), nil)
 			os.Exit(models.ExitGeneralError)
 		}
 
-		output.JSON(orders)
+		_ = output.JSON(orders)
 	},
 }
 

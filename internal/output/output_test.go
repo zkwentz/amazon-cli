@@ -95,7 +95,7 @@ func TestError(t *testing.T) {
 			w.Close()
 			os.Stderr = old
 			var buf bytes.Buffer
-			io.Copy(&buf, r)
+			_, _ = io.Copy(&buf, r)
 
 			// Parse JSON output
 			var result map[string]interface{}
@@ -151,7 +151,7 @@ func TestError_OutputsToStderr(t *testing.T) {
 	w.Close()
 	os.Stderr = old
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, _ = io.Copy(&buf, r)
 
 	// Verify output was captured (meaning it went to stderr)
 	if buf.Len() == 0 {
@@ -184,7 +184,7 @@ func TestError_JSONFormat(t *testing.T) {
 	w.Close()
 	os.Stderr = old
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, _ = io.Copy(&buf, r)
 
 	// Verify exact JSON structure
 	var result map[string]interface{}

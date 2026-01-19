@@ -34,7 +34,7 @@ func TestAuthLoginCmd(t *testing.T) {
 	w.Close()
 	os.Stdout = oldStdout
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, _ = io.Copy(&buf, r)
 
 	// Parse the JSON output
 	var result map[string]interface{}
@@ -88,7 +88,7 @@ func TestAuthStatusCmd_NoToken(t *testing.T) {
 
 	// Read captured output
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, _ = io.Copy(&buf, r)
 
 	// Parse JSON output
 	var result map[string]interface{}
@@ -133,7 +133,7 @@ func TestAuthStatusCmd_ValidToken(t *testing.T) {
 
 	// Read captured output
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, _ = io.Copy(&buf, r)
 
 	// Parse JSON output
 	var result map[string]interface{}
@@ -196,7 +196,7 @@ func TestAuthStatusCmd_ExpiredToken(t *testing.T) {
 
 	// Read captured output
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, _ = io.Copy(&buf, r)
 
 	// Parse JSON output
 	var result map[string]interface{}
@@ -258,7 +258,7 @@ func TestAuthStatusCmd_InvalidExpiryFormat(t *testing.T) {
 
 	// Read captured output
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, _ = io.Copy(&buf, r)
 
 	// Parse JSON output
 	var result map[string]interface{}
@@ -307,7 +307,7 @@ func TestAuthStatusCmd_ExpiresInSecondsCalculation(t *testing.T) {
 
 	// Read captured output
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, _ = io.Copy(&buf, r)
 
 	// Parse JSON output
 	var result map[string]interface{}
@@ -349,7 +349,7 @@ func TestAuthStatusCmd_ShortLivedToken(t *testing.T) {
 
 	// Read captured output
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, _ = io.Copy(&buf, r)
 
 	// Parse JSON output
 	var result map[string]interface{}
@@ -409,7 +409,7 @@ func TestAuthLogoutCmd_Success(t *testing.T) {
 	}
 
 	// Ensure config directory exists
-	os.MkdirAll(home+"/.amazon-cli", 0700)
+	_ = os.MkdirAll(home+"/.amazon-cli", 0700)
 
 	// Write test config to actual location
 	if err := os.WriteFile(originalConfigPath, []byte(configData), 0600); err != nil {
@@ -419,7 +419,7 @@ func TestAuthLogoutCmd_Success(t *testing.T) {
 	// Cleanup: restore original config
 	defer func() {
 		if hadOriginalConfig {
-			os.WriteFile(originalConfigPath, originalConfig, 0600)
+			_ = os.WriteFile(originalConfigPath, originalConfig, 0600)
 		} else {
 			os.Remove(originalConfigPath)
 		}
@@ -439,7 +439,7 @@ func TestAuthLogoutCmd_Success(t *testing.T) {
 
 	// Read captured output
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, _ = io.Copy(&buf, r)
 
 	// Parse JSON output
 	var result map[string]interface{}
@@ -508,7 +508,7 @@ func TestAuthLogoutCmd_NoExistingConfig(t *testing.T) {
 	// Cleanup: restore original config
 	defer func() {
 		if hadOriginalConfig {
-			os.WriteFile(originalConfigPath, originalConfig, 0600)
+			_ = os.WriteFile(originalConfigPath, originalConfig, 0600)
 		}
 	}()
 
@@ -526,7 +526,7 @@ func TestAuthLogoutCmd_NoExistingConfig(t *testing.T) {
 
 	// Read captured output
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, _ = io.Copy(&buf, r)
 
 	// Parse JSON output
 	var result map[string]interface{}
