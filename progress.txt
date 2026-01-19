@@ -2733,3 +2733,97 @@ No changes needed - the documentation already meets all specified requirements. 
 
 ### Summary:
 The Cart section was already completely documented in skills.md with all required commands, proper flag documentation (--confirm requirements), and preview/execute mode examples. No modifications were needed.
+
+## Agent 99: Subscriptions Section Verification - 2026-01-19
+
+### Task:
+Verify and document Subscriptions section in skills.md with: subscriptions list, get, skip (--confirm), frequency (--interval, --confirm), cancel (--confirm), upcoming.
+
+### Findings:
+1. Subscriptions section already exists and is complete in skills.md (lines 735-890)
+2. Confirmed all required commands are documented with proper structure and examples
+
+### Subscriptions Commands Verified:
+1. **subscriptions list** (lines 735-763):
+   - Inputs: None
+   - Output: JSON array of subscriptions with details (subscription_id, asin, title, price, discount_percent, frequency_weeks, next_delivery, status, quantity)
+   - Example command and output included
+
+2. **subscriptions get** (lines 767-781):
+   - Inputs: subscription_id (required)
+   - Output: Same as single subscription in subscriptions list
+   - Example command included
+
+3. **subscriptions skip** (lines 785-808):
+   - Inputs: subscription_id (required), --confirm flag (required)
+   - Output: JSON with skipped_delivery and updated next_delivery
+   - Properly documents that --confirm is required to execute
+   - Example command and output included
+
+4. **subscriptions frequency** (lines 812-836):
+   - Inputs: subscription_id (required), --interval (required, 1-26 weeks), --confirm flag (required)
+   - Output: JSON with previous and new frequency_weeks and updated next_delivery
+   - Properly documents that --confirm is required to execute
+   - Properly documents --interval parameter with range
+   - Example command and output included
+
+5. **subscriptions cancel** (lines 840-862):
+   - Inputs: subscription_id (required), --confirm flag (required)
+   - Output: JSON with status: "cancelled" and cancelled_at timestamp
+   - Properly documents that --confirm is required to execute
+   - Example command and output included
+
+6. **subscriptions upcoming** (lines 866-890):
+   - Inputs: None
+   - Output: JSON array of upcoming_deliveries with subscription details and delivery_date
+   - Example command and output included
+
+### Files Verified:
+- /Users/zacharywentz/Development/amazon-cli/skills.md (Subscriptions section at lines 735-890)
+
+### Summary:
+The Subscriptions section was already completely documented in skills.md with all required commands, proper flag documentation (--confirm requirements), --interval parameter documentation, and complete JSON output examples. No modifications were needed.
+
+
+## [2026-01-19 01:15:30] Verified Returns section in skills.md
+
+### Task: Add Returns section documenting: returns list, returns options, returns create (--reason codes list, --confirm required), returns label, returns status
+
+### Changes Made:
+1. Verified that the Returns section already exists in skills.md with complete documentation
+2. Confirmed all required commands are documented with proper structure, examples, and reason codes
+
+### Returns Commands Verified:
+1. **returns list** (lines 247-273):
+   - Inputs: None
+   - Output: JSON array of returnable_items with order_id, item_id, asin, title, price, purchase_date, and return_window
+   - Example command and full output included
+
+2. **returns options** (lines 277-310):
+   - Inputs: order_id (required), item_id (required)
+   - Output: JSON array of return_options with method, label, dropoff_location, and fee
+   - Example command with both parameters and full JSON output included
+
+3. **returns create** (lines 314-361):
+   - Inputs: order_id (required), item_id (required), --reason (required), --confirm flag (required)
+   - **Reason codes documented:** `defective`, `wrong_item`, `not_as_described`, `no_longer_needed`, `better_price`, `other`
+   - Output: Preview mode (dry_run) without --confirm, confirmed return with return_id when --confirm is provided
+   - Properly documents that --confirm is required to execute
+   - Includes both preview and confirmed output examples
+   - Example commands for both preview and execute modes
+
+4. **returns label** (lines 365-386):
+   - Inputs: return_id (required)
+   - Output: JSON with label_url, carrier, and instructions
+   - Example command and full output included
+
+5. **returns status** (lines 390-412):
+   - Inputs: return_id (required)
+   - Output: JSON with return_id, status, refund_amount, and refund_date
+   - Example command and full output included
+
+### Files Verified:
+- /Users/zacharywentz/Development/amazon-cli/skills.md (Returns section at lines 247-412)
+
+### Summary:
+The Returns section was already completely documented in skills.md with all required commands, proper reason code list, --confirm flag requirements, and preview/execute mode examples. No modifications were needed.
