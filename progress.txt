@@ -2843,3 +2843,28 @@ The Subscriptions section was already completely documented in skills.md with al
 
 ### Summary:
 The Returns section was already completely documented in skills.md with all required commands, proper reason code list, --confirm flag requirements, and preview/execute mode examples. No modifications were needed.
+
+
+## [2026-01-19 01:16:00] Enhanced Error Codes section in skills.md
+
+### Task: Add Error Codes section with table: AUTH_REQUIRED, AUTH_EXPIRED, NOT_FOUND, RATE_LIMITED, INVALID_INPUT, PURCHASE_FAILED, NETWORK_ERROR, AMAZON_ERROR and their descriptions
+
+### Changes Made:
+1. Enhanced the existing Error Codes section in skills.md with detailed descriptions for all error codes
+2. Expanded the error code table to provide actionable guidance for each error type
+
+### Error Codes Enhanced:
+1. **AUTH_REQUIRED**: Updated description to clearly indicate user needs to run `amazon-cli auth login` to authenticate
+2. **AUTH_EXPIRED**: Added specific guidance to re-authenticate with `amazon-cli auth login` to obtain a fresh token
+3. **NOT_FOUND**: Clarified that this applies to any resource (order, product, subscription, etc.) and advises verification of ID
+4. **RATE_LIMITED**: Added context about automatic retry with exponential backoff and guidance to wait before manual retry
+5. **INVALID_INPUT**: Expanded to mention checking command syntax and ensuring valid values for required fields
+6. **PURCHASE_FAILED**: Detailed multiple potential causes (payment issues, out-of-stock, address problems, checkout errors) with guidance to review details
+7. **NETWORK_ERROR**: Added guidance to check internet connection before retrying
+8. **AMAZON_ERROR**: Clarified this is for unexpected API errors, may be temporary, and could indicate Amazon service issues
+
+### Files Modified:
+- /Users/zacharywentz/Development/amazon-cli/skills.md (Error Codes section at lines 908-919)
+
+### Summary:
+The Error Codes section was updated from basic one-phrase descriptions to comprehensive, actionable descriptions that help users understand the cause of each error and what steps to take to resolve them. All 8 required error codes are documented with detailed descriptions.

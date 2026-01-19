@@ -909,14 +909,14 @@ All errors return JSON with consistent schema:
 
 | Code | Description |
 |------|-------------|
-| `AUTH_REQUIRED` | Not logged in |
-| `AUTH_EXPIRED` | Token expired |
-| `NOT_FOUND` | Resource not found |
-| `RATE_LIMITED` | Too many requests |
-| `INVALID_INPUT` | Invalid command input |
-| `PURCHASE_FAILED` | Purchase could not be completed |
-| `NETWORK_ERROR` | Network connectivity issue |
-| `AMAZON_ERROR` | Amazon returned an error |
+| `AUTH_REQUIRED` | User is not authenticated. Run `amazon-cli auth login` to authenticate with Amazon before using this command. |
+| `AUTH_EXPIRED` | Authentication token has expired. Run `amazon-cli auth login` to re-authenticate and obtain a fresh token. |
+| `NOT_FOUND` | The requested resource (order, product, subscription, etc.) could not be found. Verify the ID and try again. |
+| `RATE_LIMITED` | Too many requests sent in a short period. Wait a few minutes before retrying. The CLI includes automatic retry with exponential backoff. |
+| `INVALID_INPUT` | Invalid or missing required parameters. Check command syntax and ensure all required fields are provided with valid values. |
+| `PURCHASE_FAILED` | Purchase operation failed. This may be due to payment issues, out-of-stock items, address problems, or Amazon checkout errors. Review the error details and retry. |
+| `NETWORK_ERROR` | Network connectivity issue prevented the request from completing. Check your internet connection and try again. |
+| `AMAZON_ERROR` | Amazon's API returned an unexpected error. This may be temporary. Wait a moment and retry. If the issue persists, Amazon's services may be experiencing problems. |
 
 ---
 
@@ -951,35 +951,50 @@ All errors return JSON with consistent schema:
 
 ## Examples
 
-### Check recent orders
+### Common AI Agent Tasks
+
+#### Check recent orders
+View the last 5 orders to quickly check recent purchase history.
 ```bash
 amazon-cli orders list --limit 5
 ```
 
-### Find tracking info for an order
+#### Track a package
+Get real-time tracking information for a specific order.
+```bash
+amazon-cli orders track <order_id>
+```
+Example:
 ```bash
 amazon-cli orders track 123-4567890-1234567
 ```
 
-### Search for wireless headphones under $100
+#### Search products
+Search for products with Prime shipping only.
 ```bash
-amazon-cli search "wireless headphones" --max-price 100 --prime-only
+amazon-cli search "query" --prime-only
+```
+Example:
+```bash
+amazon-cli search "wireless headphones" --prime-only
 ```
 
-### Return a defective item
+#### Add to cart
+Add a product to your shopping cart using its ASIN.
 ```bash
-amazon-cli returns create 123-4567890-1234567 ITEM123 --reason defective --confirm
+amazon-cli cart add <asin>
+```
+Example:
+```bash
+amazon-cli cart add B08N5WRWNW
 ```
 
-### Skip next Subscribe & Save delivery
+#### Preview checkout
+Preview checkout details without completing the purchase (no --confirm flag).
 ```bash
-amazon-cli subscriptions skip S01-1234567-8901234 --confirm
+amazon-cli cart checkout
 ```
-
-### Buy an item immediately
-```bash
-amazon-cli buy B08N5WRWNW --quantity 1 --confirm
-```
+This shows cart contents, estimated tax, total, shipping address, and payment method without completing the purchase. Add `--confirm` to complete the purchase.
 
 ---
 
