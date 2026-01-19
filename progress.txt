@@ -2612,6 +2612,7 @@ amazon-cli subscriptions cancel SUB123 --confirm
 ### Files Checked:
 - skills.md (lines 87-199: Orders section)
 
+
 ## Task: Add Authentication section to skills.md
 Date: 2026-01-19
 
@@ -3682,3 +3683,5 @@ All four tests pass successfully:
 ### Files Modified:
 - skills.md (lines 1-12: updated YAML frontmatter with new description and added tags)
 
+
+- skills.md (Authentication section at lines 25-83)
