@@ -2522,3 +2522,13 @@ amazon-cli subscriptions cancel SUB123 --confirm
 
 ### Files Checked:
 - .github/workflows/ci.yml (lint job already present and correctly configured)
+
+## Task: Add codecov upload step to CI workflow
+- Updated .github/workflows/ci.yml to use coverage.txt file for codecov upload
+- Modified line 26: Changed coverprofile output from coverage.out to coverage.txt
+- Modified line 31: Updated codecov-action@v4 file parameter from ./coverage.out to ./coverage.txt
+- The codecov upload step was already present in the workflow, only needed to update the filename
+- Ensures consistency between test coverage generation and upload steps
+
+### Files Modified:
+- .github/workflows/ci.yml (lines 26 and 31: updated coverage file from coverage.out to coverage.txt)
