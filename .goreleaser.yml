@@ -67,7 +67,7 @@ release:
   prerelease: auto
   name_template: "v{{.Version}}"
 
-brews:
+homebrews:
   - name: amazon-cli
     repository:
       owner: zkwentz
@@ -81,6 +81,6 @@ brews:
       name: goreleaserbot
       email: bot@goreleaser.com
     test: |
-      system "#{bin}/amazon-cli", "--version"
+      system "#{bin}/amazon-cli", "--help"
     install: |
       bin.install "amazon-cli"
