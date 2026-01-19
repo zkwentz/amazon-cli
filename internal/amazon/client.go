@@ -1,7 +1,9 @@
 package amazon
 
 import (
+	"fmt"
 	"math/rand"
+	"net/http"
 	"time"
 )
 
@@ -40,4 +42,46 @@ func init() {
 // getRandomUserAgent returns a random User-Agent string from the userAgents slice
 func getRandomUserAgent() string {
 	return userAgents[rng.Intn(len(userAgents))]
+}
+
+// Do executes an HTTP request with rate limiting, retries, and proper headers
+// It enforces rate limiting, sets browser-like headers, and automatically retries
+// requests that fail with 429 (Too Many Requests) or 503 (Service Unavailable)
+// status codes using exponential backoff.
+func (c *Client) Do(req *http.Request) (*http.Response, error) {
+	// Enforce rate limiting before making the request
+	c.rateLimiter.Wait()
+
+	// Set headers to mimic a real browser request
+	req.Header.Set("User-Agent", getRandomUserAgent())
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+
+	// Execute the initial request
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("network request failed: %w", err)
+	}
+
+	// Check if we should retry based on status code
+	attempt := 0
+	for c.rateLimiter.ShouldRetry(resp.StatusCode, attempt) {
+		// Close the previous response body to avoid resource leaks
+		resp.Body.Close()
+
+		// Increment attempt counter and wait with exponential backoff
+		attempt++
+		c.rateLimiter.WaitWithBackoff(attempt)
+
+		// Set a new random User-Agent for the retry to avoid detection
+		req.Header.Set("User-Agent", getRandomUserAgent())
+
+		// Retry the request
+		resp, err = c.httpClient.Do(req)
+		if err != nil {
+			return nil, fmt.Errorf("network request failed on retry %d: %w", attempt, err)
+		}
+	}
+
+	return resp, nil
 }

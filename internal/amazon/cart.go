@@ -3,24 +3,34 @@ package amazon
 import (
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/zkwentz/amazon-cli/internal/ratelimit"
 	"github.com/zkwentz/amazon-cli/pkg/models"
 )
 
 // Client represents the Amazon API client
 // This is a placeholder structure that will be expanded in future implementations
 type Client struct {
-	httpClient *http.Client
-	baseURL    string
-	sessionID  string
-	cart       *models.Cart // In-memory cart for testing/development
+	httpClient  *http.Client
+	baseURL     string
+	sessionID   string
+	cart        *models.Cart // In-memory cart for testing/development
+	rateLimiter *ratelimit.RateLimiter
+	maxRetries  int
 }
 
-// NewClient creates a new Amazon API client
+// NewClient creates a new Amazon API client with default rate limiting
 func NewClient() *Client {
+	minDelay := 2 * time.Second
+	maxDelay := 60 * time.Second
+	maxRetries := 3
+
 	return &Client{
-		httpClient: &http.Client{},
-		baseURL:    "https://www.amazon.com",
+		httpClient:  &http.Client{Timeout: 30 * time.Second},
+		baseURL:     "https://www.amazon.com",
+		rateLimiter: ratelimit.NewRateLimiter(minDelay, maxDelay, maxRetries),
+		maxRetries:  maxRetries,
 		cart: &models.Cart{
 			Items:        []models.CartItem{},
 			Subtotal:     0,

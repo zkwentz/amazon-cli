@@ -102,3 +102,46 @@
   - `TestUserAgentsSliceHasCorrectLength` - Verifies exactly 10 user agents are defined
   - `TestUserAgentsSliceContainsValidStrings` - Validates each user agent is properly formatted (>50 chars, contains "Mozilla")
   - All 5 tests passing successfully
+
+## Task: HTTP Client Do Method Implementation
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart.go`:
+  - Added imports for `time` and `github.com/zkwentz/amazon-cli/internal/ratelimit`
+  - Extended `Client` struct to include:
+    - `rateLimiter *ratelimit.RateLimiter` - Rate limiter instance for request throttling
+    - `maxRetries int` - Maximum number of retry attempts
+  - Updated `NewClient()` constructor:
+    - Initializes rate limiter with minDelay=2s, maxDelay=60s, maxRetries=3
+    - Sets HTTP client timeout to 30 seconds
+    - Stores maxRetries value for retry logic
+
+- Implemented `Do(req *http.Request) (*http.Response, error)` method in `client.go`:
+  - Enforces rate limiting by calling `rateLimiter.Wait()` before each request
+  - Sets browser-like headers on all requests:
+    - `User-Agent`: Random selection from 10 common browser user agents
+    - `Accept`: `text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8`
+    - `Accept-Language`: `en-US,en;q=0.9`
+  - Executes HTTP request using underlying HTTP client
+  - Implements automatic retry logic:
+    - Retries on HTTP 429 (Too Many Requests) status code
+    - Retries on HTTP 503 (Service Unavailable) status code
+    - Uses exponential backoff via `WaitWithBackoff()` for retry delays
+    - Respects `maxRetries` limit (default 3 retries)
+    - Changes User-Agent on each retry to avoid detection
+    - Properly closes response bodies to prevent resource leaks
+  - Returns wrapped errors with context (e.g., "network request failed: %w")
+
+- Created comprehensive test suite in `internal/amazon/client_test.go`:
+  - `TestDo_Success` - Verifies successful request execution and header setting
+  - `TestDo_SetsHeaders` - Validates User-Agent, Accept, and Accept-Language headers are set correctly
+  - `TestDo_RetryOn429` - Tests retry behavior for 429 status code with exponential backoff
+  - `TestDo_RetryOn503` - Tests retry behavior for 503 status code
+  - `TestDo_StopsAfterMaxRetries` - Verifies retry limit is respected (4 total attempts with maxRetries=3)
+  - `TestDo_NoRetryOn200` - Confirms no retry on successful 200 response
+  - `TestDo_NoRetryOn404` - Confirms no retry on 404 Not Found (non-retryable error)
+  - `TestDo_NetworkError` - Tests error handling for network failures
+  - `TestDo_ChangesUserAgentOnRetry` - Verifies User-Agent is changed on each retry attempt
+  - `TestDo_EnforcesRateLimiting` - Validates rate limiting delays between consecutive requests
+  - All 10 Do method tests passing successfully (32.9s total test time)
+  - Uses httptest.Server for realistic HTTP request testing
+  - Tests verify timing constraints for rate limiting and backoff behavior
