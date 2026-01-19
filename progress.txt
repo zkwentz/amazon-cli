@@ -3300,3 +3300,39 @@ Successfully removed the obsolete IMPLEMENTATION_AND_TEST_PLAN.md file (41,002 b
   - Uses getClient() helper for client creation
   - All flags have sensible defaults (empty strings, 0 values, false, page 1)
   - Implementation complete at cmd/search.go:25-44
+
+## Task: Product Detail Sample HTML File
+
+- Created `/Users/zacharywentz/Development/amazon-cli/testdata/products/product_detail_sample.html`:
+  - Sample HTML fixture mimicking Amazon product detail page structure
+  - Contains complete product page with all required elements:
+    - Product title: "Wireless Bluetooth Headphones, Active Noise Cancelling..."
+    - ASIN: B08XYZ1234 (in detailBullets and productDetails sections)
+    - Current price: $49.99 (in corePrice section with proper a-price structure)
+    - Original price: $79.99 (in basisPrice section with a-text-price class)
+    - Savings percentage: 38% off
+    - Rating: 4.5 out of 5 stars (in averageCustomerReviews section)
+    - Review count: 12,847 ratings
+    - Prime badge: Prime icon with free delivery message
+    - Stock status: "In Stock" (green text in availability section)
+    - Product description: Multiple paragraphs describing features and benefits
+    - Feature bullets: 5 detailed bullet points with bold labels:
+      - Advanced Active Noise Cancelling
+      - Superior Sound Quality
+      - 30 Hours Playtime
+      - Comfortable Protein Earpads
+      - Built-in Microphone & Wired Mode
+    - Product images: 5 image URLs with thumbnails and high-res versions:
+      - Main image: landingImage with data-a-dynamic-image JSON
+      - Thumbnail gallery: altImages with 5 images
+      - Image URLs: https://m.media-amazon.com/images/I/71abc123def._AC_SL1500_.jpg (and 4 more)
+    - Technical details table: Brand, Model Name, Color, Form Factor, Connectivity
+    - Additional product information: Dimensions, Weight, Customer Reviews, Best Sellers Rank, Date First Available
+  - HTML structure matches real Amazon product pages:
+    - Uses authentic CSS classes: a-size-large, a-price, a-offscreen, a-icon-prime, etc.
+    - Proper semantic HTML with divs, spans, lists, tables
+    - Accessibility attributes: aria-label, aria-hidden, role="presentation"
+    - Multiple price formats: whole dollars, decimal, fraction parts
+    - Nested selectors for complex data extraction
+  - Suitable for testing product detail HTML parser implementation
+  - Contains all fields required by PRD: ASIN, title, price, original_price, rating, review_count, prime badge, stock status, description, feature bullets, image URLs
