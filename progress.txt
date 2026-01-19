@@ -2532,3 +2532,18 @@ amazon-cli subscriptions cancel SUB123 --confirm
 
 ### Files Modified:
 - .github/workflows/ci.yml (lines 26 and 31: updated coverage file from coverage.out to coverage.txt)
+
+## Task: Create file docs/TROUBLESHOOTING.md with common issues and solutions
+- Created docs/ directory to house documentation files
+- Created comprehensive docs/TROUBLESHOOTING.md file with the following sections:
+  - Authentication Failed: Instructions to re-run auth login command
+  - Rate Limited: Guidance to wait and retry, with explanation of rate limiting
+  - CAPTCHA Required: Steps to complete CAPTCHA in browser before retrying
+  - Command Not Found: Instructions to check and update PATH environment variable (with platform-specific guidance for Unix/Linux/macOS and Windows)
+  - Permission Denied on Config: File permission checking and fixing instructions (with platform-specific commands for Unix/Linux/macOS and Windows)
+- Added "Still Having Issues?" section with guidance on seeking further help
+- Formatted with clear problem/solution structure for easy reference
+- Included code examples and step-by-step instructions for each issue
+
+### Files Created:
+- docs/TROUBLESHOOTING.md (new troubleshooting documentation)
