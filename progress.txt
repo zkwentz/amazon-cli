@@ -2493,3 +2493,19 @@ amazon-cli subscriptions cancel SUB123 --confirm
 - All tests pass successfully
 - Output format: {"error": {"code": "...", "message": "...", "details": {...}}}
 
+
+
+## Task: Wrap all errors in client.go with context using fmt.Errorf with %w
+- Modified internal/amazon/client.go to ensure consistent error wrapping format
+- Updated line 83 to use generic "network request failed: %w" format instead of including retry attempt number
+- Network errors now consistently use "network request failed: %w" format on both initial request (line 64) and retry (line 83)
+- Note: Parse errors and auth errors were not present in client.go, only network errors exist in this file
+- Added comprehensive test coverage in internal/amazon/client_test.go:
+  - TestDo_NetworkErrorWrapping: Verifies error wrapping format for initial network failures
+  - TestDo_NetworkErrorOnRetryWrapping: Verifies error wrapping format for retry network failures and ensures no retry-specific info in message
+- All existing tests continue to pass
+- Implementation matches specification: network errors get "network request failed: %w"
+
+### Files Modified:
+- internal/amazon/client.go (line 83: standardized network error wrapping format)
+- internal/amazon/client_test.go (added 2 comprehensive test functions)

@@ -80,7 +80,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 		// Retry the request
 		resp, err = c.httpClient.Do(req)
 		if err != nil {
-			return nil, fmt.Errorf("network request failed on retry %d: %w", attempt, err)
+			return nil, fmt.Errorf("network request failed: %w", err)
 		}
 	}
 

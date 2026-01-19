@@ -355,6 +355,52 @@ func TestDo_NetworkError(t *testing.T) {
 	}
 }
 
+func TestDo_NetworkErrorWrapping(t *testing.T) {
+	client := NewClient()
+	// Create request to invalid URL that will fail
+	req, _ := http.NewRequest("GET", "http://invalid-url-that-does-not-exist-12345.com", nil)
+
+	_, err := client.Do(req)
+	if err == nil {
+		t.Fatal("Expected error for network failure, got nil")
+	}
+
+	// Verify error wrapping format matches specification
+	if !strings.HasPrefix(err.Error(), "network request failed:") {
+		t.Errorf("Expected error to start with 'network request failed:', got: %v", err)
+	}
+}
+
+func TestDo_NetworkErrorOnRetryWrapping(t *testing.T) {
+	attemptCount := 0
+	// Create a server that returns 429 to trigger retries, then fails
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attemptCount++
+		w.WriteHeader(http.StatusTooManyRequests)
+	}))
+
+	// Close the server immediately to force network errors on retry
+	server.Close()
+
+	client := NewClient()
+	req, _ := http.NewRequest("GET", server.URL, nil)
+
+	_, err := client.Do(req)
+	if err == nil {
+		t.Fatal("Expected network error, got nil")
+	}
+
+	// Verify the error message format matches specification
+	if !strings.HasPrefix(err.Error(), "network request failed:") {
+		t.Errorf("Expected error to start with 'network request failed:', got: %v", err)
+	}
+
+	// Verify error does not contain retry-specific information
+	if strings.Contains(err.Error(), "retry") {
+		t.Errorf("Expected generic 'network request failed' format without retry info, got: %v", err)
+	}
+}
+
 func TestDo_ChangesUserAgentOnRetry(t *testing.T) {
 	userAgents := make([]string, 0)
 	attemptCount := 0
