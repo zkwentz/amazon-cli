@@ -2947,3 +2947,73 @@ The version variable can be overridden at build time:
 ```bash
 go build -ldflags "-X main.version=1.0.0" -o amazon-cli
 ```
+
+---
+
+## Makefile Test Verification
+
+Date: 2026-01-19
+
+### Task: Run command `make test` to verify Makefile works and all tests pass
+
+Ran the `make test` command to verify that the Makefile is properly configured and all tests pass successfully.
+
+### Test Results:
+
+**Command executed:**
+```bash
+make test
+```
+
+**Makefile target:**
+The test target is defined in the Makefile at line 38:
+```makefile
+test:
+	$(GOTEST) -v ./...
+```
+
+This runs `go test -v ./...` which executes all tests in the project with verbose output.
+
+### Test Summary:
+
+All tests passed successfully across all packages:
+
+1. **Main package** (`github.com/zkwentz/amazon-cli`): 1 test passed
+2. **CMD package** (`github.com/zkwentz/amazon-cli/cmd`): 95 tests passed
+3. **Internal Amazon package** (`github.com/zkwentz/amazon-cli/internal/amazon`): 203 tests passed
+4. **Internal Config package** (`github.com/zkwentz/amazon-cli/internal/config`): 15 tests passed (1 skipped)
+5. **Internal Output package** (`github.com/zkwentz/amazon-cli/internal/output`): 5 tests passed
+6. **Internal Ratelimit package** (`github.com/zkwentz/amazon-cli/internal/ratelimit`): 11 tests passed
+7. **PKG Models package** (`github.com/zkwentz/amazon-cli/pkg/models`): 11 tests passed
+
+**Total**: 341 tests passed, 1 test skipped, 0 failures
+
+### Key Test Areas Verified:
+
+- Authentication commands (login, status, logout)
+- Buy command and cart operations (add, remove, clear, checkout)
+- Orders commands (list, get, track, history)
+- Product commands (get, reviews)
+- Returns commands (create, label, status)
+- Subscriptions commands (cancel, frequency)
+- Input validation (ASIN, quantity, etc.)
+- HTML parsing for various Amazon pages
+- HTTP client with retry logic and rate limiting
+- Configuration management
+- Error handling and output formatting
+- User agent rotation
+- CAPTCHA detection
+
+### Verification:
+
+✅ Makefile is correctly configured
+✅ All 341 tests pass successfully
+✅ Test coverage spans all major functionality
+✅ No build errors or test failures
+✅ Comprehensive test suite validates:
+  - Command-line interface
+  - API client functionality
+  - HTML parsing and scraping
+  - Rate limiting and retry logic
+  - Configuration management
+  - Error handling
