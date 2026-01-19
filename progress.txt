@@ -2509,3 +2509,16 @@ amazon-cli subscriptions cancel SUB123 --confirm
 ### Files Modified:
 - internal/amazon/client.go (line 83: standardized network error wrapping format)
 - internal/amazon/client_test.go (added 2 comprehensive test functions)
+
+
+## Task: Add lint job to CI workflow
+- Verified .github/workflows/ci.yml already contains the lint job (lines 34-49)
+- The lint job is configured exactly as specified:
+  - Job name: "lint"
+  - Runs on: ubuntu-latest
+  - Uses: golangci/golangci-lint-action@v4
+  - Version: latest
+- No changes needed as the configuration already matches requirements
+
+### Files Checked:
+- .github/workflows/ci.yml (lint job already present and correctly configured)
