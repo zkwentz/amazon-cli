@@ -58,3 +58,33 @@ func (c *Client) CancelSubscription(id string) (*models.Subscription, error) {
 
 	return subscription, nil
 }
+
+// UpdateFrequency updates the delivery frequency for a subscription
+func (c *Client) UpdateFrequency(id string, intervalWeeks int) (*models.Subscription, error) {
+	if id == "" {
+		return nil, fmt.Errorf("subscription ID cannot be empty")
+	}
+
+	if intervalWeeks < 1 || intervalWeeks > 26 {
+		return nil, fmt.Errorf("interval must be between 1 and 26 weeks")
+	}
+
+	// TODO: Implement actual Amazon API call to update subscription frequency
+	// For now, simulate the operation with mock data
+	subscription := &models.Subscription{
+		ID:             id,
+		ASIN:           "B08XYZ1234",
+		Title:          "Coffee Pods - Subscribe & Save",
+		Price:          24.99,
+		Discount:       5.0,
+		FrequencyWeeks: 4,
+		NextDelivery:   time.Now().AddDate(0, 0, 14),
+		Status:         "active",
+		Quantity:       1,
+	}
+
+	// Update the frequency
+	subscription.FrequencyWeeks = intervalWeeks
+
+	return subscription, nil
+}

@@ -2190,3 +2190,109 @@ All tests pass successfully.
 - Ready for future integration with actual Amazon Subscribe & Save API
 - Follows Go testing best practices with table-driven tests
 - Test coverage includes both happy path and error cases
+
+---
+
+## 2026-01-19: Added Subscription Frequency Update Command
+
+### Changes Made:
+
+#### 1. Added UpdateFrequency method (`internal/amazon/subscriptions.go`):
+- Implemented `UpdateFrequency(id string, intervalWeeks int)` method
+- Validates subscription ID (cannot be empty)
+- Validates interval range (1-26 weeks)
+- Returns updated subscription with new frequency
+- Uses mock data for development/testing purposes
+- Returns appropriate error messages for validation failures
+
+#### 2. Created Subscriptions CLI Command (`cmd/subscriptions.go`):
+- Created new `subscriptions` parent command for subscription management
+- Implemented `frequency <id>` subcommand with required flags:
+  - `--interval` (shorthand `-i`): Required flag, delivery interval in weeks (1-26)
+  - `--confirm`: Optional flag, defaults to false for preview mode
+- Preview mode (without `--confirm`):
+  - Shows dry run preview with subscription ID and new interval
+  - Displays message prompting user to add `--confirm` to execute
+- Execution mode (with `--confirm`):
+  - Calls `UpdateFrequency` method from amazon client
+  - Validates interval is between 1 and 26 weeks
+  - Returns updated subscription as JSON output
+  - Handles errors with appropriate error codes
+
+#### 3. Comprehensive Test Suite (`cmd/subscriptions_test.go`):
+Created 9 test functions covering all aspects of the frequency command:
+
+1. **TestSubscriptionsCmd_Configuration**:
+   - Verifies subscriptions command exists
+   - Checks Use and Short descriptions
+
+2. **TestFrequencyCmd_Configuration**:
+   - Verifies frequency command exists with correct configuration
+   - Tests Use format "frequency <id>"
+   - Confirms Run function is defined
+
+3. **TestFrequencyCmd_Flags**:
+   - Tests --interval flag is defined with default value "0"
+   - Verifies -i shorthand for interval flag
+   - Tests --confirm flag defaults to "false"
+
+4. **TestFrequencyCmd_IntervalFlagIsRequired**:
+   - Verifies --interval flag is marked as required
+   - Tests MarkFlagRequired was called
+
+5. **TestFrequencyCmd_ConfirmFlagDefaultIsFalse**:
+   - Confirms --confirm flag defaults to false (preview mode)
+
+6. **TestFrequencyCmd_PreviewModeIsDefault**:
+   - Verifies command documentation mentions preview and confirm requirement
+   - Checks Long description includes interval range (1-26 weeks)
+
+7. **TestFrequencyCmd_AcceptsExactlyOneArg**:
+   - Tests command accepts exactly one argument (subscription ID)
+   - Verifies Args validator is set
+
+8. **TestFrequencyCmd_IntervalValidation_LowerBound**:
+   - Verifies Run function contains validation for lower bound (1)
+
+9. **TestFrequencyCmd_IntervalValidation_UpperBound**:
+   - Verifies Run function contains validation for upper bound (26)
+
+All tests pass successfully.
+
+### Usage Examples:
+
+Preview mode (default):
+```bash
+amazon-cli subscriptions frequency SUB123 --interval 8
+# Output: JSON with dry_run=true, subscription_id, new_interval, and message
+```
+
+Execute frequency update:
+```bash
+amazon-cli subscriptions frequency SUB123 --interval 8 --confirm
+# Output: Updated subscription JSON with FrequencyWeeks=8
+```
+
+With shorthand:
+```bash
+amazon-cli subscriptions frequency SUB123 -i 4 --confirm
+```
+
+### Technical Notes:
+
+- Follows established patterns from other commands (cart, buy, etc.)
+- Uses getClient() helper from cart.go for consistent client management
+- Implements preview/confirm pattern consistent with other destructive operations
+- Validates interval range (1-26 weeks) before making API call
+- Returns appropriate exit codes for different error conditions
+- Uses JSON output for easy parsing by AI agents and scripts
+- Command structure: `subscriptions frequency <id>` for clear command hierarchy
+- Interval flag is required to ensure explicit user intent
+- Confirm flag prevents accidental frequency changes
+
+### Integration:
+
+- Command automatically registered with root command in init()
+- Uses existing amazon.Client UpdateFrequency method
+- Leverages existing output and models packages
+- Consistent with existing CLI architecture and patterns
