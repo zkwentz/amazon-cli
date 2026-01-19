@@ -1096,3 +1096,230 @@
   - Review count and rating parsing handles various formats
   - Parser returns empty array (not error) for invalid HTML or no results
   - Follows same patterns as existing order parsing code (goquery, helper functions, validation)
+
+## Task: Implement Search Function with URL Building and HTTP GET
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/internal/amazon/search.go`
+- Implemented `Search(query string, opts SearchOptions) (*SearchResponse, error)` function:
+  - Validates that query string is not empty
+  - Sets default page to 1 if not provided or set to 0
+  - Builds Amazon search URL (`https://www.amazon.com/s`) with query parameters:
+    - `k`: search query (required)
+    - `i`: category filter (optional)
+    - `low-price`: minimum price in cents (optional, converted from dollars)
+    - `high-price`: maximum price in cents (optional, converted from dollars)
+    - `prime`: Prime eligibility filter set to "true" (optional)
+    - `page`: page number for pagination (optional, only added if > 1)
+  - Creates HTTP GET request with constructed URL
+  - Executes request using client's `Do()` method which handles:
+    - Rate limiting (2-second minimum delay between requests)
+    - Browser-like headers (User-Agent, Accept, Accept-Language)
+    - Automatic retries with exponential backoff for 429/503 errors
+  - Validates HTTP response status code (expects 200 OK)
+  - Reads response body into buffer
+  - Checks for CAPTCHA detection using existing `detectCAPTCHA()` method
+  - Calls `parseSearchResultsHTML()` to extract product data from HTML
+  - Returns `SearchResponse` containing:
+    - `Query`: original search query
+    - `Results`: array of parsed Product objects
+    - `TotalResults`: count of products found
+    - `Page`: current page number
+  - Error handling for:
+    - Empty query string
+    - HTTP request creation failures
+    - Network/connection errors
+    - Non-200 status codes
+    - Response body read failures
+    - CAPTCHA detection
+    - HTML parsing errors
+
+- Key Implementation Details:
+  - Uses `url.Values` for safe query parameter encoding
+  - Converts prices from dollars to cents (Amazon's expected format)
+  - Follows same pattern as existing `GetOrders()` implementation
+  - Leverages existing Client infrastructure (rate limiting, retries, headers)
+  - Proper resource cleanup with `defer resp.Body.Close()`
+  - Wraps errors with context using `fmt.Errorf` with `%w` verb
+
+- Created comprehensive test suite in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/search_test.go`:
+  - Added 6 new test functions for Search() method:
+    - `TestSearch_EmptyQuery` - Validates empty query error handling
+    - `TestSearch_URLConstruction` - Tests URL building with all parameter combinations:
+      - Basic query only
+      - Query with category filter
+      - Query with price range (min/max)
+      - Query with Prime filter
+      - Query with page number
+      - Query with all options combined
+    - `TestSearch_DefaultPage` - Verifies page parameter handling (0 defaults to 1, no param for page 1)
+    - `TestSearch_HTTPError` - Tests error handling for non-200 status codes
+    - `TestSearch_CAPTCHADetection` - Verifies CAPTCHA detection and error reporting
+    - `TestSearch_SuccessfulResponse` - Tests complete flow with mock server:
+      - Validates SearchResponse structure
+      - Checks query, results count, total, and page number
+      - Verifies product parsing (ASIN, title, price, Prime status)
+  - Tests use httptest.NewServer for HTTP mocking
+  - Tests verify URL construction, query parameters, and response handling
+  - All 6 tests passing successfully (13.810s total with rate limiting)
+
+- Total Test Coverage:
+  - 11 existing tests for HTML parsing and helper functions
+  - 6 new tests for Search() function
+  - 17 total test functions in search_test.go
+  - All tests passing with comprehensive coverage
+
+- Implementation follows Amazon CLI best practices:
+  - Uses existing Client infrastructure for HTTP operations
+  - Consistent error handling patterns
+  - Proper rate limiting and retry logic
+  - CAPTCHA detection for graceful degradation
+  - Browser-like request headers to avoid blocks
+  - Clean separation of concerns (URL building, HTTP request, parsing)
+
+## Task: Product Detail HTML Parser Implementation
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/internal/amazon/product.go`:
+  - Added imports: bytes, regexp, strings, goquery for HTML parsing
+  - Implemented `parseProductDetailHTML(html []byte) (*models.Product, error)` function:
+    - Parses HTML using goquery document parser from bytes reader
+    - Returns error with context if HTML parsing fails
+    - Extracts ASIN from multiple sources (ordered by priority):
+      - `data-asin` attribute from any element
+      - Canonical link URL using regex pattern `/dp/([A-Z0-9]{10})`
+      - Input field with name="ASIN"
+    - Extracts title using multiple CSS selectors:
+      - `#productTitle` - Primary product title ID
+      - `#title` - Alternative title ID
+      - `h1.product-title` - Product title class
+      - `span#productTitle` - Title span element
+    - Extracts price from multiple selectors:
+      - `.a-price[data-a-color='price'] .a-offscreen` - Primary price element
+      - `#priceblock_ourprice` - Standard price block
+      - `#priceblock_dealprice` - Deal price block
+      - `.a-price .a-offscreen` - Generic offscreen price
+      - `span.a-price-whole` - Whole number price
+    - Extracts original price (list price) from:
+      - `.a-price[data-a-strike='true'] .a-offscreen` - Struck-through price
+      - `#priceblock_listprice` - List price block
+      - `.a-text-price .a-offscreen` - Text price element
+      - `span.a-price.a-text-price span.a-offscreen` - Alternative text price
+    - Sets OriginalPrice only if different from current price
+    - Extracts rating from multiple selectors:
+      - `#acrPopover` with title attribute - Primary rating popover
+      - `span.a-icon-alt` - Icon alt text
+      - `i.a-icon-star span.a-icon-alt` - Star icon alt text
+    - Checks title attribute for more accurate rating text
+    - Parses rating using existing `parseRating()` helper from search.go
+    - Extracts review count from:
+      - `#acrCustomerReviewText` - Primary review count element
+      - `span#acrCustomerReviewText` - Alternative review count
+      - `a#acrCustomerReviewLink span` - Review link span
+    - Parses review count using existing `parseReviewCount()` helper
+    - Determines Prime eligibility by checking for:
+      - `#priceBadging_feature_div i.a-icon-prime` - Price badging Prime icon
+      - `i.a-icon-prime` - Generic Prime icon
+      - `span.prime-badge` - Prime badge span
+      - `[aria-label*='Prime']` - Prime aria label
+    - Defaults InStock to true, sets to false if availability text contains:
+      - "out of stock", "unavailable", "currently unavailable", or "not available"
+    - Extracts delivery estimate from:
+      - `#deliveryMessageMirId span` - Delivery message ID
+      - `#mir-layout-DELIVERY_BLOCK span.a-text-bold` - MIR layout block
+      - `div[data-feature-name='deliveryMessage'] span` - Feature name delivery
+    - Extracts description from multiple selectors:
+      - `#productDescription p` - Description paragraphs
+      - `#feature-bullets ul li span.a-list-item` - Feature bullets as fallback
+      - `div#productDescription` - Generic description div
+    - Concatenates multiple paragraphs with space separator
+    - Extracts features (bullet points) from:
+      - `#feature-bullets ul li span.a-list-item` - Primary feature bullets
+      - `div#feature-bullets ul.a-unordered-list li span` - Alternative selector
+    - Filters out empty strings and "See more" text from features
+    - Extracts images from multiple selectors:
+      - `#altImages ul li.imageThumbnail img` - Thumbnail images
+      - `#imageBlock img[data-old-hires]` - Image block with high-res
+      - `#landingImage` - Landing/main image
+      - `#imgTagWrapperId img` - Image wrapper
+    - Prioritizes high-resolution image URLs:
+      - `data-old-hires` attribute (preferred)
+      - `data-a-hires` attribute (alternative)
+      - `src` attribute (fallback)
+    - Filters out placeholder images containing: "1x1", "pixel", or "transparent"
+    - Uses map to deduplicate images, then converts to slice
+    - Validates required fields: returns error if ASIN or title missing
+    - Returns populated Product struct with all extracted data
+    - Gracefully handles missing optional fields (price, rating, etc.)
+    - Leverages existing helper functions from search.go: `parsePriceFromText()`, `parseRating()`, `parseReviewCount()`
+
+- Created comprehensive test suite in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/product_test.go`:
+  - 17 test functions covering all functionality:
+    - `TestParseProductDetailHTML` - Tests parsing of complete product detail page:
+      - Sample HTML with Sony WH-1000XM4 headphones
+      - Verifies all fields: ASIN, title, price $278, original price $349.99, rating 4.7, 52,431 reviews, Prime, in stock, delivery estimate, description, 4 features, 2 images
+    - `TestParseProductDetailHTML_MinimalFields` - Tests minimal valid HTML (only ASIN and title):
+      - Verifies optional fields have zero/default values
+      - Validates graceful handling of missing data
+    - `TestParseProductDetailHTML_MissingASIN` - Tests error handling for missing ASIN
+    - `TestParseProductDetailHTML_MissingTitle` - Tests error handling for missing title
+    - `TestParseProductDetailHTML_OutOfStock` - Tests 5 stock status scenarios:
+      - "In Stock" → true
+      - "Out of Stock" → false
+      - "Currently unavailable" → false
+      - "This item is not available" → false
+      - "Unavailable" → false
+    - `TestParseProductDetailHTML_ASINExtraction` - Tests 3 ASIN extraction methods:
+      - From input field with name="ASIN"
+      - From canonical link URL
+      - From data-asin attribute
+    - `TestParseProductDetailHTML_PriceVariations` - Tests 4 price selector variations:
+      - Standard price format with data-a-color attribute
+      - Priceblock ourprice element
+      - Deal price element
+      - Price whole element
+    - `TestParseProductDetailHTML_RatingVariations` - Tests 3 rating selector variations:
+      - acrPopover with title attribute
+      - Icon alt text
+      - Simple decimal format
+    - `TestParseProductDetailHTML_PrimeIndicators` - Tests 5 Prime indicator types:
+      - Icon prime in price badging
+      - Generic icon prime
+      - Prime badge span
+      - Aria label Prime
+      - No prime indicator (false)
+    - `TestParseProductDetailHTML_FeaturesExtraction` - Tests feature bullet extraction:
+      - Verifies 3 features extracted (filters out "See more" text)
+      - Validates first feature content
+    - `TestParseProductDetailHTML_ImagesDeduplication` - Tests image deduplication:
+      - HTML with duplicate image URLs
+      - Verifies only 2 unique images returned
+    - `TestParseProductDetailHTML_ImageFiltering` - Tests placeholder image filtering:
+      - Filters out images containing "1x1", "pixel", "transparent"
+      - Verifies only valid image returned
+    - `TestParseProductDetailHTML_EmptyHTML` - Tests error handling for empty HTML
+    - `TestParseProductDetailHTML_InvalidHTML` - Tests error handling for invalid HTML
+    - `TestParseProductDetailHTML_DescriptionExtraction` - Tests description parsing:
+      - Multiple paragraphs concatenated
+      - Validates description content
+    - `TestParseProductDetailHTML_DeliveryEstimate` - Tests 3 delivery estimate formats:
+      - Tomorrow delivery
+      - Specific date
+      - Feature name delivery message
+  - All 17 tests passing successfully (0.312s total test time)
+  - Tests cover happy path, edge cases, multiple selector variations, and graceful degradation
+  - Tests use realistic Amazon HTML structures with various selector patterns
+  - Helper function `stringContains()` added to avoid conflict with existing `contains()` in cart_test.go
+
+- Implementation Summary:
+  - Parser handles multiple Amazon product detail page HTML formats
+  - Robust selector fallbacks for all fields (ASIN, title, price, rating, etc.)
+  - Comprehensive validation - requires ASIN and title at minimum
+  - Reuses existing helper functions from search.go for consistency
+  - Graceful handling of missing or malformed optional data
+  - Case-insensitive stock status checking
+  - Multiple ASIN extraction methods for reliability
+  - Image deduplication and filtering for quality
+  - Feature filtering to remove non-product information
+  - Description concatenation for multi-paragraph content
+  - Parser returns descriptive error for missing required fields
+  - Follows same patterns as existing search and order parsing code
+
