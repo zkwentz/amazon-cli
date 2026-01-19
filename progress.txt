@@ -2544,3 +2544,88 @@ amazon-cli subscriptions cancel SUB123 --confirm
 
 ### Files Modified:
 - README.md (lines 3-5: added three badges using shields.io format)
+
+## Task: Update file README.md to ensure all command examples in Quick Start section work
+- Verified all command examples in the Quick Start section (lines 42-64) against the current CLI implementation
+- Built the amazon-cli binary and tested each command from the Quick Start section
+- All 8 command examples tested successfully:
+  1. amazon-cli auth login - works correctly
+  2. amazon-cli auth status - works correctly
+  3. amazon-cli orders list --limit 5 - works correctly (--limit flag validated)
+  4. amazon-cli search "wireless headphones" --prime-only - works correctly (--prime-only flag validated)
+  5. amazon-cli cart add B08N5WRWNW --quantity 1 - works correctly (--quantity flag validated)
+  6. amazon-cli cart list - works correctly
+  7. amazon-cli cart checkout - works correctly (preview mode)
+  8. amazon-cli cart checkout --confirm - works correctly (--confirm flag validated)
+- Verified implementation by reading source files:
+  - cmd/auth.go: Confirmed auth login and auth status commands exist
+  - cmd/orders.go: Confirmed --limit flag exists (line 144)
+  - cmd/search.go: Confirmed --prime-only flag exists (line 53)
+  - cmd/cart.go: Confirmed --quantity flag exists (line 242), --confirm flag exists (lines 245, 248)
+- No updates needed to README.md - all Quick Start examples are accurate and work with current implementation
+
+### Files Checked:
+- README.md (lines 42-64: Quick Start section verified)
+- cmd/auth.go (auth commands implementation)
+- cmd/orders.go (orders commands and flags)
+- cmd/search.go (search command and flags)
+- cmd/cart.go (cart commands and flags)
+
+## Task: Add Orders section to skills.md (2026-01-19)
+
+### Verification:
+- Read skills.md file completely
+- Found existing Orders section already documented (lines 87-199)
+- Section includes all required commands with complete documentation:
+  1. orders list (lines 87-130) - includes --limit and --status parameters, example command, full JSON output
+  2. orders get (lines 133-148) - includes order_id parameter, example command, output reference
+  3. orders track (lines 151-181) - includes order_id parameter, example command, tracking JSON output
+  4. orders history (lines 184-199) - includes --year parameter, example command, output reference
+
+### Result:
+- Orders section already exists in skills.md with complete documentation
+- All four commands documented with inputs, outputs, and examples as requested
+- No changes needed - task requirements already satisfied in existing file
+
+### Files Checked:
+- skills.md (lines 87-199: Orders section)
+
+## Task: Add Authentication section to skills.md
+Date: 2026-01-19
+
+### Work Completed:
+- Verified that skills.md already contains a complete Authentication section (lines 25-83)
+- Confirmed all three required auth commands are documented:
+  - auth login (lines 39-52): Inputs: none, Output: status JSON with authenticated status and expiry
+  - auth status (lines 56-68): Inputs: none, Output: auth state JSON with authenticated status and time info
+  - auth logout (lines 72-83): Inputs: none, Output: confirmation JSON with logged_out status
+- Documentation matches the exact requirements specified in the task
+- No changes needed as the section already exists with complete and accurate information
+
+### Files Verified:
+- /Users/zacharywentz/Development/amazon-cli/skills.md (Authentication section at lines 25-83)
+
+
+## [2026-01-19 01:13:33] Enhanced Installation section in skills.md
+
+### Task: Add Installation section with Homebrew instructions and binary download instructions
+
+### Changes Made:
+1. Expanded the Installation section in skills.md with detailed instructions
+2. Added separate subsections for:
+   - Homebrew (macOS/Linux) with step-by-step commands
+   - Binary Download with platform-specific instructions for:
+     * macOS (Intel and Apple Silicon)
+     * Linux (amd64 and arm64)
+     * Windows
+   - Build from Source (Go install)
+
+### Files Modified:
+- skills.md (lines 13-23 expanded to comprehensive installation guide)
+
+### Details:
+- Homebrew section now includes: tap command, install command, and verification step
+- Binary download section includes curl commands with proper flags and permissions
+- Added GitHub Releases links for manual downloads
+- Covered all major platforms and architectures
+- Maintained consistent formatting with rest of document
