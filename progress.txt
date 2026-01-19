@@ -1543,3 +1543,17 @@
   - Both commands output JSON for consistency with other commands
   - Integrated with existing error handling patterns and exit codes
   - Commands use shared `getClient()` helper for consistent client creation
+
+## Task: Update ClearCart() Function
+
+- Updated `ClearCart()` function in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart.go`:
+  - Reset `cart.Items` to an empty slice `[]models.CartItem{}`
+  - Set `cart.Subtotal` to `0`
+  - Set `cart.EstimatedTax` to `0`
+  - Set `cart.Total` to `0`
+  - Set `cart.ItemCount` to `0`
+- Enhanced test in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart_test.go`:
+  - Added setup code to add items to cart before clearing
+  - Added verification that cart has items before clearing
+  - Added comprehensive assertions after clearing to verify all fields are reset to zero/empty
+- All tests pass successfully

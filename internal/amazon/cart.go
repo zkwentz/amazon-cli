@@ -3,6 +3,7 @@ package amazon
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/zkwentz/amazon-cli/internal/ratelimit"
@@ -41,14 +42,41 @@ func NewClient() *Client {
 	}
 }
 
+// ValidateASIN validates that an ASIN is in the correct format
+func ValidateASIN(asin string) error {
+	if asin == "" {
+		return fmt.Errorf("ASIN cannot be empty")
+	}
+
+	// Validate ASIN format - ASINs are typically 10 characters (alphanumeric)
+	asinRegex := regexp.MustCompile(`^[A-Z0-9]{10}$`)
+	if !asinRegex.MatchString(asin) {
+		return fmt.Errorf("invalid ASIN format: must be 10 alphanumeric characters")
+	}
+
+	return nil
+}
+
+// ValidateQuantity validates that a quantity is valid for cart operations
+func ValidateQuantity(quantity int) error {
+	if quantity <= 0 {
+		return fmt.Errorf("quantity must be positive")
+	}
+
+	return nil
+}
+
 // AddToCart adds an item to the cart
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) AddToCart(asin string, quantity int) (*models.Cart, error) {
-	if asin == "" {
-		return nil, fmt.Errorf("ASIN cannot be empty")
+	// Validate ASIN
+	if err := ValidateASIN(asin); err != nil {
+		return nil, err
 	}
-	if quantity <= 0 {
-		return nil, fmt.Errorf("quantity must be positive")
+
+	// Validate quantity
+	if err := ValidateQuantity(quantity); err != nil {
+		return nil, err
 	}
 
 	// TODO: Implement actual Amazon cart add API call
@@ -90,18 +118,54 @@ func (c *Client) GetCart() (*models.Cart, error) {
 // RemoveFromCart removes an item from the cart
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) RemoveFromCart(asin string) (*models.Cart, error) {
-	if asin == "" {
-		return nil, fmt.Errorf("ASIN cannot be empty")
+	// Validate ASIN
+	if err := ValidateASIN(asin); err != nil {
+		return nil, err
 	}
 
+	// Find and remove the item from the cart
+	itemFound := false
+	newItems := []models.CartItem{}
+	for _, item := range c.cart.Items {
+		if item.ASIN == asin {
+			itemFound = true
+			// Skip this item (effectively removing it)
+			continue
+		}
+		newItems = append(newItems, item)
+	}
+
+	// If item wasn't found, return an error
+	if !itemFound {
+		return nil, fmt.Errorf("item with ASIN %s not found in cart", asin)
+	}
+
+	// Update cart items
+	c.cart.Items = newItems
+
+	// Recalculate totals
+	c.cart.Subtotal = 0
+	c.cart.ItemCount = 0
+	for _, item := range c.cart.Items {
+		c.cart.Subtotal += item.Subtotal
+		c.cart.ItemCount += item.Quantity
+	}
+	c.cart.EstimatedTax = c.cart.Subtotal * 0.08 // 8% tax rate
+	c.cart.Total = c.cart.Subtotal + c.cart.EstimatedTax
+
 	// TODO: Implement actual Amazon cart remove API call
-	return c.GetCart()
+	return c.cart, nil
 }
 
 // ClearCart removes all items from the cart
 // This is a placeholder implementation that will be expanded with actual Amazon API calls
 func (c *Client) ClearCart() error {
 	// TODO: Implement actual Amazon cart clear API call
+	c.cart.Items = []models.CartItem{}
+	c.cart.Subtotal = 0
+	c.cart.EstimatedTax = 0
+	c.cart.Total = 0
+	c.cart.ItemCount = 0
 	return nil
 }
 
