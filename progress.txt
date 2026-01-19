@@ -3668,3 +3668,13 @@ All four tests pass successfully:
 ### Files Created:
 - docs/TROUBLESHOOTING.md (new troubleshooting documentation)
 
+
+## Task: Update skills.md YAML frontmatter
+- Updated skills.md file with new YAML frontmatter as specified
+- Changed description from "CLI tool for managing Amazon orders, returns, purchases, and subscriptions" to "CLI for Amazon shopping automation"
+- Added tags array with: shopping, e-commerce, amazon, automation
+- Kept existing metadata: name (amazon-cli), version (1.0.0), author (zkwentz), repository URL
+- File content after frontmatter remains unchanged
+
+### Files Modified:
+- skills.md (lines 1-12: updated YAML frontmatter with new description and added tags)

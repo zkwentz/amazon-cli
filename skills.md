@@ -1,9 +1,14 @@
 ---
 name: amazon-cli
-description: CLI tool for managing Amazon orders, returns, purchases, and subscriptions
+description: CLI for Amazon shopping automation
 version: 1.0.0
 author: zkwentz
 repository: https://github.com/zkwentz/amazon-cli
+tags:
+  - shopping
+  - e-commerce
+  - amazon
+  - automation
 ---
 
 # amazon-cli
