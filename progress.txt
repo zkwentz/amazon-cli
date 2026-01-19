@@ -630,3 +630,52 @@
   - All 11 test functions passing successfully (0.329s total test time)
   - Tests cover command configuration, flag setup, subcommands, error handling, and JSON output
   - Implementation was already complete and met all requirements
+
+## Task: Return Models Implementation
+
+- Created `/private/var/folders/14/c7cfj04x2w96gd2g6gpr_5380000gn/T/tmp.o524yxyl4p/agent-30/pkg/models/return.go`:
+  - Implemented `ReturnableItem` struct with fields:
+    - `OrderID string` - The order ID this item belongs to
+    - `ItemID string` - Unique item identifier
+    - `ASIN string` - Amazon Standard Identification Number
+    - `Title string` - Product title
+    - `Price float64` - Item price
+    - `PurchaseDate string` - Date item was purchased
+    - `ReturnWindow string` - Last date item can be returned
+  - Implemented `ReturnOption` struct with fields:
+    - `Method string` - Return method (e.g., "UPS Drop-off")
+    - `Label string` - Display label for the option
+    - `DropoffLocation string` - Location to drop off return (omitempty tag)
+    - `Fee float64` - Fee for this return method
+  - Implemented `Return` struct with fields:
+    - `ReturnID string` - Unique return identifier
+    - `OrderID string` - Associated order ID
+    - `ItemID string` - Associated item ID
+    - `Status string` - Current return status
+    - `Reason string` - Reason for return
+    - `CreatedAt string` - Return creation timestamp
+  - Implemented `ReturnLabel` struct with fields:
+    - `URL string` - URL to download shipping label
+    - `Carrier string` - Shipping carrier (e.g., "UPS")
+    - `Instructions string` - Return instructions
+  - All structs include JSON tags for serialization
+  - Follows consistent naming and style conventions from existing models
+
+- Created comprehensive test suite in `/private/var/folders/14/c7cfj04x2w96gd2g6gpr_5380000gn/T/tmp.o524yxyl4p/agent-30/pkg/models/return_test.go`:
+  - `TestReturnableItem_JSON` - Tests JSON marshaling and unmarshaling:
+    - Creates ReturnableItem with all fields populated
+    - Marshals to JSON
+    - Unmarshals back to struct
+    - Verifies all 7 fields match original values (OrderID, ItemID, ASIN, Title, Price, PurchaseDate, ReturnWindow)
+  - `TestReturnOption_JSON` - Tests ReturnOption JSON serialization:
+    - Tests all 4 fields (Method, Label, DropoffLocation, Fee)
+    - Verifies JSON round-trip preserves all data
+  - `TestReturn_JSON` - Tests Return JSON serialization:
+    - Tests all 6 fields (ReturnID, OrderID, ItemID, Status, Reason, CreatedAt)
+    - Verifies JSON round-trip preserves all data
+  - `TestReturnLabel_JSON` - Tests ReturnLabel JSON serialization:
+    - Tests all 3 fields (URL, Carrier, Instructions)
+    - Verifies JSON round-trip preserves all data
+  - All 4 test functions passing successfully (0.244s total test time)
+  - Tests verify JSON marshaling/unmarshaling works correctly for all structs
+  - Tests ensure field names and types are correct
