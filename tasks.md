@@ -20,15 +20,15 @@ Each task is independent and self-contained. Execute in order for best results.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/client.go`, implement `Do(req *http.Request) (*http.Response, error)` method that: calls rate limiter Wait(), sets random User-Agent, sets Accept and Accept-Language headers, executes request, retries with WaitWithBackoff on 429/503 up to maxRetries times.
 
-- [ ] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/client.go`, add circuit breaker with: failureCount, threshold (5), resetTimeout (60s). Add `checkCircuitBreaker() error` that errors if too many failures, `recordFailure()` and `recordSuccess()` methods. Integrate into Do() method.
+- [x] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/client.go`, add circuit breaker with: failureCount, threshold (5), resetTimeout (60s). Add `checkCircuitBreaker() error` that errors if too many failures, `recordFailure()` and `recordSuccess()` methods. Integrate into Do() method.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/client.go`, implement `detectCAPTCHA(body []byte) bool` that checks response body for CAPTCHA indicators like "captcha" or Amazon's specific CAPTCHA HTML patterns.
 
-- [ ] Create file `internal/testutil/mock_server.go` with `MockAmazonServer` struct and `NewMockAmazonServer() *MockAmazonServer` that creates an httptest.Server. Add `ServeFixture(path, fixtureFile string)` to configure which fixture file to serve for each URL path.
+- [x] Create file `internal/testutil/mock_server.go` with `MockAmazonServer` struct and `NewMockAmazonServer() *MockAmazonServer` that creates an httptest.Server. Add `ServeFixture(path, fixtureFile string)` to configure which fixture file to serve for each URL path.
 
-- [ ] Create file `internal/amazon/client_test.go` with integration tests using MockAmazonServer: TestDo_Success, TestDo_Retry_On_429, TestDo_Retry_On_503, TestDo_Stops_After_MaxRetries, TestDo_CircuitBreaker_Opens_After_Failures, TestDo_Detects_CAPTCHA. Achieve 90%+ coverage.
+- [x] Create file `internal/amazon/client_test.go` with integration tests using MockAmazonServer: TestDo_Success, TestDo_Retry_On_429, TestDo_Retry_On_503, TestDo_Stops_After_MaxRetries, TestDo_CircuitBreaker_Opens_After_Failures, TestDo_Detects_CAPTCHA. Achieve 90%+ coverage.
 
-- [ ] Create file `internal/amazon/auth.go` with: `AuthTokens` struct (AccessToken, RefreshToken, ExpiresAt), `IsExpired() bool` method, `ExpiresWithin(duration time.Duration) bool` method, and `RefreshTokens(refreshToken string) (*AuthTokens, error)` placeholder that returns mock tokens for now.
+- [x] Create file `internal/amazon/auth.go` with: `AuthTokens` struct (AccessToken, RefreshToken, ExpiresAt), `IsExpired() bool` method, `ExpiresWithin(duration time.Duration) bool` method, and `RefreshTokens(refreshToken string) (*AuthTokens, error)` placeholder that returns mock tokens for now.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/cmd/auth.go`, implement `authLoginCmd` Run function that: outputs `{"status": "login_required", "message": "Browser-based login not yet implemented"}` as JSON. This is a placeholder for future OAuth implementation.
 
@@ -36,9 +36,9 @@ Each task is independent and self-contained. Execute in order for best results.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/cmd/auth.go`, implement `authLogoutCmd` Run function that: loads config, clears auth tokens, saves config, outputs JSON `{"status": "logged_out"}`.
 
-- [ ] Create file `internal/amazon/auth_test.go` with tests: TestAuthTokens_IsExpired_True_When_Past, TestAuthTokens_IsExpired_False_When_Future, TestAuthTokens_ExpiresWithin_True, TestAuthTokens_ExpiresWithin_False. Achieve 85%+ coverage.
+- [x] Create file `internal/amazon/auth_test.go` with tests: TestAuthTokens_IsExpired_True_When_Past, TestAuthTokens_IsExpired_False_When_Future, TestAuthTokens_ExpiresWithin_True, TestAuthTokens_ExpiresWithin_False. Achieve 85%+ coverage.
 
-- [ ] Create directory `testdata/orders/` and create file `testdata/orders/order_list_sample.html` containing sample HTML structure that mimics Amazon's order history page with 3 orders, each having order_id, date, total, status, and item details. Anonymize all data.
+- [x] Create directory `testdata/orders/` and create file `testdata/orders/order_list_sample.html` containing sample HTML structure that mimics Amazon's order history page with 3 orders, each having order_id, date, total, status, and item details. Anonymize all data.
 
 - [ ] Create file `testdata/orders/order_detail_sample.html` containing sample HTML for a single Amazon order detail page with: order header info, 2 items with ASIN/title/price/quantity, shipping address, payment method, and tracking information.
 

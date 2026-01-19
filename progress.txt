@@ -266,3 +266,76 @@
   - All 2 logout tests passing successfully
   - Total test suite now includes 9 test functions (login + status + logout tests)
   - All auth command tests passing (0.277s total test time)
+
+## Task: Order Detail HTML Parser Implementation
+
+- Added `github.com/PuerkitoBio/goquery` dependency to project:
+  - Added goquery v1.11.0 for HTML parsing
+  - Added cascadia v1.3.3 (CSS selector engine)
+  - Added golang.org/x/net v0.47.0 (networking support)
+
+- Created `/Users/zacharywentz/Development/amazon-cli/testdata/orders/order_detail_sample.html`:
+  - Sample HTML fixture mimicking Amazon order detail page structure
+  - Contains order header with ID, date, total, and status
+  - Includes 2 sample items with complete details:
+    - Item 1: Wireless Bluetooth Headphones ($59.99, quantity 1, ASIN B08N5WRWNW)
+    - Item 2: USB-C Cable 2-Pack ($12.49, quantity 2, ASIN B09XYZ1234)
+  - Includes shipping address section
+  - Includes payment method section
+  - Contains tracking information with carrier, tracking number, status, and delivery date
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/internal/amazon/orders.go`:
+  - Added imports: bytes, regexp, strconv, strings, goquery
+  - Implemented `parseOrderDetailHTML(html []byte) (*models.Order, error)` function:
+    - Parses HTML using goquery document parser
+    - Extracts order ID from `.order-id-value` or alternative `.order-info` selector
+    - Extracts and parses order date, converting "January 15, 2026" format to "2026-01-15"
+    - Extracts order total using `parsePrice()` helper function
+    - Extracts order status and normalizes to lowercase
+    - Iterates through `.order-item` elements to extract item array:
+      - ASIN from `data-asin` attribute or `.item-asin .value` text
+      - Title from `.item-title` or `.item-title a` text
+      - Price from `.item-price .value` using `parsePrice()`
+      - Quantity from `.item-quantity .value` as integer
+    - Extracts tracking information if `.tracking-section` is present:
+      - Carrier from `.tracking-carrier .value`
+      - Tracking number from `.tracking-number .value`
+      - Status from `.tracking-status .value` (normalized to lowercase)
+      - Delivery date from `.delivery-date .value` (parsed to YYYY-MM-DD format)
+    - Validates that order ID was extracted (returns error if missing)
+    - Returns populated Order struct with items array and optional tracking
+  - Implemented `parsePrice(priceStr string) float64` helper function:
+    - Removes currency symbols and whitespace
+    - Uses regex `[\d,]+\.?\d*` to extract numeric value
+    - Removes commas from large numbers (e.g., "1,234.56")
+    - Parses to float64 with error handling
+    - Returns 0.0 for invalid or empty strings
+
+- Created comprehensive test suite in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/orders_test.go`:
+  - `TestParseOrderDetailHTML_ValidHTML` - Tests parsing of complete order detail fixture:
+    - Verifies order ID: "123-4567890-1234567"
+    - Verifies date conversion: "2026-01-15"
+    - Verifies total: $84.98
+    - Verifies status: "delivered"
+    - Verifies 2 items with complete details (ASIN, title, price, quantity)
+    - Verifies tracking info (carrier, tracking number, status, delivery date)
+  - `TestParseOrderDetailHTML_EmptyHTML` - Tests error handling for empty input
+  - `TestParseOrderDetailHTML_InvalidHTML` - Tests error for HTML without order ID
+  - `TestParseOrderDetailHTML_NoTracking` - Tests order without tracking section (tracking = nil)
+  - `TestParseOrderDetailHTML_MultipleItems` - Tests parsing of multiple items
+  - `TestParseOrderDetailHTML_PartialTracking` - Tests tracking with missing optional fields
+  - `TestParseOrderDetailHTML_AlternativeSelectors` - Tests fallback CSS selectors:
+    - Tests order ID extraction from `.order-info` text
+    - Tests ASIN extraction from `.item-asin .value` text
+    - Tests title extraction from link text
+  - `TestParsePrice` - 8 subtests for price parsing:
+    - Standard dollar amount: "$29.99" → 29.99
+    - Amount with comma: "$1,234.56" → 1234.56
+    - Amount without dollar sign: "99.99" → 99.99
+    - Amount with spaces: "  $49.99  " → 49.99
+    - Whole number: "$100" → 100.0
+    - Empty string → 0.0
+    - Invalid format: "abc" → 0.0
+    - Zero amount: "$0.00" → 0.0
+  - All 15 tests (7 parseOrderDetailHTML + 8 parsePrice) passing successfully (0.344s)
+  - Tests achieve comprehensive coverage of parsing logic and edge cases

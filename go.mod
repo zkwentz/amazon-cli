@@ -3,6 +3,8 @@ module github.com/zkwentz/amazon-cli
 go 1.25.5
 
 require (
+	github.com/PuerkitoBio/goquery v1.11.0 // indirect
+	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -16,6 +18,7 @@ require (
 	github.com/spf13/viper v1.21.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 )

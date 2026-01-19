@@ -1,9 +1,14 @@
 package amazon
 
 import (
+	"bytes"
 	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/zkwentz/amazon-cli/pkg/models"
 )
 
@@ -195,4 +200,218 @@ func (c *Client) GetOrderHistory(year int) (*models.OrdersResponse, error) {
 		Orders:     orders,
 		TotalCount: len(orders),
 	}, nil
+}
+
+// parseOrdersHTML parses order list HTML and extracts order information
+func parseOrdersHTML(html []byte) ([]models.Order, error) {
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(html))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse HTML: %w", err)
+	}
+
+	var orders []models.Order
+
+	// Find all order elements
+	doc.Find(".order").Each(func(i int, s *goquery.Selection) {
+		order := models.Order{}
+
+		// Extract order ID from data attribute
+		if orderID, exists := s.Attr("data-order-id"); exists {
+			order.OrderID = orderID
+		} else {
+			// Try to extract from order number text
+			orderNumText := s.Find(".order-number").Text()
+			re := regexp.MustCompile(`\d{3}-\d{7}-\d{7}`)
+			if match := re.FindString(orderNumText); match != "" {
+				order.OrderID = match
+			}
+		}
+
+		// Extract order date
+		dateText := s.Find(".order-date").Text()
+		order.Date = strings.TrimSpace(dateText)
+
+		// Extract order total
+		totalText := s.Find(".order-total").Text()
+		order.Total = parsePrice(totalText)
+
+		// Extract order status from delivery status text
+		statusText := strings.ToLower(strings.TrimSpace(s.Find(".delivery-status").Text()))
+		if strings.Contains(statusText, "delivered") {
+			order.Status = "delivered"
+		} else if strings.Contains(statusText, "arriving") || strings.Contains(statusText, "shipping") {
+			order.Status = "pending"
+		} else if strings.Contains(statusText, "cancelled") {
+			order.Status = "cancelled"
+		} else if strings.Contains(statusText, "returned") {
+			order.Status = "returned"
+		} else {
+			order.Status = "unknown"
+		}
+
+		// Only add orders that have at least an order ID
+		if order.OrderID != "" {
+			orders = append(orders, order)
+		}
+	})
+
+	return orders, nil
+}
+
+// parseOrderDetailHTML parses Amazon order detail HTML and extracts complete order information
+func parseOrderDetailHTML(html []byte) (*models.Order, error) {
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(html))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse HTML: %w", err)
+	}
+
+	order := &models.Order{
+		Items: []models.OrderItem{},
+	}
+
+	// Extract order ID
+	orderIDText := doc.Find(".order-id-value").Text()
+	if orderIDText == "" {
+		// Try alternative selector
+		doc.Find(".order-info").Each(func(i int, s *goquery.Selection) {
+			if strings.Contains(s.Text(), "Order #") {
+				orderIDText = strings.TrimSpace(strings.TrimPrefix(s.Text(), "Order #"))
+			}
+		})
+	}
+	order.OrderID = strings.TrimSpace(orderIDText)
+
+	// Extract order date
+	dateText := doc.Find(".order-date .value").Text()
+	if dateText != "" {
+		// Try to parse the date and convert to YYYY-MM-DD format
+		parsedDate, err := time.Parse("January 2, 2006", strings.TrimSpace(dateText))
+		if err == nil {
+			order.Date = parsedDate.Format("2006-01-02")
+		} else {
+			order.Date = strings.TrimSpace(dateText)
+		}
+	}
+
+	// Extract total
+	totalText := doc.Find(".order-total .value").Text()
+	if totalText != "" {
+		order.Total = parsePrice(totalText)
+	}
+
+	// Extract status
+	statusText := doc.Find(".order-status .status-badge").Text()
+	if statusText != "" {
+		order.Status = strings.ToLower(strings.TrimSpace(statusText))
+	}
+
+	// Extract order items
+	doc.Find(".order-item").Each(func(i int, s *goquery.Selection) {
+		item := models.OrderItem{}
+
+		// Extract ASIN from data attribute or text
+		if asin, exists := s.Attr("data-asin"); exists {
+			item.ASIN = asin
+		} else {
+			// Try to extract from ASIN label/value
+			s.Find(".item-asin .value").Each(func(i int, val *goquery.Selection) {
+				item.ASIN = strings.TrimSpace(val.Text())
+			})
+		}
+
+		// Extract title
+		titleText := s.Find(".item-title").Text()
+		if titleText == "" {
+			titleText = s.Find(".item-title a").Text()
+		}
+		item.Title = strings.TrimSpace(titleText)
+
+		// Extract price
+		priceText := s.Find(".item-price .value").Text()
+		if priceText != "" {
+			item.Price = parsePrice(priceText)
+		}
+
+		// Extract quantity
+		quantityText := s.Find(".item-quantity .value").Text()
+		if quantityText != "" {
+			quantity, err := strconv.Atoi(strings.TrimSpace(quantityText))
+			if err == nil {
+				item.Quantity = quantity
+			}
+		}
+
+		// Only add item if we have at least ASIN and title
+		if item.ASIN != "" && item.Title != "" {
+			order.Items = append(order.Items, item)
+		}
+	})
+
+	// Extract tracking information if present
+	trackingSection := doc.Find(".tracking-section")
+	if trackingSection.Length() > 0 {
+		tracking := &models.Tracking{}
+
+		carrier := trackingSection.Find(".tracking-carrier .value").Text()
+		if carrier != "" {
+			tracking.Carrier = strings.TrimSpace(carrier)
+		}
+
+		trackingNumber := trackingSection.Find(".tracking-number .value").Text()
+		if trackingNumber != "" {
+			tracking.TrackingNumber = strings.TrimSpace(trackingNumber)
+		}
+
+		status := trackingSection.Find(".tracking-status .value").Text()
+		if status != "" {
+			tracking.Status = strings.ToLower(strings.TrimSpace(status))
+		}
+
+		deliveryDate := trackingSection.Find(".delivery-date .value").Text()
+		if deliveryDate != "" {
+			// Try to parse the date and convert to YYYY-MM-DD format
+			parsedDate, err := time.Parse("January 2, 2006", strings.TrimSpace(deliveryDate))
+			if err == nil {
+				tracking.DeliveryDate = parsedDate.Format("2006-01-02")
+			} else {
+				tracking.DeliveryDate = strings.TrimSpace(deliveryDate)
+			}
+		}
+
+		// Only set tracking if we have at least a tracking number or carrier
+		if tracking.TrackingNumber != "" || tracking.Carrier != "" {
+			order.Tracking = tracking
+		}
+	}
+
+	// Validate that we extracted essential information
+	if order.OrderID == "" {
+		return nil, fmt.Errorf("failed to extract order ID from HTML")
+	}
+
+	return order, nil
+}
+
+// parsePrice extracts a float64 price from a price string (e.g., "$29.99" -> 29.99)
+func parsePrice(priceStr string) float64 {
+	// Remove currency symbols and whitespace
+	priceStr = strings.TrimSpace(priceStr)
+
+	// Use regex to extract numeric value
+	re := regexp.MustCompile(`[\d,]+\.?\d*`)
+	match := re.FindString(priceStr)
+	if match == "" {
+		return 0.0
+	}
+
+	// Remove commas
+	match = strings.ReplaceAll(match, ",", "")
+
+	// Parse to float
+	price, err := strconv.ParseFloat(match, 64)
+	if err != nil {
+		return 0.0
+	}
+
+	return price
 }
