@@ -255,7 +255,7 @@ func TestGetOrders_Success(t *testing.T) {
 
 		// Return the fixture data
 		w.WriteHeader(http.StatusOK)
-		w.Write(fixtureData)
+		_, _ = w.Write(fixtureData)
 	}))
 	defer server.Close()
 
@@ -293,7 +293,7 @@ func TestGetOrders_WithLimit(t *testing.T) {
 	// Create a mock HTTP server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write(fixtureData)
+		_, _ = w.Write(fixtureData)
 	}))
 	defer server.Close()
 
@@ -327,7 +327,7 @@ func TestGetOrders_WithStatusFilter(t *testing.T) {
 	// Create a mock HTTP server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write(fixtureData)
+		_, _ = w.Write(fixtureData)
 	}))
 	defer server.Close()
 
@@ -364,7 +364,7 @@ func TestGetOrders_DefaultLimit(t *testing.T) {
 	// Create a mock HTTP server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write(fixtureData)
+		_, _ = w.Write(fixtureData)
 	}))
 	defer server.Close()
 
@@ -406,7 +406,7 @@ func TestGetOrders_InvalidHTML(t *testing.T) {
 	// Create a mock HTTP server that returns invalid HTML
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("<html><body>No orders here</body></html>"))
+		_, _ = w.Write([]byte("<html><body>No orders here</body></html>"))
 	}))
 	defer server.Close()
 
@@ -486,7 +486,7 @@ func TestGetOrder_Success(t *testing.T) {
 
 		// Return the fixture data
 		w.WriteHeader(http.StatusOK)
-		w.Write(fixtureData)
+		_, _ = w.Write(fixtureData)
 	}))
 	defer server.Close()
 
@@ -561,7 +561,7 @@ func TestGetOrder_CAPTCHADetection(t *testing.T) {
 	// Create a mock HTTP server that returns a CAPTCHA page
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`<html><body><div>Sorry, we just need to make sure you're not a robot</div></body></html>`))
+		_, _ = w.Write([]byte(`<html><body><div>Sorry, we just need to make sure you're not a robot</div></body></html>`))
 	}))
 	defer server.Close()
 
@@ -584,7 +584,7 @@ func TestGetOrder_ParseError(t *testing.T) {
 	// Create a mock HTTP server that returns HTML without an order ID
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`<html><body><div>Order not found</div></body></html>`))
+		_, _ = w.Write([]byte(`<html><body><div>Order not found</div></body></html>`))
 	}))
 	defer server.Close()
 
@@ -894,7 +894,7 @@ func TestGetOrderTracking_Success(t *testing.T) {
 
 		// Return the fixture data
 		w.WriteHeader(http.StatusOK)
-		w.Write(fixtureData)
+		_, _ = w.Write(fixtureData)
 	}))
 	defer server.Close()
 
@@ -956,7 +956,7 @@ func TestGetOrderTracking_CAPTCHADetection(t *testing.T) {
 	// Create a mock HTTP server that returns a CAPTCHA page
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`<html><body><div>Sorry, we just need to make sure you're not a robot</div></body></html>`))
+		_, _ = w.Write([]byte(`<html><body><div>Sorry, we just need to make sure you're not a robot</div></body></html>`))
 	}))
 	defer server.Close()
 
@@ -980,7 +980,7 @@ func TestGetOrderTracking_ParseError(t *testing.T) {
 	// Create a mock HTTP server that returns HTML without tracking info
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`<html><body><div>Tracking not available</div></body></html>`))
+		_, _ = w.Write([]byte(`<html><body><div>Tracking not available</div></body></html>`))
 	}))
 	defer server.Close()
 
@@ -1005,7 +1005,7 @@ func TestGetOrderTracking_ValidOrderIDFormat(t *testing.T) {
 	// Create a mock HTTP server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write(fixtureData)
+		_, _ = w.Write(fixtureData)
 	}))
 	defer server.Close()
 
