@@ -36,3 +36,43 @@
   - Tests for authentication state checking
   - Tests for round-trip save/load operations
   - All tests passing successfully
+
+## Task: Rate Limiter Implementation
+
+- Created `/Users/zacharywentz/Development/amazon-cli/internal/ratelimit/limiter.go`
+- Implemented `RateLimiter` struct with fields:
+  - `minDelay time.Duration` - Minimum delay between requests
+  - `maxDelay time.Duration` - Maximum delay cap for backoff
+  - `maxRetries int` - Maximum number of retry attempts
+  - `lastCall time.Time` - Timestamp of last API call
+  - `mu sync.Mutex` - Mutex for thread-safe operations
+- Implemented `NewRateLimiter(minDelay, maxDelay time.Duration, maxRetries int) *RateLimiter`:
+  - Constructor function that initializes a new rate limiter with specified parameters
+- Implemented `Wait()` method:
+  - Enforces minimum delay between consecutive API calls
+  - Adds random jitter between 0-500ms to prevent thundering herd
+  - Thread-safe with mutex locking
+  - Handles first call gracefully (no delay except jitter)
+- Implemented `WaitWithBackoff(attempt int)` method:
+  - Implements exponential backoff: minDelay * 2^(attempt-1)
+  - Capped at 60 seconds maximum
+  - Respects maxDelay if configured
+  - Adds random jitter 0-500ms
+  - Thread-safe operation
+  - Handles zero/negative attempts by treating as attempt 1
+- Implemented `ShouldRetry(statusCode, attempt int) bool` method:
+  - Returns true for HTTP 429 (Rate Limited) and 503 (Service Unavailable)
+  - Returns false when attempt count reaches or exceeds maxRetries
+  - Returns false for all other status codes
+- Created comprehensive test suite in `internal/ratelimit/limiter_test.go`:
+  - 10 test functions with 16+ test cases total
+  - Tests for constructor validation
+  - Tests for Wait() timing and jitter
+  - Tests for WaitWithBackoff() exponential growth
+  - Tests for 60-second backoff cap
+  - Tests for maxDelay enforcement
+  - Tests for ShouldRetry() logic with various status codes
+  - Tests for retry boundary conditions
+  - Tests for concurrent access safety (race condition prevention)
+  - Tests for edge cases (zero attempt, exceeded retries)
+  - All tests passing successfully (70.9s total test time)
