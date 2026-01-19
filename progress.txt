@@ -199,3 +199,37 @@
     - `message` field equals "Browser-based login not yet implemented"
   - Uses proper cleanup to restore `os.Stdout` after test
   - Test passing successfully
+
+## Task: Auth Status Command Implementation
+
+- Verified `/Users/zacharywentz/Development/amazon-cli/cmd/auth.go` contains fully implemented `authStatusCmd`:
+  - Run function loads configuration using viper
+  - Checks if auth.access_token exists (empty = not authenticated)
+  - Validates auth.expires_at is in valid RFC3339 format
+  - Checks if token is expired by comparing with current time
+  - Outputs JSON with required fields:
+    - `authenticated`: boolean (true/false)
+    - `expires_at`: RFC3339 timestamp string
+    - `expires_in_seconds`: integer calculated from time difference
+  - Additional error handling:
+    - Returns `authenticated: false` with message when no token exists
+    - Returns `authenticated: false` with message when expiry format is invalid
+    - Returns `authenticated: false` with `expired: true` flag when token is expired
+  - Implementation was already complete and met all requirements
+
+- Enhanced `/Users/zacharywentz/Development/amazon-cli/cmd/auth_test.go` with comprehensive test suite:
+  - Added `setupTestViper(t *testing.T)` helper function:
+    - Resets viper state between tests for isolation
+    - Creates temporary config file for each test
+  - Implemented 6 test functions for auth status command:
+    - `TestAuthStatusCmd_NoToken` - Verifies behavior when no token exists
+    - `TestAuthStatusCmd_ValidToken` - Tests successful authentication state with valid token
+    - `TestAuthStatusCmd_ExpiredToken` - Validates expired token handling and expired flag
+    - `TestAuthStatusCmd_InvalidExpiryFormat` - Tests handling of malformed expiry timestamps
+    - `TestAuthStatusCmd_ExpiresInSecondsCalculation` - Verifies accurate time calculation (1 hour = ~3600 seconds)
+    - `TestAuthStatusCmd_ShortLivedToken` - Tests short-lived tokens (30 seconds)
+  - All tests capture stdout using os.Pipe() technique
+  - All tests parse and validate JSON output structure
+  - All tests verify correct field types and values
+  - All 6 auth status tests passing successfully (0.318s total test time)
+  - Total test suite now includes 7 test functions (login + status tests)
