@@ -3,3 +3,23 @@
 - Initialized Go module with path: github.com/zkwentz/amazon-cli
 - Created go.mod file with Go version 1.25.5
 - Module is ready for development
+
+## Task: Create rate limiting strategy documentation
+
+- Created docs/rate-limiting-strategy.md
+- Documented Amazon's rate limiting behavior:
+  - Conservative threshold: 20-30 requests per minute
+  - Aggressive threshold: 60+ requests per minute triggers blocking
+  - Recommended safe limit: 15-20 requests per minute
+- Documented CAPTCHA trigger conditions:
+  - High request velocity (>30 RPM)
+  - Suspicious request patterns (identical timing, missing browser headers)
+  - Account-level and network-level indicators
+- Documented recommended delays between requests:
+  - Minimum delay: 1000ms (1 second)
+  - Recommended delay: 1500ms (1.5 seconds)
+  - Jitter range: 0-500ms added to base delay
+- Included request-specific delays for different operations
+- Documented exponential backoff strategy with max 3 retries
+- Provided configuration examples (conservative, balanced, aggressive)
+- Included implementation guidelines and best practices
