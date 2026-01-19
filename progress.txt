@@ -3508,3 +3508,20 @@ All four tests pass successfully:
 
 ### Files Created:
 - .github/PULL_REQUEST_TEMPLATE.md (comprehensive PR template with all required sections)
+
+## Task: Create file .github/ISSUE_TEMPLATE/bug_report.md
+- Created .github/ISSUE_TEMPLATE/ directory structure
+- Created bug_report.md GitHub issue template with all required fields:
+  - Description: Clear section for describing the bug
+  - Steps to Reproduce: Numbered list format for reproduction steps
+  - Expected Behavior: Section for expected outcomes
+  - Actual Behavior: Section for what actually happened
+  - Environment: Fields for OS and CLI version
+  - Logs/Output: Code block section for logs and error output
+- Template includes frontmatter metadata (name, about, title, labels, assignees)
+- Added helpful comments and placeholders to guide users
+- Follows GitHub issue template YAML frontmatter format
+
+### Files Created:
+- .github/ISSUE_TEMPLATE/bug_report.md (complete bug report template)
+
