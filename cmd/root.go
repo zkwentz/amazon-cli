@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	cfgFile string
-	output  string
-	quiet   bool
-	verbose bool
-	noColor bool
+	cfgFile      string
+	outputFormat string
+	quiet        bool
+	verbose      bool
+	noColor      bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -50,7 +50,7 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.amazon-cli/config.json)")
-	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "json", "Output format: json, table, raw")
+	rootCmd.PersistentFlags().StringVarP(&outputFormat, "output", "o", "json", "Output format: json, table, raw")
 	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "Suppress non-essential output")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging")
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
