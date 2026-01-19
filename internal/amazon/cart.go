@@ -223,6 +223,13 @@ func (c *Client) PreviewCheckout(addressID, paymentID string) (*models.CheckoutP
 
 // CompleteCheckout completes the checkout process and places the order
 // This method handles the final purchase submission with the specified address and payment method
+//
+// MOCK IMPLEMENTATION - Never test against production Amazon.
+// Real implementation requires sandbox environment.
+//
+// WARNING: This is a mock implementation for development and testing purposes only.
+// Do NOT use this against production Amazon systems. Any real implementation must use
+// an official Amazon API sandbox environment to prevent actual purchases.
 func (c *Client) CompleteCheckout(addressID, paymentID string) (*models.OrderConfirmation, error) {
 	// Validate input parameters
 	if addressID == "" {
