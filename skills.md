@@ -12,13 +12,58 @@ A command-line interface for Amazon shopping that outputs structured JSON, desig
 
 ## Installation
 
+### Homebrew (macOS/Linux)
+
 ```bash
-# Homebrew (macOS/Linux)
+# Add the tap
 brew tap zkwentz/tap
+
+# Install amazon-cli
 brew install amazon-cli
 
-# Or download binary from GitHub Releases
-# Or build from source
+# Verify installation
+amazon-cli --version
+```
+
+### Binary Download
+
+Download the latest pre-built binary for your platform from [GitHub Releases](https://github.com/zkwentz/amazon-cli/releases):
+
+**macOS:**
+```bash
+# Download for macOS (Intel)
+curl -L https://github.com/zkwentz/amazon-cli/releases/latest/download/amazon-cli-darwin-amd64 -o amazon-cli
+chmod +x amazon-cli
+sudo mv amazon-cli /usr/local/bin/
+
+# Download for macOS (Apple Silicon)
+curl -L https://github.com/zkwentz/amazon-cli/releases/latest/download/amazon-cli-darwin-arm64 -o amazon-cli
+chmod +x amazon-cli
+sudo mv amazon-cli /usr/local/bin/
+```
+
+**Linux:**
+```bash
+# Download for Linux (amd64)
+curl -L https://github.com/zkwentz/amazon-cli/releases/latest/download/amazon-cli-linux-amd64 -o amazon-cli
+chmod +x amazon-cli
+sudo mv amazon-cli /usr/local/bin/
+
+# Download for Linux (arm64)
+curl -L https://github.com/zkwentz/amazon-cli/releases/latest/download/amazon-cli-linux-arm64 -o amazon-cli
+chmod +x amazon-cli
+sudo mv amazon-cli /usr/local/bin/
+```
+
+**Windows:**
+```powershell
+# Download the .exe from GitHub Releases and add to PATH
+# https://github.com/zkwentz/amazon-cli/releases/latest/download/amazon-cli-windows-amd64.exe
+```
+
+### Build from Source
+
+```bash
 go install github.com/zkwentz/amazon-cli@latest
 ```
 

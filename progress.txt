@@ -2544,3 +2544,28 @@ amazon-cli subscriptions cancel SUB123 --confirm
 
 ### Files Modified:
 - README.md (lines 3-5: added three badges using shields.io format)
+
+
+## [2026-01-19 01:14:06] Enhanced Installation section in skills.md
+
+### Task: Add Installation section with Homebrew instructions and binary download instructions
+
+### Changes Made:
+1. Expanded the Installation section in skills.md with detailed instructions
+2. Added separate subsections for:
+   - Homebrew (macOS/Linux) with step-by-step commands
+   - Binary Download with platform-specific instructions for:
+     * macOS (Intel and Apple Silicon)
+     * Linux (amd64 and arm64)
+     * Windows
+   - Build from Source (Go install)
+
+### Files Modified:
+- skills.md (lines 13-23 expanded to comprehensive installation guide)
+
+### Details:
+- Homebrew section now includes: tap command, install command, and verification step
+- Binary download section includes curl commands with proper flags and permissions
+- Added GitHub Releases links for manual downloads
+- Covered all major platforms and architectures
+- Maintained consistent formatting with rest of document
