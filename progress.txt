@@ -2914,3 +2914,36 @@ The Error Codes section was updated from basic one-phrase descriptions to compre
 
 ### Summary:
 Successfully replaced the Examples section with a focused "Common AI Agent Tasks" section containing exactly 5 examples as specified. Each example includes a clear description, command template with placeholders where appropriate, and concrete examples. The section is designed to help AI agents understand the most common use cases and command patterns.
+
+## Version Flag Implementation - $(date +%Y-%m-%d)
+
+Added version support to the amazon-cli application:
+
+### Changes Made:
+1. **main.go**:
+   - Added `var version = "dev"` at package level
+   - Updated main() to call `cmd.SetVersion(version)` before executing commands
+
+2. **cmd/root.go**:
+   - Added `SetVersion(v string)` function to set the version on the root command
+   - This enables Cobra's built-in `--version` flag support
+
+3. **cmd/root_test.go** (new file):
+   - Added `TestSetVersion()` to verify SetVersion function works correctly
+   - Added `TestVersionFlag()` to verify --version flag outputs the version
+
+### Testing:
+- All tests pass successfully
+- Manual testing confirms `amazon-cli --version` outputs "amazon-cli version dev"
+- The version string can be overridden at build time using ldflags
+
+### Usage:
+```bash
+amazon-cli --version
+# Output: amazon-cli version dev
+```
+
+The version variable can be overridden at build time:
+```bash
+go build -ldflags "-X main.version=1.0.0" -o amazon-cli
+```

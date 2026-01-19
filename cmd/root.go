@@ -42,6 +42,11 @@ func Execute() error {
 	return rootCmd.Execute()
 }
 
+// SetVersion sets the version string for the CLI
+func SetVersion(v string) {
+	rootCmd.Version = v
+}
+
 func init() {
 	cobra.OnInitialize(initConfig)
 
