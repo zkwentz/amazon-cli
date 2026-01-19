@@ -3474,3 +3474,18 @@ All four tests pass successfully:
 
 ### Files Modified:
 - internal/output/output_test.go (added 3 new test functions with comprehensive assertions)
+
+
+## Task: Create file .github/workflows/release.yml
+- Created/updated .github/workflows/release.yml with the following configuration:
+  - Workflow name: "Release"
+  - Trigger: Push to tags matching 'v*' pattern
+  - Job name: "release" running on ubuntu-latest
+  - Steps:
+    1. Checkout with fetch-depth: 0
+    2. Setup Go using actions/setup-go@v5
+    3. Run goreleaser/goreleaser-action@v5 with args "release --clean"
+    4. GITHUB_TOKEN environment variable configured for GoReleaser
+
+### Files Modified:
+- .github/workflows/release.yml (created/updated with Release workflow configuration)
