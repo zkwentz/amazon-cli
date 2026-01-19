@@ -3115,3 +3115,43 @@ Successfully removed the obsolete IMPLEMENTATION_AND_TEST_PLAN.md file (41,002 b
   - All 4 test functions passing successfully (0.244s total test time)
   - Tests verify JSON marshaling/unmarshaling works correctly for all structs
   - Tests ensure field names and types are correct
+
+## Task: Returns Test Data Creation
+
+- Created `/var/folders/14/c7cfj04x2w96gd2g6gpr_5380000gn/T/tmp.o524yxyl4p/agent-31/testdata/returns/returnable_items_sample.html`:
+  - Sample HTML fixture mimicking Amazon Returns Center page structure
+  - Contains 2 returnable items with complete details:
+    - Item 1: Wireless Bluetooth Headphones
+      - Order ID: 111-2222222-3333333
+      - Item ID: ITM001
+      - ASIN: B08N5WRWNW
+      - Price: $59.99
+      - Quantity: 1
+      - Purchase date: January 15, 2026
+      - Return window closes: February 14, 2026
+    - Item 2: USB-C to USB-A Cable 6ft (2-Pack)
+      - Order ID: 111-4444444-5555555
+      - Item ID: ITM002
+      - ASIN: B09XYZ1234
+      - Price: $12.49
+      - Quantity: 2
+      - Purchase date: January 10, 2026
+      - Return window closes: February 9, 2026
+  - Structure follows Amazon returns center page layout with:
+    - Header section with title "Return or Replace Items"
+    - Returnable items list container
+    - Each item includes:
+      - Image placeholder
+      - Item details section (title, ASIN, price, quantity)
+      - Order info section (order number, purchase date, return window)
+      - Return actions section with "Return or replace items" button
+  - Uses CSS classes: .returnable-item, .item-details, .order-info, .return-window, .return-actions
+  - Order IDs and Item IDs stored in data attributes (data-order-id, data-item-id) for easy extraction
+  - HTML structure designed to match patterns used in existing order test fixtures
+  - All required fields present for ReturnableItem model according to PRD:
+    - order_id (from data-order-id attribute)
+    - item_id (from data-item-id attribute)
+    - title (from .item-title link text)
+    - price (from .item-price .value)
+    - purchase_date (from .purchase-date .value)
+    - return_window (from .return-window .value)
