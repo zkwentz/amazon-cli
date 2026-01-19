@@ -267,6 +267,53 @@
   - Total test suite now includes 9 test functions (login + status + logout tests)
   - All auth command tests passing (0.277s total test time)
 
+## Task: Order List HTML Parser Implementation
+
+- Created `/Users/zacharywentz/Development/amazon-cli/testdata/orders/order_list_sample.html`:
+  - Sample HTML fixture mimicking Amazon order history page structure
+  - Contains 3 sample orders with complete details:
+    - Order 1: ID 111-2222222-3333333, Date "January 15, 2026", Total $29.99, Status "Delivered Jan 18, 2026"
+    - Order 2: ID 111-4444444-5555555, Date "January 10, 2026", Total $54.99, Status "Arriving Jan 20, 2026"
+    - Order 3: ID 111-6666666-7777777, Date "January 5, 2026", Total $149.99, Status "Cancelled"
+  - Each order has order-header with order-info and order-status sections
+  - Uses CSS classes: .order, .order-date, .order-total, .order-number, .delivery-status
+  - Order IDs stored in data-order-id attributes for easy extraction
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/internal/amazon/orders.go`:
+  - Imports already present: bytes, regexp, strconv, strings, goquery (added by previous task)
+  - Implemented `parseOrdersHTML(html []byte) ([]models.Order, error)` function:
+    - Parses HTML using goquery document parser from bytes reader
+    - Returns error with context if HTML parsing fails
+    - Iterates through all `.order` elements using goquery.Each()
+    - Extracts order ID from `data-order-id` attribute (primary method)
+    - Falls back to extracting from `.order-number` text using regex `\d{3}-\d{7}-\d{7}`
+    - Extracts order date from `.order-date` text and trims whitespace
+    - Extracts order total from `.order-total` text using `parsePrice()` helper
+    - Determines order status from `.delivery-status` text with pattern matching:
+      - "delivered" → status: "delivered"
+      - "arriving" or "shipping" → status: "pending"
+      - "cancelled" → status: "cancelled"
+      - "returned" → status: "returned"
+      - otherwise → status: "unknown"
+    - Only adds orders with non-empty order IDs to results array
+    - Returns slice of models.Order with all extracted data
+  - Leverages existing `parsePrice()` helper function for consistent price parsing
+
+- Created `/Users/zacharywentz/Development/amazon-cli/internal/amazon/orders_test.go`:
+  - Comprehensive test suite with 9 test functions:
+    - `TestParseOrdersHTML_ReturnsCorrectCount` - Loads fixture, verifies 3 orders returned
+    - `TestParseOrdersHTML_ExtractsAllFields` - Validates all fields (OrderID, Date, Total, Status) are non-empty/non-zero
+    - `TestParseOrdersHTML_ExtractsOrderIDs` - Verifies exact order IDs match fixture data
+    - `TestParseOrdersHTML_ExtractsTotals` - Verifies exact totals ($29.99, $54.99, $149.99)
+    - `TestParseOrdersHTML_ExtractsStatuses` - Verifies status mapping ("delivered", "pending", "cancelled")
+    - `TestParseOrdersHTML_EmptyHTML` - Tests empty container returns 0 orders
+    - `TestParseOrdersHTML_InvalidHTML` - Tests invalid HTML returns 0 orders without error
+    - `TestParseOrdersHTML_PartialData` - Tests order with missing fields (only ID and date)
+    - `TestParsePrice` - Table-driven tests for parsePrice helper with 9 test cases
+  - All tests read fixture from `../../testdata/orders/order_list_sample.html`
+  - Tests cover happy path, edge cases, and error conditions
+  - All 9 tests passing successfully (0.278s total test time)
+
 ## Task: Order Detail HTML Parser Implementation
 
 - Added `github.com/PuerkitoBio/goquery` dependency to project:
