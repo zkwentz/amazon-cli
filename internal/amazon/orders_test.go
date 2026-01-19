@@ -858,3 +858,175 @@ func TestParseTrackingHTML_EmptyEvents(t *testing.T) {
 		t.Errorf("Expected 0 events (empty events should be filtered), got %d", len(tracking.Events))
 	}
 }
+
+func TestGetOrderTracking_EmptyOrderID(t *testing.T) {
+	client := NewClient()
+
+	_, err := client.GetOrderTracking("")
+	if err == nil {
+		t.Fatal("Expected error for empty order ID, got nil")
+	}
+
+	if err.Error() != "order ID cannot be empty" {
+		t.Errorf("Expected 'order ID cannot be empty' error, got: %v", err)
+	}
+}
+
+func TestGetOrderTracking_Success(t *testing.T) {
+	// Load the fixture file
+	fixtureData, err := os.ReadFile(filepath.Join("..", "..", "testdata", "orders", "tracking_sample.html"))
+	if err != nil {
+		t.Fatalf("Failed to read fixture file: %v", err)
+	}
+
+	// Create a mock HTTP server
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Verify the request path
+		if r.URL.Path != "/progress-tracker/package/ref=ppx_yo_dt_b_track_package" {
+			t.Errorf("Expected path /progress-tracker/package/ref=ppx_yo_dt_b_track_package, got %s", r.URL.Path)
+		}
+
+		// Verify the orderId query parameter
+		orderID := r.URL.Query().Get("orderId")
+		if orderID != "111-2222222-3333333" {
+			t.Errorf("Expected orderId 111-2222222-3333333, got %s", orderID)
+		}
+
+		// Return the fixture data
+		w.WriteHeader(http.StatusOK)
+		w.Write(fixtureData)
+	}))
+	defer server.Close()
+
+	// Create client with test server URL
+	client := NewClient()
+	client.baseURL = server.URL
+
+	// Test GetOrderTracking
+	tracking, err := client.GetOrderTracking("111-2222222-3333333")
+	if err != nil {
+		t.Fatalf("GetOrderTracking() error = %v", err)
+	}
+
+	// Verify response
+	if tracking == nil {
+		t.Fatal("Expected non-nil tracking")
+	}
+
+	if tracking.Carrier != "UPS" {
+		t.Errorf("Expected Carrier UPS, got %s", tracking.Carrier)
+	}
+
+	if tracking.TrackingNumber != "1Z999AA10123456784" {
+		t.Errorf("Expected TrackingNumber 1Z999AA10123456784, got %s", tracking.TrackingNumber)
+	}
+
+	if tracking.Status != "in transit" {
+		t.Errorf("Expected Status 'in transit', got %s", tracking.Status)
+	}
+
+	if tracking.DeliveryDate != "2026-01-20" {
+		t.Errorf("Expected DeliveryDate 2026-01-20, got %s", tracking.DeliveryDate)
+	}
+
+	if len(tracking.Events) != 3 {
+		t.Errorf("Expected 3 events, got %d", len(tracking.Events))
+	}
+}
+
+func TestGetOrderTracking_HTTPError(t *testing.T) {
+	// Create a mock HTTP server that returns an error
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	// Create client with test server URL
+	client := NewClient()
+	client.baseURL = server.URL
+
+	// Test GetOrderTracking
+	_, err := client.GetOrderTracking("111-2222222-3333333")
+	if err == nil {
+		t.Fatal("Expected error for HTTP 500, got nil")
+	}
+}
+
+func TestGetOrderTracking_CAPTCHADetection(t *testing.T) {
+	// Create a mock HTTP server that returns a CAPTCHA page
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`<html><body><div>Sorry, we just need to make sure you're not a robot</div></body></html>`))
+	}))
+	defer server.Close()
+
+	// Create client with test server URL
+	client := NewClient()
+	client.baseURL = server.URL
+
+	// Test GetOrderTracking
+	_, err := client.GetOrderTracking("111-2222222-3333333")
+	if err == nil {
+		t.Fatal("Expected error for CAPTCHA, got nil")
+	}
+
+	expectedErr := "CAPTCHA detected - please complete CAPTCHA in browser and try again"
+	if err.Error() != expectedErr {
+		t.Errorf("Expected CAPTCHA error, got: %v", err)
+	}
+}
+
+func TestGetOrderTracking_ParseError(t *testing.T) {
+	// Create a mock HTTP server that returns HTML without tracking info
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`<html><body><div>Tracking not available</div></body></html>`))
+	}))
+	defer server.Close()
+
+	// Create client with test server URL
+	client := NewClient()
+	client.baseURL = server.URL
+
+	// Test GetOrderTracking
+	_, err := client.GetOrderTracking("111-2222222-3333333")
+	if err == nil {
+		t.Fatal("Expected error for missing tracking info, got nil")
+	}
+}
+
+func TestGetOrderTracking_ValidOrderIDFormat(t *testing.T) {
+	// Load the fixture file
+	fixtureData, err := os.ReadFile(filepath.Join("..", "..", "testdata", "orders", "tracking_sample.html"))
+	if err != nil {
+		t.Fatalf("Failed to read fixture file: %v", err)
+	}
+
+	// Create a mock HTTP server
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write(fixtureData)
+	}))
+	defer server.Close()
+
+	// Create client with test server URL
+	client := NewClient()
+	client.baseURL = server.URL
+
+	// Test with valid order ID formats
+	validOrderIDs := []string{
+		"111-2222222-3333333",
+		"999-8888888-7777777",
+		"123-4567890-1234567",
+	}
+
+	for _, orderID := range validOrderIDs {
+		tracking, err := client.GetOrderTracking(orderID)
+		if err != nil {
+			t.Errorf("GetOrderTracking(%s) unexpected error: %v", orderID, err)
+		}
+		if tracking == nil {
+			t.Errorf("GetOrderTracking(%s) returned nil tracking", orderID)
+		}
+	}
+}

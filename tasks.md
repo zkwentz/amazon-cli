@@ -40,7 +40,7 @@ Each task is independent and self-contained. Execute in order for best results.
 
 - [x] Create directory `testdata/orders/` and create file `testdata/orders/order_list_sample.html` containing sample HTML structure that mimics Amazon's order history page with 3 orders, each having order_id, date, total, status, and item details. Anonymize all data.
 
-- [ ] Create file `testdata/orders/order_detail_sample.html` containing sample HTML for a single Amazon order detail page with: order header info, 2 items with ASIN/title/price/quantity, shipping address, payment method, and tracking information.
+- [x] Create file `testdata/orders/order_detail_sample.html` containing sample HTML for a single Amazon order detail page with: order header info, 2 items with ASIN/title/price/quantity, shipping address, payment method, and tracking information.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/orders.go`, add `import "github.com/PuerkitoBio/goquery"` and implement `parseOrdersHTML(html []byte) ([]models.Order, error)` that parses order list HTML and extracts order_id, date, total, status for each order. Use CSS selectors appropriate for the fixture structure.
 
@@ -52,9 +52,9 @@ Each task is independent and self-contained. Execute in order for best results.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/orders.go`, replace the mock `GetOrderTracking(orderID string)` implementation with: make HTTP GET to tracking URL, parse tracking info (carrier, tracking_number, status, delivery_date), return Tracking struct.
 
-- [ ] Create file `internal/amazon/orders_test.go` with parser tests: TestParseOrdersHTML_ReturnsCorrectCount (load fixture, verify 3 orders), TestParseOrdersHTML_ExtractsAllFields (verify order_id, date, total, status not empty), TestParseOrderDetailHTML_ExtractsItems (verify items array populated).
+- [x] Create file `internal/amazon/orders_test.go` with parser tests: TestParseOrdersHTML_ReturnsCorrectCount (load fixture, verify 3 orders), TestParseOrdersHTML_ExtractsAllFields (verify order_id, date, total, status not empty), TestParseOrderDetailHTML_ExtractsItems (verify items array populated).
 
-- [ ] Create file `internal/amazon/orders_test.go` integration tests using MockAmazonServer: TestGetOrders_Integration (mock serves fixture, verify response), TestGetOrder_Integration, TestGetOrders_EmptyHistory (fixture with no orders returns empty array).
+- [x] Create file `internal/amazon/orders_test.go` integration tests using MockAmazonServer: TestGetOrders_Integration (mock serves fixture, verify response), TestGetOrder_Integration, TestGetOrders_EmptyHistory (fixture with no orders returns empty array).
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/cmd/orders.go`, update `ordersListCmd` Run function to: create Amazon client, call GetOrders with limit and status flags, handle errors with proper error codes, output JSON result.
 

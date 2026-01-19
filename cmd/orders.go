@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -47,15 +48,35 @@ var ordersGetCmd = &cobra.Command{
 	Long:  `Display detailed information about a specific order.`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		// Validate orderID argument is provided (cobra.ExactArgs(1) ensures this)
 		orderID := args[0]
-		c := getClient()
 
-		order, err := c.GetOrder(orderID)
-		if err != nil {
-			output.Error(models.ErrNotFound, err.Error(), nil)
-			os.Exit(models.ExitNotFound)
+		// Validate orderID is not empty (additional safety check)
+		if orderID == "" {
+			output.Error(models.ErrInvalidInput, "order ID cannot be empty", nil)
+			os.Exit(models.ExitInvalidArgs)
 		}
 
+		// Create client
+		c := getClient()
+
+		// Call GetOrder
+		order, err := c.GetOrder(orderID)
+		if err != nil {
+			// Handle NOT_FOUND error specifically
+			// GetOrder returns "failed to extract order ID from HTML" when order is not found
+			errMsg := err.Error()
+			if strings.Contains(errMsg, "failed to extract order ID from HTML") {
+				output.Error(models.ErrNotFound, "order not found: "+orderID, nil)
+				os.Exit(models.ExitNotFound)
+			}
+
+			// Handle other errors as general Amazon errors
+			output.Error(models.ErrAmazonError, errMsg, nil)
+			os.Exit(models.ExitGeneralError)
+		}
+
+		// Output JSON result
 		output.JSON(order)
 	},
 }
@@ -68,6 +89,13 @@ var ordersTrackCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		orderID := args[0]
+
+		// Validate orderID is not empty
+		if orderID == "" {
+			output.Error(models.ErrInvalidInput, "order ID cannot be empty", nil)
+			os.Exit(models.ExitInvalidArgs)
+		}
+
 		c := getClient()
 
 		tracking, err := c.GetOrderTracking(orderID)
