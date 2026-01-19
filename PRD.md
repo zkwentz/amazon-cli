@@ -1036,8 +1036,8 @@ amazon-cli/
   ```ruby
   class AmazonCli < Formula
     desc "CLI for Amazon shopping - orders, returns, purchases, subscriptions"
-    homepage "https://github.com/michaelshimeles/amazon-cli"
-    url "https://github.com/michaelshimeles/amazon-cli/releases/download/v#{version}/amazon-cli_#{version}_darwin_amd64.tar.gz"
+    homepage "https://github.com/zkwentz/amazon-cli"
+    url "https://github.com/zkwentz/amazon-cli/releases/download/v#{version}/amazon-cli_#{version}_darwin_amd64.tar.gz"
     sha256 "..."
     license "MIT"
 
@@ -1051,7 +1051,7 @@ amazon-cli/
   end
   ```
 - [x] Add GitHub Action to update formula on release
-- [x] Test installation: `brew tap michaelshimeles/tap - [ ] Test installation: `brew tap michaelshimeles/tap && brew install amazon-cli`- [ ] Test installation: `brew tap michaelshimeles/tap && brew install amazon-cli` brew install amazon-cli`
+- [x] Test installation: `brew tap zkwentz/tap - [ ] Test installation: `brew tap zkwentz/tap && brew install amazon-cli`- [ ] Test installation: `brew tap zkwentz/tap && brew install amazon-cli` brew install amazon-cli`
 
 #### 9.4 Documentation
 - [x] Create comprehensive `README.md`:
@@ -1083,8 +1083,8 @@ amazon-cli/
     name: amazon-cli
     description: CLI tool for managing Amazon orders, returns, purchases, and subscriptions
     version: 1.0.0
-    author: michaelshimeles
-    repository: https://github.com/michaelshimeles/amazon-cli
+    author: zkwentz
+    repository: https://github.com/zkwentz/amazon-cli
     ---
     ```
   - [ ] Overview section explaining what the skill does

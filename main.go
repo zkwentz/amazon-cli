@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/michaelshimeles/amazon-cli/cmd"
+	"github.com/zkwentz/amazon-cli/cmd"
 )
 
 func main() {

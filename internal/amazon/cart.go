@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/michaelshimeles/amazon-cli/pkg/models"
+	"github.com/zkwentz/amazon-cli/pkg/models"
 )
 
 // Client represents the Amazon API client
