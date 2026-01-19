@@ -1895,3 +1895,58 @@ The test follows a simple flow:
 - Creates a new client instance to ensure clean state
 - Tests the most common use case: adding one item and removing it
 - Positioned before the more comprehensive `TestRemoveFromCart` function
+
+## Task: Add TestClearCart_ResetsAllTotals test
+
+Date: 2026-01-19
+
+### Changes Made:
+
+1. **Added new test in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart_test.go` (lines 679-731)**:
+   - Created `TestClearCart_ResetsAllTotals` function
+   - Tests that clearing a cart with multiple items resets all totals to zero
+   - Verifies ItemCount, Subtotal, and Total fields are all reset to 0
+
+### Test Implementation:
+
+The test follows a comprehensive flow:
+1. **Add multiple items**: Adds three different items with various quantities
+   - Item 1: "B08N5WRWNW" with quantity 3
+   - Item 2: "B07XJ8C8F5" with quantity 2
+   - Item 3: "B09ABCD123" with quantity 1
+2. **Verify non-zero totals before clearing**: Asserts cart has items and non-zero totals
+3. **Clear the cart**: Calls `ClearCart()` to remove all items
+4. **Verify all totals reset to 0**: Asserts ItemCount=0, Subtotal=0, Total=0
+
+### Test Details:
+
+- Uses three different ASINs to test cart with multiple distinct items
+- Tests with varying quantities (3, 2, 1) to ensure comprehensive coverage
+- Verifies all three required fields: ItemCount, Subtotal, and Total
+- Uses `t.Fatalf()` for setup errors and cart clearing failures
+- Uses `t.Errorf()` for assertion failures with descriptive messages
+- Each assertion includes the actual value and expected value (0)
+
+### Test Results:
+
+- Test passes successfully: `TestClearCart_ResetsAllTotals` (0.00s)
+- Confirms that `ClearCart` resets ItemCount to 0
+- Confirms that `ClearCart` resets Subtotal to 0
+- Confirms that `ClearCart` resets Total to 0
+- Validates complete cart reset functionality
+
+### Purpose:
+
+- Provides specific test for clearing cart with multiple items
+- Verifies that all cart totals are properly reset to zero
+- Ensures ClearCart() completely resets the cart state
+- Complements existing `TestClearCart` which also verifies EstimatedTax
+- Focuses specifically on the three key fields: ItemCount, Subtotal, Total
+
+### Technical Notes:
+
+- Test is independent and creates a new client instance
+- Tests with multiple items to ensure robust clearing behavior
+- Positioned after the existing `TestClearCart` function
+- Validates cart state both before and after clearing
+- Ensures all monetary values return to zero state

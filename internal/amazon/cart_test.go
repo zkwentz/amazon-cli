@@ -676,6 +676,60 @@ func TestClearCart(t *testing.T) {
 	}
 }
 
+func TestClearCart_ResetsAllTotals(t *testing.T) {
+	client := NewClient()
+
+	// Add multiple items to the cart
+	_, err := client.AddToCart("B08N5WRWNW", 3)
+	if err != nil {
+		t.Fatalf("failed to add first item to cart: %v", err)
+	}
+
+	_, err = client.AddToCart("B07XJ8C8F5", 2)
+	if err != nil {
+		t.Fatalf("failed to add second item to cart: %v", err)
+	}
+
+	_, err = client.AddToCart("B09ABCD123", 1)
+	if err != nil {
+		t.Fatalf("failed to add third item to cart: %v", err)
+	}
+
+	// Verify cart has items and non-zero totals before clearing
+	cart, _ := client.GetCart()
+	if cart.ItemCount == 0 {
+		t.Fatal("cart.ItemCount should not be 0 before clearing")
+	}
+	if cart.Subtotal == 0 {
+		t.Fatal("cart.Subtotal should not be 0 before clearing")
+	}
+	if cart.Total == 0 {
+		t.Fatal("cart.Total should not be 0 before clearing")
+	}
+
+	// Clear the cart
+	err = client.ClearCart()
+	if err != nil {
+		t.Fatalf("ClearCart() unexpected error: %v", err)
+	}
+
+	// Verify ItemCount is reset to 0
+	cart, _ = client.GetCart()
+	if cart.ItemCount != 0 {
+		t.Errorf("After ClearCart(), ItemCount = %v, want 0", cart.ItemCount)
+	}
+
+	// Verify Subtotal is reset to 0
+	if cart.Subtotal != 0 {
+		t.Errorf("After ClearCart(), Subtotal = %v, want 0", cart.Subtotal)
+	}
+
+	// Verify Total is reset to 0
+	if cart.Total != 0 {
+		t.Errorf("After ClearCart(), Total = %v, want 0", cart.Total)
+	}
+}
+
 func TestGetAddresses(t *testing.T) {
 	client := NewClient()
 	addresses, err := client.GetAddresses()
