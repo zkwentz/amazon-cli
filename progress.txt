@@ -2104,3 +2104,89 @@ All 7 tests pass successfully.
 - Error handling uses proper error codes (ErrInvalidInput, ErrNotFound, ErrPurchaseFailed)
 - Exit codes follow PRD specification (ExitInvalidArgs, ExitNotFound, ExitGeneralError)
 - Test coverage follows established patterns from other cmd tests (cart_test.go)
+
+## 2026-01-19: Implemented subscription management methods
+
+### Changes Made:
+
+#### Subscription Model (`pkg/models/subscription.go`):
+Created new Subscription model with the following fields:
+- ID: Unique subscription identifier
+- ASIN: Product identifier
+- Title: Product title
+- Price: Subscription price per delivery
+- Discount: Subscribe & Save discount percentage
+- FrequencyWeeks: Delivery frequency in weeks (e.g., 4 for monthly)
+- NextDelivery: Date of next scheduled delivery (time.Time)
+- Status: Subscription status ("active", "cancelled", "paused")
+- Quantity: Quantity per delivery
+
+Also created SubscriptionList model for listing subscriptions.
+
+#### Subscription Methods (`internal/amazon/subscriptions.go`):
+Implemented two subscription management methods:
+
+1. **SkipDelivery(id string) (*models.Subscription, error)**
+   - Validates subscription ID is not empty
+   - Returns error if ID is empty: "subscription ID cannot be empty"
+   - Advances NextDelivery by FrequencyWeeks (FrequencyWeeks * 7 days)
+   - Returns updated subscription with new NextDelivery date
+   - Status remains "active"
+   - Implementation includes TODO for actual Amazon API integration
+
+2. **CancelSubscription(id string) (*models.Subscription, error)**
+   - Validates subscription ID is not empty
+   - Returns error if ID is empty: "subscription ID cannot be empty"
+   - Sets subscription Status to "cancelled"
+   - Returns updated subscription with cancelled status
+   - Implementation includes TODO for actual Amazon API integration
+
+Both methods currently use mock data for development/testing purposes.
+
+#### Tests (`internal/amazon/subscriptions_test.go`):
+Created comprehensive test suite with 4 test functions:
+
+1. **TestSkipDelivery**:
+   - Tests valid subscription ID returns subscription
+   - Tests empty ID returns error
+   - Verifies subscription ID matches input
+   - Confirms NextDelivery was advanced by at least FrequencyWeeks
+   - Ensures status remains "active"
+
+2. **TestSkipDelivery_AdvancesDeliveryByFrequencyWeeks**:
+   - Verifies NextDelivery is advanced correctly
+   - Checks NextDelivery is at least FrequencyWeeks in the future
+   - Validates NextDelivery is within reasonable bounds (60 days)
+
+3. **TestCancelSubscription**:
+   - Tests valid subscription ID returns subscription
+   - Tests empty ID returns error
+   - Verifies subscription ID matches input
+   - Confirms status is set to "cancelled"
+
+4. **TestCancelSubscription_SetsStatusToCancelled**:
+   - Verifies status is set to "cancelled"
+   - Ensures other fields (ID, ASIN, Title) remain populated
+   - Confirms subscription data integrity after cancellation
+
+All tests pass successfully.
+
+### Purpose:
+
+- Provides subscription management capabilities for Amazon Subscribe & Save
+- Allows users to skip a delivery without canceling the subscription
+- Enables subscription cancellation while preserving subscription data
+- Implements proper validation and error handling
+- Follows established patterns from other internal/amazon packages
+
+### Technical Notes:
+
+- Uses time.Time for NextDelivery to support proper date arithmetic
+- FrequencyWeeks allows flexible delivery schedules (weekly, bi-weekly, monthly, etc.)
+- SkipDelivery advances by FrequencyWeeks * 7 days using AddDate
+- CancelSubscription preserves all subscription data except status
+- Both methods include validation for empty subscription ID
+- Mock implementation includes realistic subscription data (coffee pods example)
+- Ready for future integration with actual Amazon Subscribe & Save API
+- Follows Go testing best practices with table-driven tests
+- Test coverage includes both happy path and error cases
