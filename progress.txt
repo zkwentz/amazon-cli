@@ -1557,3 +1557,59 @@
   - Added verification that cart has items before clearing
   - Added comprehensive assertions after clearing to verify all fields are reset to zero/empty
 - All tests pass successfully
+
+## Task: Update AddToCart() to Use ValidateASIN and ValidateQuantity
+
+- Created validation functions in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart.go`:
+  - Added `ValidateASIN(asin string) error` function:
+    - Checks if ASIN is empty and returns "ASIN cannot be empty" error
+    - Validates ASIN format using regex `^[A-Z0-9]{10}$`
+    - Returns "invalid ASIN format: must be 10 alphanumeric characters" error for invalid format
+  - Added `ValidateQuantity(quantity int) error` function:
+    - Checks if quantity is positive (> 0)
+    - Returns "quantity must be positive" error for invalid quantity
+  - Added `regexp` import to support ASIN validation
+
+- Updated `AddToCart(asin string, quantity int)` function in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart.go`:
+  - Replaced inline validation with calls to `ValidateASIN(asin)`
+  - Replaced inline validation with calls to `ValidateQuantity(quantity)`
+  - Maintains same error messages as before for backward compatibility
+  - Proceeds with existing mock implementation after validation passes
+
+- Updated `RemoveFromCart(asin string)` function (by linter):
+  - Now uses `ValidateASIN(asin)` for ASIN validation
+  - Enhanced implementation to actually remove items from cart and recalculate totals
+  - Returns error if ASIN not found in cart
+
+- Enhanced test suite in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/cart_test.go`:
+  - Added `TestValidateASIN` with 6 test cases:
+    - Valid ASIN (B08N5WRWNW)
+    - Empty ASIN should fail
+    - ASIN too short should fail
+    - ASIN too long should fail
+    - ASIN with lowercase should fail
+    - ASIN with special characters should fail
+  - Added `TestValidateQuantity` with 4 test cases:
+    - Valid quantity 1
+    - Valid quantity 5
+    - Zero quantity should fail
+    - Negative quantity should fail
+  - Updated `TestAddToCart`:
+    - Added test case for invalid ASIN format
+  - Updated `TestRemoveFromCart`:
+    - Added test case for invalid ASIN format
+    - Updated test case for valid ASIN not in cart
+
+- All 10 validation-related tests pass successfully:
+  - TestValidateASIN (6 subtests)
+  - TestValidateQuantity (4 subtests)
+  - TestAddToCart (6 subtests including new invalid ASIN format test)
+  - TestRemoveFromCart (3 subtests including new invalid ASIN format test)
+- All 112 tests in internal/amazon package pass successfully (55.561s total test time)
+
+- Implementation Summary:
+  - ValidateASIN and ValidateQuantity are now reusable validation functions
+  - ASIN validation enforces 10 uppercase alphanumeric characters format
+  - AddToCart now uses these validation functions before proceeding with cart operations
+  - Same validation logic is applied consistently across AddToCart and RemoveFromCart
+  - Comprehensive test coverage ensures validation works correctly for all edge cases

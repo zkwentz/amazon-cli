@@ -2,6 +2,8 @@ package amazon
 
 import (
 	"testing"
+
+	"github.com/zkwentz/amazon-cli/pkg/models"
 )
 
 func TestValidateASIN(t *testing.T) {
@@ -377,51 +379,171 @@ func TestGetCart(t *testing.T) {
 
 func TestRemoveFromCart(t *testing.T) {
 	tests := []struct {
-		name      string
-		asin      string
-		wantErr   bool
-		errString string
+		name        string
+		setupCart   func(*Client) error
+		asin        string
+		wantErr     bool
+		errContains string
+		checkCart   func(*testing.T, *models.Cart)
 	}{
 		{
-			name:      "empty ASIN should fail",
-			asin:      "",
-			wantErr:   true,
-			errString: "ASIN cannot be empty",
+			name: "remove item from cart with single item",
+			setupCart: func(c *Client) error {
+				_, err := c.AddToCart("B08N5WRWNW", 1)
+				return err
+			},
+			asin:        "B08N5WRWNW",
+			wantErr:     false,
+			errContains: "",
+			checkCart: func(t *testing.T, cart *models.Cart) {
+				if len(cart.Items) != 0 {
+					t.Errorf("Expected 0 items in cart, got %d", len(cart.Items))
+				}
+				if cart.ItemCount != 0 {
+					t.Errorf("Expected ItemCount 0, got %d", cart.ItemCount)
+				}
+				if cart.Subtotal != 0 {
+					t.Errorf("Expected Subtotal 0, got %f", cart.Subtotal)
+				}
+				if cart.EstimatedTax != 0 {
+					t.Errorf("Expected EstimatedTax 0, got %f", cart.EstimatedTax)
+				}
+				if cart.Total != 0 {
+					t.Errorf("Expected Total 0, got %f", cart.Total)
+				}
+			},
 		},
 		{
-			name:      "invalid ASIN format should fail",
-			asin:      "INVALID",
-			wantErr:   true,
-			errString: "invalid ASIN format: must be 10 alphanumeric characters",
+			name: "remove one item from cart with multiple items",
+			setupCart: func(c *Client) error {
+				_, err := c.AddToCart("B08N5WRWNW", 1)
+				if err != nil {
+					return err
+				}
+				_, err = c.AddToCart("B07XJ8C8F5", 2)
+				return err
+			},
+			asin:        "B08N5WRWNW",
+			wantErr:     false,
+			errContains: "",
+			checkCart: func(t *testing.T, cart *models.Cart) {
+				if len(cart.Items) != 1 {
+					t.Errorf("Expected 1 item in cart, got %d", len(cart.Items))
+				}
+				if len(cart.Items) > 0 && cart.Items[0].ASIN != "B07XJ8C8F5" {
+					t.Errorf("Expected remaining item ASIN B07XJ8C8F5, got %s", cart.Items[0].ASIN)
+				}
+				if cart.ItemCount != 2 {
+					t.Errorf("Expected ItemCount 2, got %d", cart.ItemCount)
+				}
+				// Verify totals are recalculated correctly
+				expectedSubtotal := 29.99 * 2
+				if cart.Subtotal != expectedSubtotal {
+					t.Errorf("Expected Subtotal %f, got %f", expectedSubtotal, cart.Subtotal)
+				}
+				expectedTax := expectedSubtotal * 0.08
+				if cart.EstimatedTax != expectedTax {
+					t.Errorf("Expected EstimatedTax %f, got %f", expectedTax, cart.EstimatedTax)
+				}
+				expectedTotal := expectedSubtotal + expectedTax
+				if cart.Total != expectedTotal {
+					t.Errorf("Expected Total %f, got %f", expectedTotal, cart.Total)
+				}
+			},
 		},
 		{
-			name:      "valid ASIN not in cart",
-			asin:      "B08N5WRWNW",
-			wantErr:   true,
-			errString: "item with ASIN B08N5WRWNW not found in cart",
+			name: "remove item with multiple quantity",
+			setupCart: func(c *Client) error {
+				_, err := c.AddToCart("B08N5WRWNW", 3)
+				return err
+			},
+			asin:        "B08N5WRWNW",
+			wantErr:     false,
+			errContains: "",
+			checkCart: func(t *testing.T, cart *models.Cart) {
+				if len(cart.Items) != 0 {
+					t.Errorf("Expected 0 items in cart, got %d", len(cart.Items))
+				}
+				if cart.ItemCount != 0 {
+					t.Errorf("Expected ItemCount 0, got %d", cart.ItemCount)
+				}
+			},
+		},
+		{
+			name:        "empty ASIN should fail",
+			setupCart:   nil,
+			asin:        "",
+			wantErr:     true,
+			errContains: "ASIN cannot be empty",
+			checkCart:   nil,
+		},
+		{
+			name:        "invalid ASIN format should fail",
+			setupCart:   nil,
+			asin:        "INVALID",
+			wantErr:     true,
+			errContains: "invalid ASIN format",
+			checkCart:   nil,
+		},
+		{
+			name: "removing non-existent item should fail",
+			setupCart: func(c *Client) error {
+				_, err := c.AddToCart("B08N5WRWNW", 1)
+				return err
+			},
+			asin:        "B07XJ8C8F5",
+			wantErr:     true,
+			errContains: "not found in cart",
+			checkCart:   nil,
+		},
+		{
+			name:        "removing from empty cart should fail",
+			setupCart:   nil,
+			asin:        "B08N5WRWNW",
+			wantErr:     true,
+			errContains: "not found in cart",
+			checkCart:   nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := NewClient()
+
+			// Setup cart if needed
+			if tt.setupCart != nil {
+				if err := tt.setupCart(client); err != nil {
+					t.Fatalf("failed to setup cart: %v", err)
+				}
+			}
+
+			// Execute RemoveFromCart
 			cart, err := client.RemoveFromCart(tt.asin)
 
+			// Check error expectations
 			if tt.wantErr {
 				if err == nil {
 					t.Error("RemoveFromCart() expected error but got none")
-				} else if err.Error() != tt.errString {
-					t.Errorf("RemoveFromCart() error = %v, want %v", err.Error(), tt.errString)
+				} else if tt.errContains != "" && !contains(err.Error(), tt.errContains) {
+					t.Errorf("RemoveFromCart() error = %v, want error containing %q", err, tt.errContains)
 				}
 				return
 			}
 
+			// Check success expectations
 			if err != nil {
 				t.Errorf("RemoveFromCart() unexpected error: %v", err)
+				return
 			}
 
 			if cart == nil {
 				t.Error("RemoveFromCart() returned nil cart")
+				return
+			}
+
+			// Run additional cart checks if provided
+			if tt.checkCart != nil {
+				tt.checkCart(t, cart)
 			}
 		})
 	}
