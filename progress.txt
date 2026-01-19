@@ -2480,3 +2480,25 @@ amazon-cli subscriptions cancel SUB123 --confirm
 ### Files Modified:
 - pkg/models/errors.go (updated Error() method and imports)
 - pkg/models/errors_test.go (added 4 comprehensive test functions)
+
+## Task: Update NewCLIError Constructor with Details Parameter
+
+- Modified `NewCLIError` function in `pkg/models/errors.go`:
+  - Updated function signature from `NewCLIError(code, message string)` to `NewCLIError(code, message string, details map[string]interface{})`
+  - Added nil check for details parameter to initialize empty map if nil is passed
+  - This allows errors to be created with details in a single constructor call
+- Exit code constants already existed in the file:
+  - ExitSuccess = 0
+  - ExitGeneralError = 1
+  - ExitInvalidArgs = 2
+  - ExitAuthError = 3
+  - ExitNetworkError = 4
+  - ExitRateLimited = 5
+  - ExitNotFound = 6
+- Updated all existing test cases in `pkg/models/errors_test.go` to use the new 3-parameter signature
+- Added comprehensive test `TestNewCLIError_WithDetails` with 4 test cases:
+  - Tests constructor with nil details (should initialize to empty map)
+  - Tests constructor with empty details map
+  - Tests constructor with string details
+  - Tests constructor with mixed type details (int, string)
+- All tests passing successfully (9 test functions, multiple sub-tests)

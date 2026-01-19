@@ -34,7 +34,7 @@ func TestErrorCodesExist(t *testing.T) {
 
 // TestCLIErrorCreation tests creating and using CLI errors
 func TestCLIErrorCreation(t *testing.T) {
-	err := NewCLIError(ErrCaptchaRequired, "CAPTCHA verification required")
+	err := NewCLIError(ErrCaptchaRequired, "CAPTCHA verification required", nil)
 
 	if err.Code != ErrCaptchaRequired {
 		t.Errorf("Expected error code %s, got %s", ErrCaptchaRequired, err.Code)
@@ -58,7 +58,7 @@ func TestCLIErrorCreation(t *testing.T) {
 
 // TestCLIErrorWithDetails tests adding details to CLI errors
 func TestCLIErrorWithDetails(t *testing.T) {
-	err := NewCLIError(ErrCaptchaRequired, "CAPTCHA verification required").
+	err := NewCLIError(ErrCaptchaRequired, "CAPTCHA verification required", nil).
 		WithDetails(map[string]interface{}{
 			"url": "https://amazon.com/captcha",
 		})
@@ -227,7 +227,7 @@ func TestCLIError_ImplementsErrorInterface(t *testing.T) {
 	var _ error = &CLIError{}
 
 	// Runtime check
-	err := NewCLIError(ErrNetworkError, "Connection timeout")
+	err := NewCLIError(ErrNetworkError, "Connection timeout", nil)
 	errorString := err.Error()
 
 	if errorString == "" {
@@ -237,6 +237,84 @@ func TestCLIError_ImplementsErrorInterface(t *testing.T) {
 	// Verify the error string is valid JSON
 	if !json.Valid([]byte(errorString)) {
 		t.Errorf("Error() did not return valid JSON: %s", errorString)
+	}
+}
+
+// TestNewCLIError_WithDetails tests the NewCLIError constructor with details parameter
+func TestNewCLIError_WithDetails(t *testing.T) {
+	tests := []struct {
+		name     string
+		code     string
+		message  string
+		details  map[string]interface{}
+		wantNil  bool
+	}{
+		{
+			name:    "with nil details",
+			code:    ErrAuthRequired,
+			message: "Authentication required",
+			details: nil,
+			wantNil: false, // Should initialize to empty map
+		},
+		{
+			name:    "with empty details",
+			code:    ErrNotFound,
+			message: "Item not found",
+			details: map[string]interface{}{},
+			wantNil: false,
+		},
+		{
+			name:    "with string details",
+			code:    ErrInvalidInput,
+			message: "Invalid input provided",
+			details: map[string]interface{}{
+				"field": "asin",
+				"value": "INVALID",
+			},
+			wantNil: false,
+		},
+		{
+			name:    "with mixed type details",
+			code:    ErrRateLimited,
+			message: "Rate limit exceeded",
+			details: map[string]interface{}{
+				"retry_after": 60,
+				"limit":       100,
+				"endpoint":    "/api/cart",
+				"remaining":   0,
+			},
+			wantNil: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := NewCLIError(tt.code, tt.message, tt.details)
+
+			// Verify basic fields
+			if err.Code != tt.code {
+				t.Errorf("Code = %q, want %q", err.Code, tt.code)
+			}
+			if err.Message != tt.message {
+				t.Errorf("Message = %q, want %q", err.Message, tt.message)
+			}
+
+			// Verify Details is never nil
+			if err.Details == nil {
+				t.Error("Details should never be nil")
+			}
+
+			// Verify details content
+			if tt.details != nil && len(tt.details) > 0 {
+				for key, expectedValue := range tt.details {
+					if actualValue, exists := err.Details[key]; !exists {
+						t.Errorf("Expected detail key %q not found", key)
+					} else if actualValue != expectedValue {
+						t.Errorf("Detail[%q] = %v, want %v", key, actualValue, expectedValue)
+					}
+				}
+			}
+		})
 	}
 }
 

@@ -47,11 +47,14 @@ func (e *CLIError) Error() string {
 }
 
 // NewCLIError creates a new CLIError
-func NewCLIError(code, message string) *CLIError {
+func NewCLIError(code, message string, details map[string]interface{}) *CLIError {
+	if details == nil {
+		details = map[string]interface{}{}
+	}
 	return &CLIError{
 		Code:    code,
 		Message: message,
-		Details: map[string]interface{}{},
+		Details: details,
 	}
 }
 
