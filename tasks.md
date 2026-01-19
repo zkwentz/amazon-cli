@@ -78,9 +78,9 @@ Each task is independent and self-contained. Execute in order for best results.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/cmd/returns.go`, implement `returns label <return-id>` and `returns status <return-id>` commands that call respective client methods and output JSON.
 
-- [ ] Create file `internal/amazon/returns_test.go` with tests: TestCreateReturn_InvalidReason_ReturnsError, TestCreateReturn_ValidReason_Succeeds, TestGetReturnableItems_ParsesHTML (using fixture).
+- [x] Create file `internal/amazon/returns_test.go` with tests: TestCreateReturn_InvalidReason_ReturnsError, TestCreateReturn_ValidReason_Succeeds, TestGetReturnableItems_ParsesHTML (using fixture).
 
-- [ ] Create file `testdata/search/search_results_sample.html` with sample HTML mimicking Amazon search results page showing 5 products with ASIN, title, price, rating, review_count, prime badge, stock status.
+- [x] Create file `testdata/search/search_results_sample.html` with sample HTML mimicking Amazon search results page showing 5 products with ASIN, title, price, rating, review_count, prime badge, stock status.
 
 - [ ] In file `/Users/zacharywentz/Development/amazon-cli/internal/amazon/search.go`, implement `parseSearchResultsHTML(html []byte) ([]models.Product, error)` that parses search HTML and extracts ASIN, title, price, rating, review_count, prime, in_stock for each product.
 

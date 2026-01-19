@@ -976,3 +976,123 @@
   - Integrated with existing error handling patterns (models.ErrInvalidInput, output.Error)
   - Commands registered with parent returns command in init() function
   - Mock implementations return realistic sample data for testing
+
+## Task: Search HTML Parser Implementation
+
+- Updated `/Users/zacharywentz/Development/amazon-cli/internal/amazon/search.go`:
+  - Added imports: bytes, fmt, regexp, strconv for HTML parsing
+  - Added `github.com/PuerkitoBio/goquery` for HTML document parsing
+  - Implemented `parseSearchResultsHTML(html []byte) ([]models.Product, error)`:
+    - Parses HTML using goquery document parser from bytes reader
+    - Returns error with context if HTML parsing fails
+    - Iterates through all `div[data-asin]` elements to find products
+    - Extracts ASIN from `data-asin` attribute (primary product identifier)
+    - Extracts title using multiple CSS selectors:
+      - `h2 a span` - Title link with span wrapper
+      - `.s-title-instructions-style` - Alternative title class
+      - `h2.s-line-clamp-2` - Title with line clamp
+      - `h2 span` - Generic h2 span fallback
+    - Skips products without title (likely not valid products)
+    - Extracts price from `.a-price .a-offscreen` or `.a-price-whole` using `parsePriceFromText()`
+    - Extracts original price from `.a-price.a-text-price .a-offscreen` for sale items
+    - Sets OriginalPrice only if different from current price
+    - Extracts rating from `span[aria-label*='out of']` or `.a-icon-star-small span.a-icon-alt`
+    - Checks for `aria-label` attribute for more accurate rating text
+    - Parses rating text using `parseRating()` helper
+    - Extracts review count from `span[aria-label*='ratings']` or `.a-size-base.s-underline-text`
+    - Parses review count using `parseReviewCount()` helper
+    - Determines Prime eligibility by checking for:
+      - `i.a-icon-prime` - Prime icon element
+      - `.s-prime` - Prime class
+      - `[aria-label*='Prime']` - Prime aria label
+    - Defaults InStock to true, sets to false if availability text contains:
+      - "unavailable", "out of stock", or "currently unavailable"
+    - Only adds products with ASIN, title, and price > 0 to results
+    - Returns slice of models.Product structs
+  - Implemented `parsePriceFromText(priceStr string) float64` helper:
+    - Trims whitespace from input string
+    - Uses regex `[\d,]+\.?\d*` to extract numeric value
+    - Handles formats like "$29.99", "$1,299.99", "99.95"
+    - Removes commas from large numbers
+    - Parses to float64 with error handling
+    - Returns 0.0 for invalid or empty strings
+  - Implemented `parseRating(ratingText string) float64` helper:
+    - Extracts rating from "X.X out of 5 stars" format
+    - Uses regex `(\d+\.?\d*)\s*out of` for primary extraction
+    - Falls back to regex `\d+\.\d+` for simple decimal format
+    - Handles formats like "4.5 out of 5 stars", "4.7", "3.2"
+    - Returns 0.0 for invalid or empty strings
+  - Implemented `parseReviewCount(reviewText string) int` helper:
+    - Extracts count from "X,XXX ratings" or "XXXX" format
+    - Uses regex `([\d,]+)` to find numeric value
+    - Removes commas before parsing to integer
+    - Handles formats like "1,234 ratings", "52,431", "100"
+    - Returns 0 for invalid or empty strings
+
+- Created comprehensive test suite in `/Users/zacharywentz/Development/amazon-cli/internal/amazon/search_test.go`:
+  - `TestParseSearchResultsHTML` - Tests parsing of complete search results:
+    - Sample HTML with 3 products (Sony headphones, AirPods, Bose headphones)
+    - Verifies all fields extracted correctly:
+      - Product 1: ASIN, title, price $278, original price $349.99, rating 4.7, 52,431 reviews, Prime, in stock
+      - Product 2: ASIN, price $189.99, rating 4.8, 89,234 reviews, Prime, in stock
+      - Product 3: ASIN, price $249, rating 4.6, 31,256 reviews, out of stock
+    - Tests multiple HTML structures and selectors
+  - `TestParseSearchResultsHTML_EmptyHTML` - Tests empty HTML returns 0 products
+  - `TestParseSearchResultsHTML_InvalidHTML` - Tests invalid HTML gracefully returns 0 products
+  - `TestParseSearchResultsHTML_MissingFields` - Tests products without required fields are skipped
+  - `TestParseSearchResultsHTML_NoASIN` - Tests products without ASIN are skipped
+  - `TestParsePriceFromText` - 9 subtests for price parsing:
+    - "$29.99" → 29.99
+    - "$1,299.99" → 1299.99
+    - "$10" → 10.0
+    - "99.95" → 99.95
+    - "1234" → 1234.0
+    - "$1,234,567.89" → 1234567.89
+    - "" → 0.0
+    - "no price here" → 0.0
+    - "  $49.99  " → 49.99 (with whitespace)
+  - `TestParseRating` - 8 subtests for rating parsing:
+    - "4.5 out of 5 stars" → 4.5
+    - "4.7 out of 5" → 4.7
+    - "5.0 out of 5 stars" → 5.0
+    - "3.2" → 3.2
+    - "4.8" → 4.8
+    - "" → 0.0
+    - "no rating" → 0.0
+    - "  4.6 out of 5 stars  " → 4.6 (with whitespace)
+  - `TestParseReviewCount` - 8 subtests for review count parsing:
+    - "1,234 ratings" → 1234
+    - "52,431" → 52431
+    - "100" → 100
+    - "1234567" → 1234567
+    - "10,000 ratings" → 10000
+    - "" → 0
+    - "no count" → 0
+    - "  5,678  " → 5678 (with whitespace)
+  - `TestParseSearchResultsHTML_VariousPrimeIndicators` - Tests 3 Prime indicator types:
+    - Icon Prime: `i.a-icon-prime` element
+    - Class Prime: `.s-prime` class element
+    - Aria Label Prime: `aria-label="Prime"` attribute
+  - `TestParseSearchResultsHTML_StockStatus` - Tests 4 stock status scenarios:
+    - In Stock: empty text → true
+    - Unavailable: "Currently unavailable" → false
+    - Out of Stock: "Out of Stock" → false
+    - Unavailable Caps: "UNAVAILABLE" → false (case insensitive)
+  - `TestParseSearchResultsHTML_MultipleProducts` - Tests parsing 5 products:
+    - Verifies correct count and price for each product
+  - All 11 test functions passing successfully (0.286s total test time)
+  - Tests cover happy path, edge cases, helper functions, and various HTML structures
+  - Tests use realistic Amazon HTML structures with multiple selector variations
+
+- Implementation Summary:
+  - Parser handles multiple Amazon search result HTML formats
+  - Robust selector fallbacks for title, price, and rating extraction
+  - Comprehensive validation - only includes products with ASIN, title, and price
+  - Helper functions isolated for easy testing and reuse
+  - Graceful handling of missing or malformed data
+  - Case-insensitive stock status checking
+  - Multiple Prime eligibility indicators supported
+  - Original price extraction for sale/discount detection
+  - Review count and rating parsing handles various formats
+  - Parser returns empty array (not error) for invalid HTML or no results
+  - Follows same patterns as existing order parsing code (goquery, helper functions, validation)
